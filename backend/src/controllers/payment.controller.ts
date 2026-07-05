@@ -15,18 +15,35 @@ import { logger } from '../utils/logger';
 // POST /api/payments/razorpay/create-order
 export const razorpayCreateOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId } = req.body;
+    const { productIds } = req.body;
 
-    const product = await Product.findById(productId);
-    if (!product) return sendError(res, 'Product not found.', 404);
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return sendError(res, 'Product IDs are required.', 400);
+    }
 
-    const razorpayOrder = await createRazorpayOrder(product.price);
+    const products = await Product.find({ _id: { $in: productIds } });
+    
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+    let subtotal = 0;
+    
+    for (const id of productIds) {
+      const p = productMap.get(id.toString());
+      if (!p) {
+        return sendError(res, `Product not found: ${id}`, 404);
+      }
+      subtotal += p.price;
+    }
+
+    const platformFee = subtotal * 0.02;
+    const totalAmount = subtotal + platformFee;
+
+    const razorpayOrder = await createRazorpayOrder(totalAmount);
 
     return sendSuccess(res, {
       orderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      productId: product._id,
+      productIds: products.map(p => p._id),
     });
   } catch (error: any) {
     logger.error('Razorpay order creation failed:', error);
@@ -37,7 +54,7 @@ export const razorpayCreateOrder = async (req: AuthRequest, res: Response) => {
 // POST /api/payments/razorpay/verify
 export const razorpayVerify = async (req: AuthRequest, res: Response) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderIds } = req.body;
 
     const isValid = verifyRazorpaySignature(
       razorpay_order_id,
@@ -49,25 +66,31 @@ export const razorpayVerify = async (req: AuthRequest, res: Response) => {
       return sendError(res, 'Payment verification failed.', 400);
     }
 
-    const order = await Order.findByIdAndUpdate(
-      orderId,
+    if (!orderIds || !Array.isArray(orderIds)) {
+      return sendError(res, 'Order IDs are required.', 400);
+    }
+
+    await Order.updateMany(
+      { _id: { $in: orderIds } },
       {
-        paymentStatus: 'paid',
-        paymentId: razorpay_payment_id,
-      },
-      { new: true }
+        $set: {
+          paymentStatus: 'paid',
+          paymentId: razorpay_payment_id,
+        }
+      }
     );
 
-    if (order) {
+    const firstOrder = await Order.findById(orderIds[0]);
+    if (firstOrder) {
       await sendPushNotification(
-        order.user.toString(),
+        firstOrder.user.toString(),
         'Payment Successful!',
         'Your payment has been verified and order confirmed.',
         'payment'
       );
     }
 
-    return sendSuccess(res, order, 'Payment verified successfully.');
+    return sendSuccess(res, null, 'Payment verified successfully.');
   } catch (error: any) {
     logger.error('Razorpay verification failed:', error);
     return sendError(res, 'Payment verification failed.');

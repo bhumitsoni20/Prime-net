@@ -2,8 +2,8 @@ import { apiPost } from './api';
 
 // ─── Razorpay ───────────────────────────────────────────
 
-export const createRazorpayOrder = (productId) =>
-  apiPost('/payments/razorpay/create-order', { productId });
+export const createRazorpayOrder = (productIds) =>
+  apiPost('/payments/razorpay/create-order', { productIds });
 
 export const verifyRazorpayPayment = (data) =>
   apiPost('/payments/razorpay/verify', data);

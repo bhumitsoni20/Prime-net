@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 const Dashboard = () => {
   const { user } = useAuthStore();
 
-  const { data: orders = [], isLoading } = useQuery({
+  const { data: rawOrders = [], isLoading } = useQuery({
     queryKey: ['myOrders'],
     queryFn: async () => {
       const response = await getMyOrders();
@@ -19,9 +19,12 @@ const Dashboard = () => {
     },
   });
 
+  // Filter out abandoned checkouts where payment was never successfully completed
+  const orders = rawOrders.filter(o => o.paymentStatus === 'paid');
+
   const totalOrders = orders.length;
   const totalSpent = orders.reduce((sum, order) => sum + (order.amount || order.totalAmount || 0), 0);
-  const pendingOrders = orders.filter(o => o.orderStatus === 'pending' || o.orderStatus === 'processing').length;
+  const pendingOrders = orders.filter(o => o.orderStatus === 'placed').length;
 
   return (
     <div>

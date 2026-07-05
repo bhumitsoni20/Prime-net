@@ -1,17 +1,73 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Badge from '../../components/ui/Badge';
 import { HiShieldCheck, HiLockClosed } from 'react-icons/hi';
 import useCart from '../../hooks/useCart';
+import useAuthStore from '../../store/authStore';
+import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/payment.service';
+import { apiPost } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Checkout = () => {
-  const [paymentMethod, setPaymentMethod] = useState('credit');
-  const { items: cartItems, total: subtotal } = useCart();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { items: cartItems, total: subtotal, clearCart } = useCart();
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
   
   const platformFee = subtotal * 0.02;
   const total = subtotal + platformFee;
+
+  const handlePayment = async () => {
+    if (cartItems.length === 0) return toast.error('Your cart is empty');
+
+    try {
+      setIsProcessing(true);
+
+      // 1. Create Razorpay order via backend (for all items)
+      const productIds = cartItems.map(item => item._id);
+      const { data: rzpOrder } = await createRazorpayOrder(productIds);
+
+      // 2. Create pending DB orders for all items
+      const orderPromises = cartItems.map(item => 
+        apiPost('/orders', {
+          productId: item._id,
+          paymentMethod: 'razorpay'
+        })
+      );
+      const dbOrdersResponses = await Promise.all(orderPromises);
+      const orderIds = dbOrdersResponses.map(res => res.data._id);
+
+      // 3. Open Razorpay Checkout Modal
+      openRazorpayCheckout(
+        rzpOrder,
+        user,
+        async (response) => {
+          try {
+            // 4. Verify payment with backend for all orders
+            await verifyRazorpayPayment({
+              ...response,
+              orderIds: orderIds
+            });
+            
+            toast.success('Payment successful!');
+            clearCart();
+            navigate('/dashboard/orders');
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Payment verification failed');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        (errorMsg) => {
+          toast.error(errorMsg);
+          setIsProcessing(false);
+        }
+      );
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to initiate payment');
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -23,60 +79,20 @@ const Checkout = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Left — Payment Form */}
+        {/* Left — Payment Info */}
         <div className="lg:col-span-3 space-y-8">
-          {/* Step 1: Payment Method */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="h-7 w-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</span>
-              <h2 className="text-lg font-bold text-gray-900">Payment Method</h2>
+          <div className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
+            <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <HiShieldCheck className="w-8 h-8" />
             </div>
-            <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
-              {['Credit Card', 'UPI', 'Net Banking'].map((m) => (
-                <button key={m} onClick={() => setPaymentMethod(m.toLowerCase())} className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${paymentMethod === m.toLowerCase() ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500'}`}>{m}</button>
-              ))}
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Checkout Securely with Razorpay</h2>
+            <p className="text-gray-500 max-w-md mb-8 leading-relaxed">
+              Click the button on the right to open the secure Razorpay payment gateway. You can pay effortlessly via UPI, Credit/Debit Cards, or Net Banking.
+            </p>
+            <div className="flex items-center gap-6 text-sm text-gray-400 font-medium">
+              <span className="flex items-center gap-2"><HiShieldCheck className="w-5 h-5 text-green-500" /> PCI DSS Compliant</span>
+              <span className="flex items-center gap-2"><HiLockClosed className="w-5 h-5 text-indigo-500" /> 256-bit SSL</span>
             </div>
-            <div className="space-y-4">
-              <Input label="CARDHOLDER NAME" placeholder="John Doe" />
-              <Input label="CARD NUMBER" placeholder="0000 0000 0000 0000" />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="EXPIRY DATE" placeholder="MM/YY" />
-                <Input label="CVV" placeholder="123" />
-              </div>
-            </div>
-          </div>
-
-          {/* Step 2: Billing Address */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="h-7 w-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">2</span>
-              <h2 className="text-lg font-bold text-gray-900">Billing Address</h2>
-            </div>
-            <div className="space-y-4">
-              <Input label="STREET ADDRESS" placeholder="123 Innovation Way" />
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="CITY" placeholder="Mumbai" />
-                <Input label="STATE / PROVINCE" placeholder="Maharashtra" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Input label="ZIP / POSTAL CODE" placeholder="400001" />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">COUNTRY</label>
-                  <select className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
-                    <option>India</option>
-                    <option>United States</option>
-                    <option>United Kingdom</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Security badges */}
-          <div className="flex items-center justify-center gap-8 text-sm text-gray-500 py-4">
-            <span className="flex items-center gap-1.5"><HiShieldCheck className="w-4 h-4 text-gray-400" /> PCI DSS Compliant</span>
-            <span className="flex items-center gap-1.5"><HiLockClosed className="w-4 h-4 text-gray-400" /> 256-bit SSL Encryption</span>
-            <span className="flex items-center gap-1.5"><HiShieldCheck className="w-4 h-4 text-gray-400" /> Fraud Protection</span>
           </div>
         </div>
 
@@ -120,7 +136,14 @@ const Checkout = () => {
               </div>
             </div>
 
-            <Button size="lg" className="w-full mb-3">Complete Purchase</Button>
+            <Button 
+              size="lg" 
+              className="w-full mb-3" 
+              onClick={handlePayment} 
+              disabled={isProcessing || cartItems.length === 0}
+            >
+              {isProcessing ? 'Processing...' : 'Complete Purchase'}
+            </Button>
             <p className="text-xs text-gray-400 text-center">By clicking 'Complete Purchase', you agree to our <Link to="/terms" className="text-indigo-600 underline">Terms of Service</Link> and <Link to="/privacy" className="text-indigo-600 underline">Privacy Policy</Link>.</p>
 
             {/* Guarantee */}

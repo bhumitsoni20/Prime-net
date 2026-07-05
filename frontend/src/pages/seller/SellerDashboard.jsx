@@ -38,8 +38,8 @@ const SellerDashboard = () => {
     fetchData();
   }, []);
 
-  const totalSales = orders.filter(o => o.orderStatus === 'delivered' || o.paymentStatus === 'paid').reduce((acc, curr) => acc + (curr.amount || curr.totalAmount || 0), 0);
-  const pendingOrders = orders.filter(o => o.orderStatus === 'pending' || o.orderStatus === 'processing').length;
+  const totalSales = orders.filter(o => o.paymentStatus === 'paid').reduce((acc, curr) => acc + (curr.amount || curr.totalAmount || 0), 0);
+  const pendingOrders = orders.filter(o => o.orderStatus === 'placed' && o.paymentStatus === 'paid').length;
   // unique customers
   const uniqueCustomers = new Set(orders.map(o => o.user?._id)).size;
 

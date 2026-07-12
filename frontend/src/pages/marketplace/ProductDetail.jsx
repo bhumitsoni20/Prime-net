@@ -59,7 +59,7 @@ const ProductDetail = () => {
 
   const submitReview = async (e) => {
     e.preventDefault();
-    if (!reviewForm.rating || !reviewForm.comment.trim()) return;
+    if (!reviewForm.rating) return;
     
     setIsSubmittingReview(true);
     try {
@@ -231,7 +231,6 @@ const ProductDetail = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
                 <textarea
-                  required
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none"
                   placeholder="What did you like or dislike about this product?"

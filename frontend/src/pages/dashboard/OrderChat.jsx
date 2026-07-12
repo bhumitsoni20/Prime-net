@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { 
   HiPaperAirplane, HiPhotograph, HiPaperClip, HiEmojiHappy, 
   HiChevronLeft, HiDotsVertical, HiCheckCircle, HiClock, 
-  HiShieldCheck, HiOutlineDocumentDownload, HiOutlineExclamationCircle 
+  HiShieldCheck, HiOutlineDocumentDownload, HiOutlineExclamationCircle, HiStar, HiOutlineStar 
 } from 'react-icons/hi';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
@@ -33,6 +33,14 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
   const [credEmail, setCredEmail] = useState('');
   const [credPassword, setCredPassword] = useState('');
   const [credNotes, setCredNotes] = useState('');
+
+  // Review state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -147,9 +155,42 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
         notes: credNotes
       });
       toast.success('Credentials delivered!');
+      setCredNotes('');
       setShowCredentialsModal(false);
     } catch (err) {
       toast.error('Failed to deliver credentials');
+    }
+  };
+
+  const handleCompleteOrder = async () => {
+    try {
+      const res = await apiPut(`/orders/${orderId}/status`, { orderStatus: 'completed' });
+      setOrder(res.data);
+      toast.success('Order completed successfully!');
+      
+      // Only show review modal if product still exists
+      if (res.data.product?._id || order.product?._id) {
+        setShowReviewModal(true);
+      }
+    } catch (err) {
+      toast.error('Failed to complete order');
+    }
+  };
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!rating) return toast.error('Please select a rating');
+
+    try {
+      await apiPost('/reviews', {
+        productId: order.product?._id,
+        rating,
+        comment: reviewComment,
+      });
+      toast.success('Review submitted successfully!');
+      setShowReviewModal(false);
+    } catch (err) {
+      toast.error('Failed to submit review');
     }
   };
 
@@ -188,11 +229,13 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
           }`}>
             {order.orderStatus}
           </div>
-          <button className="p-2 hover:bg-gray-100 rounded-full"><HiDotsVertical className="w-5 h-5 text-gray-500"/></button>
+          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-2 hover:bg-gray-100 rounded-full lg:hidden transition-colors">
+            <HiDotsVertical className="w-5 h-5 text-gray-500"/>
+          </button>
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar - Context (Hidden on small screens) */}
         <aside className="w-80 bg-white border-r border-gray-200 flex-shrink-0 hidden lg:flex flex-col p-6 overflow-y-auto">
           <div className="mb-8">
@@ -344,9 +387,13 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
         </main>
 
         {/* Right Sidebar - Actions */}
-        <aside className="w-80 bg-white border-l border-gray-200 flex-shrink-0 flex flex-col p-6 overflow-y-auto">
+        <div className={`fixed inset-0 bg-gray-900/20 z-20 transition-opacity lg:hidden ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowMobileSidebar(false)}></div>
+        <aside className={`absolute right-0 top-0 bottom-0 z-30 w-80 bg-white border-l border-gray-200 flex-shrink-0 flex flex-col p-6 overflow-y-auto transform transition-transform duration-300 lg:relative ${showMobileSidebar ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
           <div className="mb-8">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Order Timeline</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Timeline</h3>
+              <button onClick={() => setShowMobileSidebar(false)} className="lg:hidden text-sm text-gray-500 font-medium hover:text-gray-900">Close</button>
+            </div>
             <div className="space-y-5">
               {['placed', 'preparing', 'delivered', 'completed'].map((step, idx) => {
                 const stepIndex = ['placed', 'preparing', 'delivered', 'completed'].indexOf(order.orderStatus);
@@ -375,7 +422,7 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
               </Button>
             )}
             {!isSeller && order.orderStatus === 'delivered' && (
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200">
+              <Button onClick={handleCompleteOrder} className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200">
                 Confirm & Complete
               </Button>
             )}
@@ -422,6 +469,55 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
                 <div className="flex gap-3 pt-4">
                   <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowCredentialsModal(false)}>Cancel</Button>
                   <Button type="submit" className="flex-1">Send Securely</Button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {showReviewModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-gray-100"
+            >
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Rate Your Experience</h2>
+              <p className="text-center text-gray-500 text-sm mb-6">How was your experience with {otherUser?.name || 'this seller'}?</p>
+              
+              <form onSubmit={submitReview} className="space-y-6">
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className="focus:outline-none transition-transform hover:scale-110"
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setRating(star)}
+                    >
+                      {star <= (hoverRating || rating) ? (
+                        <HiStar className="w-10 h-10 text-yellow-400" />
+                      ) : (
+                        <HiOutlineStar className="w-10 h-10 text-gray-300" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Write a Review (Optional)</label>
+                  <textarea rows="4" value={reviewComment} onChange={e=>setReviewComment(e.target.value)} placeholder="Describe your experience with this seller..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none"></textarea>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowReviewModal(false)}>Skip for now</Button>
+                  <Button type="submit" className="flex-1">Submit Review</Button>
                 </div>
               </form>
             </motion.div>

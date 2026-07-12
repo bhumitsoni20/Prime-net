@@ -104,6 +104,18 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     const order = await Order.findById(req.params.id);
     if (!order) return sendError(res, 'Order not found.', 404);
 
+    // Authorization checks
+    if (orderStatus === 'completed') {
+      console.log('Completing order. Buyer:', order.user.toString(), 'Current user:', req.user._id.toString(), 'Role:', req.user.role);
+      if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return sendError(res, 'Only the buyer can complete the order', 403);
+      }
+    } else {
+      if (order.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return sendError(res, 'Only the seller can update the order status', 403);
+      }
+    }
+
     order.orderStatus = orderStatus;
     if (!order.timeline) order.timeline = [];
     order.timeline.push({ status: orderStatus, date: new Date() });

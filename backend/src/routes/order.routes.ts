@@ -21,7 +21,7 @@ router.get('/', authenticate, getMyOrders);
 router.get('/chats', authenticate, getMyChats);
 router.get('/seller/me', authenticate, authorize('seller', 'admin'), getSellerOrders);
 router.get('/:id', authenticate, getOrder);
-router.put('/:id/status', authenticate, authorize('seller', 'admin'), updateOrderStatus);
+router.put('/:id/status', authenticate, updateOrderStatus);
 router.get('/:id/chat', authenticate, getOrderChat);
 router.post('/:id/chat', authenticate, sendOrderMessage);
 router.put('/:id/deliver', authenticate, authorize('seller', 'admin'), deliverOrderCredentials);

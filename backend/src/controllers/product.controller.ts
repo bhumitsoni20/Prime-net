@@ -12,7 +12,10 @@ export const getProducts = async (req: Request, res: Response) => {
 
     const filter: any = { status: 'active' };
 
-    if (req.query.category) filter.category = req.query.category;
+    if (req.query.category) {
+      const categories = (req.query.category as string).split(',');
+      filter.category = { $in: categories };
+    }
     if (req.query.search) {
       filter.$text = { $search: req.query.search as string };
     }
@@ -20,6 +23,9 @@ export const getProducts = async (req: Request, res: Response) => {
       filter.price = {};
       if (req.query.minPrice) filter.price.$gte = parseFloat(req.query.minPrice as string);
       if (req.query.maxPrice) filter.price.$lte = parseFloat(req.query.maxPrice as string);
+    }
+    if (req.query.minRating) {
+      filter.ratings = { $gte: parseFloat(req.query.minRating as string) };
     }
 
     const sort: any = {};

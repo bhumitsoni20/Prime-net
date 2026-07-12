@@ -6,12 +6,14 @@ import Sidebar from '../common/Sidebar';
 const DashboardLayout = () => {
   const location = useLocation();
   const outlet = useOutlet();
+  
+  const isChatsPage = location.pathname.startsWith('/dashboard/chats');
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <Sidebar />
-      <main className="pt-20 lg:pl-60 min-h-screen overflow-x-hidden">
+      {!isChatsPage && <Sidebar />}
+      <main className={`pt-20 min-h-screen overflow-x-hidden ${isChatsPage ? '' : 'lg:pl-60'}`}>
         <div className="p-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div

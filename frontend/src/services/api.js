@@ -29,6 +29,7 @@ const api = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
+    console.error(`API Error on ${endpoint}:`, data.message || data);
     throw new Error(data.message || 'Something went wrong');
   }
 

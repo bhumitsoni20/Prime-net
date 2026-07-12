@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiPlay } from 'react-icons/hi';
+import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiPlay, HiChatAlt2 } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useCartStore from '../../store/cartStore';
 import { apiGet } from '../../services/api';
@@ -101,6 +101,9 @@ const Navbar = () => {
                   {unreadCount > 0 && (
                     <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
                   )}
+                </Link>
+                <Link to="/dashboard/chats" className="relative p-2 text-gray-500 hover:text-indigo-600 transition-colors" title="Chats">
+                  <HiChatAlt2 className="w-5 h-5" />
                 </Link>
                 <Link to="/cart" className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
                   <HiShoppingCart className="w-5 h-5" />

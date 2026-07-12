@@ -7,9 +7,12 @@ import useAuthStore from '../../store/authStore';
 import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/payment.service';
 import { apiPost } from '../../services/api';
 import toast from 'react-hot-toast';
+import PaymentSuccessAnimation from '../../components/ui/PaymentSuccessAnimation';
 
 const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successOrderIds, setSuccessOrderIds] = useState([]);
   const { items: cartItems, total: subtotal, clearCart } = useCart();
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -49,9 +52,9 @@ const Checkout = () => {
               orderIds: orderIds
             });
             
-            toast.success('Payment successful!');
+            setSuccessOrderIds(orderIds);
+            setShowSuccess(true);
             clearCart();
-            navigate('/dashboard/orders');
           } catch (err) {
             toast.error(err.response?.data?.message || 'Payment verification failed');
           } finally {
@@ -69,8 +72,18 @@ const Checkout = () => {
     }
   };
 
+  const handleSuccessComplete = () => {
+    if (successOrderIds.length === 1) {
+      navigate(`/dashboard/chats/${successOrderIds[0]}`);
+    } else {
+      toast.success('Orders created successfully!');
+      navigate('/dashboard/chats');
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {showSuccess && <PaymentSuccessAnimation onComplete={handleSuccessComplete} />}
       {/* Top bar */}
       <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
         <Link to="/" className="text-xl font-bold text-gray-900"><span className="text-indigo-600">Stream</span>kart</Link>

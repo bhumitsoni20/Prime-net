@@ -27,8 +27,10 @@ const ProductList = () => {
   const params = new URLSearchParams();
   params.set('page', page.toString());
   params.set('limit', '20');
-  if (selectedCats.length > 0) params.set('category', selectedCats[0]);
+  if (selectedCats.length > 0) params.set('category', selectedCats.join(','));
   if (search) params.set('search', search);
+  if (priceRange[1] < 2000) params.set('maxPrice', priceRange[1].toString());
+  if (ratingFilter > 0) params.set('minRating', ratingFilter.toString());
 
   const { data, isLoading } = useProducts(params.toString());
 
@@ -53,39 +55,49 @@ const ProductList = () => {
           <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Filters</h3>
 
           {/* Categories */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center justify-between">
-              Categories <span className="text-gray-400 cursor-pointer">^</span>
+          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
+            <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center justify-between">
+              Categories
             </h4>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {allCategories.map((cat) => (
-                <label key={cat.value} className="flex items-center gap-2.5 text-sm text-gray-600 cursor-pointer hover:text-gray-900">
-                  <input
-                    type="checkbox"
-                    checked={selectedCats.includes(cat.value)}
-                    onChange={() => toggleCategory(cat.value)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  {cat.label}
+                <label key={cat.value} className="flex items-center gap-3 text-sm text-gray-600 cursor-pointer hover:text-gray-900 group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedCats.includes(cat.value)}
+                      onChange={() => toggleCategory(cat.value)}
+                      className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 checked:border-indigo-600 checked:bg-indigo-600 transition-all"
+                    />
+                    <span className="pointer-events-none absolute text-white opacity-0 peer-checked:opacity-100">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                      </svg>
+                    </span>
+                  </div>
+                  <span className="group-hover:font-medium transition-all">{cat.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Price Range */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Price Range</h4>
+          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
+            <h4 className="text-sm font-bold text-gray-900 mb-4 flex justify-between items-center">
+              Max Price <span className="text-indigo-600 font-mono bg-indigo-50 px-2 py-1 rounded-lg">₹{priceRange[1]}</span>
+            </h4>
             <input
               type="range"
               min="0"
               max="2000"
+              step="50"
               value={priceRange[1]}
               onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-              className="w-full accent-indigo-600"
+              className="w-full accent-indigo-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>$0</span>
-              <span>${priceRange[1]}+</span>
+            <div className="flex justify-between text-xs text-gray-400 mt-2 font-medium">
+              <span>₹0</span>
+              <span>₹2000+</span>
             </div>
           </div>
 
@@ -95,16 +107,25 @@ const ProductList = () => {
           </Button>
 
           {/* Rating */}
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center justify-between">
-              Rating <span className="text-gray-400 cursor-pointer">^</span>
+          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
+            <h4 className="text-sm font-bold text-gray-900 mb-4">
+              Minimum Rating
             </h4>
-            <div className="space-y-2">
-              {[5, 3, 2, 1].map((r) => (
-                <button key={r} onClick={() => setRatingFilter(r)} className={`flex items-center gap-1 w-full text-left text-sm ${ratingFilter === r ? 'text-indigo-600' : 'text-gray-500'}`}>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`text-base ${i < r ? 'text-amber-400' : 'text-gray-200'}`}>★</span>
-                  ))}
+            <div className="space-y-3">
+              {[5, 4, 3, 2, 1].map((r) => (
+                <button 
+                  key={r} 
+                  onClick={() => { setRatingFilter(r); setPage(1); }} 
+                  className={`flex items-center justify-between w-full text-left text-sm p-2 rounded-lg transition-all ${ratingFilter === r ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-gray-50 border border-transparent'}`}
+                >
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className={`text-lg ${i < r ? 'text-amber-400 drop-shadow-sm' : 'text-gray-200'}`}>★</span>
+                    ))}
+                  </div>
+                  <span className={`text-xs font-medium ${ratingFilter === r ? 'text-indigo-600' : 'text-gray-400'}`}>
+                    {r === 5 ? '5.0' : `${r}.0 & up`}
+                  </span>
                 </button>
               ))}
             </div>

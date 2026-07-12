@@ -32,6 +32,7 @@ const NotFound = lazy(() => import('../pages/public/NotFound'));
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
 const Orders = lazy(() => import('../pages/dashboard/Orders'));
 const OrderDetail = lazy(() => import('../pages/dashboard/OrderDetail'));
+const Chats = lazy(() => import('../pages/dashboard/Chats'));
 const Profile = lazy(() => import('../pages/dashboard/Profile'));
 const Notifications = lazy(() => import('../pages/marketplace/Notifications'));
 const SellerApplication = lazy(() => import('../pages/dashboard/SellerApplication'));
@@ -88,6 +89,7 @@ const router = createBrowserRouter([
       { path: 'forgot-password', element: withSuspense(ForgotPassword) },
     ],
   },
+  // Standalone OrderChat removed in favor of /dashboard/chats/:orderId
   {
     path: '/dashboard',
     element: (
@@ -99,6 +101,8 @@ const router = createBrowserRouter([
       { index: true, element: withSuspense(Dashboard) },
       { path: 'orders', element: withSuspense(Orders) },
       { path: 'orders/:id', element: withSuspense(OrderDetail) },
+      { path: 'chats', element: withSuspense(Chats) },
+      { path: 'chats/:orderId', element: withSuspense(Chats) },
       { path: 'profile', element: withSuspense(Profile) },
       { path: 'apply-seller', element: withSuspense(SellerApplication) },
       { path: 'seller-review', element: withSuspense(SellerReview) },

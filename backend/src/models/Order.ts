@@ -7,9 +7,18 @@ export interface IOrder extends Document {
   amount: number;
   paymentMethod: 'razorpay' | 'stripe';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
-  orderStatus: 'placed' | 'delivered' | 'cancelled';
+  orderStatus: 'placed' | 'preparing' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
   sessionId?: string;
+  credentials?: {
+    email?: string;
+    password?: string;
+    notes?: string;
+  };
+  timeline: {
+    status: string;
+    date: Date;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,7 +57,7 @@ const orderSchema = new Schema<IOrder>(
     },
     orderStatus: {
       type: String,
-      enum: ['placed', 'delivered', 'cancelled'],
+      enum: ['placed', 'preparing', 'delivered', 'completed', 'cancelled'],
       default: 'placed',
     },
     paymentId: {
@@ -58,6 +67,17 @@ const orderSchema = new Schema<IOrder>(
     sessionId: {
       type: String,
     },
+    credentials: {
+      email: String,
+      password: String,
+      notes: String,
+    },
+    timeline: [
+      {
+        status: String,
+        date: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

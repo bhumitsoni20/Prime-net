@@ -41,7 +41,7 @@ const Register = () => {
   return (
     <div>
       <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Create account ✨</h1>
-      <p className="text-[#64748B] text-[15px] mb-8">Start your journey with StreamKart.</p>
+      <p className="text-[#64748B] text-[15px] mb-6">Start your journey with StreamKart.</p>
       
       <form onSubmit={handleRegister} className="space-y-4">
         <Input label="Full Name" icon={HiUser} placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -52,7 +52,7 @@ const Register = () => {
         </Button>
       </form>
       
-      <div className="relative my-7">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#E2E8F0]" /></div>
         <div className="relative flex justify-center"><span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium uppercase tracking-wider">or</span></div>
       </div>
@@ -61,7 +61,7 @@ const Register = () => {
         <FcGoogle className="w-5 h-5" /> Sign up with Google
       </Button>
       
-      <p className="text-center text-[13px] text-[#64748B] mt-8 leading-relaxed">
+      <p className="text-center text-[13px] text-[#64748B] mt-6 leading-relaxed">
         By continuing, you agree to our <Link to="/terms" className="text-[#5B4BFF] hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy" className="text-[#5B4BFF] hover:underline font-medium">Privacy Policy</Link>.
       </p>
     </div>

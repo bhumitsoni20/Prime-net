@@ -5,7 +5,7 @@ import ProductCard from '../../components/cards/ProductCard';
 import { useProducts } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
-import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiOutlineHeadphones, HiPaperAirplane } from 'react-icons/hi';
+import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 
 const Home = () => {
@@ -106,7 +106,7 @@ const Home = () => {
           </div>
           <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div className="w-12 h-12 rounded-[14px] bg-[#F8FAFC] text-[#64748B] flex items-center justify-center flex-shrink-0">
-              <HiOutlineHeadphones className="w-6 h-6" />
+              <HiSupport className="w-6 h-6" />
             </div>
             <div>
               <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">24/7 Support</h4>

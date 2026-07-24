@@ -1,4 +1,4 @@
-import { useOutlet, useLocation } from 'react-router-dom';
+import { useOutlet, useLocation, ScrollRestoration } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../common/Navbar';
 import Sidebar from '../common/Sidebar';
@@ -28,6 +28,7 @@ const DashboardLayout = () => {
           </AnimatePresence>
         </div>
       </main>
+      <ScrollRestoration />
     </div>
   );
 };

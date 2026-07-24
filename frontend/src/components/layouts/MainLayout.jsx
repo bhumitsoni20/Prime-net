@@ -1,4 +1,4 @@
-import { useOutlet, useLocation } from 'react-router-dom';
+import { useOutlet, useLocation, ScrollRestoration } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../common/Navbar';
 import Footer from '../common/Footer';
@@ -26,6 +26,7 @@ const MainLayout = () => {
       </main>
       <Footer />
       <GlobalLoginPrompt />
+      <ScrollRestoration />
     </div>
   );
 };

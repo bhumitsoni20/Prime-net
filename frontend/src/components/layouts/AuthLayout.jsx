@@ -1,4 +1,4 @@
-import { useOutlet, Link, useLocation } from 'react-router-dom';
+import { useOutlet, Link, useLocation, ScrollRestoration } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
@@ -93,7 +93,7 @@ const AuthLayout = () => {
         <div className="flex justify-end p-6 h-14" />
 
         {/* Form */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-20 overflow-x-hidden">
+        <div className="flex-1 flex items-center justify-center px-6 pb-8 overflow-x-hidden">
           <div className="w-full max-w-md">
             <AnimatePresence mode="wait">
               <motion.div
@@ -126,6 +126,7 @@ const AuthLayout = () => {
           </div>
         </div>
       </div>
+      <ScrollRestoration />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { io } from 'socket.io-client';
 import useAuthStore from '../../store/authStore';
@@ -20,6 +20,7 @@ const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.r
 
 const OrderChat = ({ orderId: orderIdProp, onBack }) => {
   const params = useParams();
+  const navigate = useNavigate();
   const orderId = orderIdProp || params.id || params.orderId;
   const { user, token } = useAuthStore();
   const [order, setOrder] = useState(null);
@@ -108,7 +109,13 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
     });
 
     socket.on('order_updated', (updatedOrder) => {
-      setOrder(prev => ({ ...prev, ...updatedOrder }));
+      setOrder(prev => ({ 
+        ...prev, 
+        ...updatedOrder,
+        product: prev?.product,
+        seller: prev?.seller,
+        user: prev?.user
+      }));
     });
   };
 
@@ -165,11 +172,17 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
   const handleCompleteOrder = async () => {
     try {
       const res = await apiPut(`/orders/${orderId}/status`, { orderStatus: 'completed' });
-      setOrder(res.data);
+      setOrder(prev => ({ 
+        ...prev, 
+        ...res.data,
+        product: prev?.product,
+        seller: prev?.seller,
+        user: prev?.user
+      }));
       toast.success('Order completed successfully!');
       
       // Only show review modal if product still exists
-      if (res.data.product?._id || order.product?._id) {
+      if (order.product?._id || typeof order.product === 'string') {
         setShowReviewModal(true);
       }
     } catch (err) {
@@ -182,8 +195,9 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
     if (!rating) return toast.error('Please select a rating');
 
     try {
+      const productId = typeof order.product === 'object' ? order.product?._id : order.product;
       await apiPost('/reviews', {
-        productId: order.product?._id,
+        productId,
         rating,
         comment: reviewComment,
       });
@@ -191,6 +205,100 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
       setShowReviewModal(false);
     } catch (err) {
       toast.error('Failed to submit review');
+    }
+  };
+
+  const handleDownloadInvoice = () => {
+    const invoiceHtml = `
+      <html>
+        <head>
+          <title>Invoice - ${order._id}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
+            .brand { font-size: 28px; font-weight: 800; color: #5B4BFF; }
+            .invoice-details { text-align: right; font-size: 14px; color: #64748b; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+            .flex-row { display: flex; justify-content: space-between; font-size: 15px; }
+            .item-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .item-table th, .item-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 15px; }
+            .item-table th { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+            .item-table td.amount { text-align: right; font-weight: 600; }
+            .item-table th.amount { text-align: right; }
+            .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0; }
+            .footer { margin-top: 60px; font-size: 13px; color: #94a3b8; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+             <div class="brand">StreamKart</div>
+             <div class="invoice-details">
+               <div><strong style="color:#0f172a; font-size:16px;">INVOICE</strong></div>
+               <div>Date: ${new Date(order.createdAt).toLocaleDateString()}</div>
+               <div>Order ID: ${order._id.substring(order._id.length - 8).toUpperCase()}</div>
+             </div>
+          </div>
+          
+          <div class="flex-row section">
+            <div>
+              <div class="section-title">Billed To</div>
+              <strong>${order.user?.name || 'Customer'}</strong><br/>
+              ${order.user?.email || 'N/A'}
+            </div>
+            <div style="text-align: right;">
+              <div class="section-title">Seller</div>
+              <strong>${order.seller?.name || 'Seller'}</strong><br/>
+              ${order.seller?.email || 'N/A'}
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Payment Details</div>
+            <div>Transaction ID: <strong>${order.paymentId || 'N/A'}</strong></div>
+            <div>Method: <strong style="text-transform: capitalize;">${order.paymentMethod}</strong></div>
+            <div>Status: <strong style="color: #10b981; text-transform: uppercase;">${order.paymentStatus}</strong></div>
+          </div>
+
+          <div class="section">
+            <table class="item-table">
+              <thead>
+                <tr>
+                  <th>Item Description</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>${order.product?.title || 'Digital Subscription'}</strong><br/>
+                    <span style="font-size: 13px; color: #64748b;">Digital access delivery</span>
+                  </td>
+                  <td class="amount">₹${order.amount.toLocaleString()}</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <div class="total-row">
+              <div>Total Paid</div>
+              <div style="color: #5B4BFF;">₹${order.amount.toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            Thank you for your purchase. If you have any questions, please contact support@streamkart.com.
+          </div>
+        </body>
+      </html>
+    `;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(invoiceHtml);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 250);
+    } else {
+      toast.error('Popup blocked! Please allow popups to view the invoice.');
     }
   };
 
@@ -430,10 +538,10 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
                 Confirm & Complete
               </Button>
             )}
-            <Button variant="secondary" className="w-full bg-white hover:bg-[#F8FAFC] border-[#E2E8F0] shadow-sm">
+            <Button variant="secondary" onClick={handleDownloadInvoice} className="w-full bg-white hover:bg-[#F8FAFC] border-[#E2E8F0] shadow-sm">
               <HiOutlineDocumentDownload className="w-[18px] h-[18px] mr-2 text-[#64748B]" /> <span className="text-[#334155]">Download Invoice</span>
             </Button>
-            <Button variant="outline" className="w-full text-[#EF4444] border-[#EF4444]/20 hover:bg-[#FEF2F2] hover:border-[#EF4444]/40">
+            <Button variant="outline" onClick={() => navigate('/contact')} className="w-full text-[#EF4444] border-[#EF4444]/20 hover:bg-[#FEF2F2] hover:border-[#EF4444]/40">
               <HiOutlineExclamationCircle className="w-[18px] h-[18px] mr-2" /> Report Issue
             </Button>
           </div>

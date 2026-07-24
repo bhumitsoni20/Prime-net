@@ -52,10 +52,23 @@ app.use('/api/seller', sellerRoutes);
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';
 
+import { Product } from './models/Product';
+
 app.get('/api/public/stats', async (_req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-    return sendSuccess(res, { totalUsers });
+    
+    const categoryCounts = await Product.aggregate([
+      { $match: { status: 'active' } },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ]);
+
+    const categories = categoryCounts.reduce((acc: any, curr: any) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {});
+
+    return sendSuccess(res, { totalUsers, categories });
   } catch (error: any) {
     return sendError(res, error.message);
   }

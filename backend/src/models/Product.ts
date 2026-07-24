@@ -41,7 +41,7 @@ const productSchema = new Schema<IProduct>(
         'education',
         'software',
         'cloud-storage',
-        'premium-membership',
+        'music',
         'other',
       ],
     },

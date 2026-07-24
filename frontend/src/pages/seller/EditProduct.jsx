@@ -7,7 +7,15 @@ import { useProduct, useUpdateProduct } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
 import ImageCropperModal from '../../components/ui/ImageCropperModal';
 
-const categories = ['ott', 'ai-tools', 'vpn', 'education', 'software', 'cloud-storage', 'premium-membership'];
+const categories = [
+  { value: 'ott', label: 'OTT Platforms' },
+  { value: 'ai-tools', label: 'AI & Productivity' },
+  { value: 'vpn', label: 'VPN & Security' },
+  { value: 'education', label: 'Education & Learning' },
+  { value: 'cloud-storage', label: 'Cloud & Storage' },
+  { value: 'music', label: 'Music & Audio' },
+  { value: 'software', label: 'Software & Tools' },
+];
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -156,7 +164,7 @@ const EditProduct = () => {
                 <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Category</label>
                 <div className="relative">
                   <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium">
-                    {categories.map((c) => <option key={c} value={c}>{c.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+                    {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
                     <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>

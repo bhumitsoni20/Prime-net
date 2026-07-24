@@ -6,12 +6,12 @@ export const ROLES = {
 
 export const CATEGORIES = [
   { value: 'ott', label: 'OTT Platforms' },
-  { value: 'ai-tools', label: 'AI Tools' },
-  { value: 'vpn', label: 'VPN Services' },
-  { value: 'education', label: 'Education' },
-  { value: 'software', label: 'Software Licenses' },
-  { value: 'cloud-storage', label: 'Cloud Storage' },
-  { value: 'premium-membership', label: 'Premium Membership' },
+  { value: 'ai-tools', label: 'AI & Productivity' },
+  { value: 'vpn', label: 'VPN & Security' },
+  { value: 'education', label: 'Education & Learning' },
+  { value: 'cloud-storage', label: 'Cloud & Storage' },
+  { value: 'music', label: 'Music & Audio' },
+  { value: 'software', label: 'Software & Tools' },
   { value: 'other', label: 'Other' },
 ] as const;
 

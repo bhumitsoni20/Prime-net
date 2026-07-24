@@ -16,7 +16,7 @@ const Sidebar = () => {
 
   const sellerLinks = [
     { to: '/seller', icon: HiChartBar, label: 'Dashboard', end: true },
-    { to: '/seller/products', icon: HiCube, label: 'Inventory' },
+    { to: '/seller/products', icon: HiCube, label: 'Inventory', end: true },
     { to: '/seller/products/new', icon: HiPlus, label: 'Add Product' },
     { to: '/seller/orders', icon: HiClipboardList, label: 'Orders' },
   ];
@@ -68,18 +68,7 @@ const Sidebar = () => {
       )}
 
       <aside className={`fixed top-16 left-0 bottom-0 w-[240px] bg-white/95 backdrop-blur-sm border-r border-[#F1F5F9] z-30 overflow-y-auto transition-transform duration-300 lg:translate-x-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        {/* Brand */}
-        <div className="px-5 py-4 border-b border-[#F1F5F9]">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-[8px] bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-            </div>
-            <div>
-              <p className="text-[#0F172A] font-bold text-[13px] leading-tight">StreamKart</p>
-              <p className="text-[#94A3B8] text-[11px] font-medium">{user?.role === 'admin' ? 'Enterprise' : user?.role === 'seller' ? 'Seller' : 'Dashboard'}</p>
-            </div>
-          </div>
-        </div>
+
 
         <div className="px-3 py-4 flex-1 space-y-6">
           {renderSection('Main', userLinks)}

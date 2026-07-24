@@ -1,5 +1,7 @@
 import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog } from 'react-icons/hi';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { getPublicStats } from '../../services/public.service';
 
 const categories = [
   { value: 'ott', label: 'OTT Platforms', subtitle: '120+ Services', icon: HiFilm, color: '#5B4BFF', bg: 'bg-[#5B4BFF]/10', text: 'text-[#5B4BFF]' },
@@ -27,6 +29,16 @@ const item = {
 };
 
 const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
+  const { data } = useQuery({
+    queryKey: ['publicStats'],
+    queryFn: async () => {
+      const res = await getPublicStats();
+      return res.data;
+    }
+  });
+
+  const categoryCounts = data?.categories || {};
+
   if (variant === 'cards') {
     return (
       <motion.div 
@@ -65,7 +77,7 @@ const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
               {cat.label}
             </p>
             <p className="text-[12px] font-medium text-[#94A3B8] text-center">
-              {cat.subtitle}
+              {categoryCounts[cat.value] || 0} {categoryCounts[cat.value] === 1 ? 'Service' : 'Services'}
             </p>
           </motion.button>
         ))}

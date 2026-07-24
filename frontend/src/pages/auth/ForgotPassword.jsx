@@ -26,25 +26,34 @@ const ForgotPassword = () => {
 
   if (sent) {
     return (
-      <div className="text-center">
-        <div className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4"><span className="text-3xl">✉️</span></div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Check Your Email</h1>
-        <p className="text-gray-500 mb-6">We sent a password reset link to <span className="text-gray-900 font-medium">{email}</span></p>
-        <Link to="/login"><Button variant="secondary">Back to Sign In</Button></Link>
+      <div className="text-center animate-scaleIn">
+        <div className="h-16 w-16 rounded-[16px] bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center mx-auto mb-6 shadow-[0_4px_12px_rgba(91,75,255,0.1)]">
+          <span className="text-3xl">✉️</span>
+        </div>
+        <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Check your email</h1>
+        <p className="text-[#64748B] text-[15px] mb-8 leading-relaxed">
+          We sent a password reset link to<br/>
+          <span className="text-[#0F172A] font-semibold">{email}</span>
+        </p>
+        <Link to="/login"><Button variant="secondary" className="w-full">Back to Sign In</Button></Link>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Reset Password 🔐</h1>
-      <p className="text-gray-500 mb-8">Enter your email to receive a reset link.</p>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Reset Password 🔐</h1>
+      <p className="text-[#64748B] text-[15px] mb-8">Enter your email to receive a reset link.</p>
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input label="Email" type="email" icon={HiMail} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <Button type="submit" className="w-full" size="lg" loading={loading}>Send Reset Link →</Button>
+        <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
+          Send Reset Link <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
+        </Button>
       </form>
-      <p className="text-center text-sm text-gray-500 mt-6">
-        <Link to="/login" className="text-indigo-600 font-medium hover:underline">← Back to Sign In</Link>
+      
+      <p className="text-center text-[14px] text-[#64748B] mt-8">
+        <Link to="/login" className="text-[#5B4BFF] font-semibold hover:underline">← Back to Sign In</Link>
       </p>
     </div>
   );

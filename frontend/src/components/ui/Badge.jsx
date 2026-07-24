@@ -1,19 +1,16 @@
 const Badge = ({ children, variant = 'default', className = '' }) => {
   const variants = {
-    default: 'bg-gray-100 text-gray-600',
-    primary: 'bg-indigo-50 text-indigo-600',
-    success: 'bg-emerald-50 text-emerald-600',
-    warning: 'bg-amber-50 text-amber-600',
-    danger: 'bg-red-50 text-red-600',
-    purple: 'bg-purple-50 text-purple-600',
-    verified: 'bg-indigo-600 text-white',
-    active: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-    pending: 'bg-amber-100 text-amber-700 border border-amber-200',
-    draft: 'bg-gray-100 text-gray-600 border border-gray-200',
+    default: 'bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]',
+    success: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
+    warning: 'bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]',
+    danger: 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+    info: 'bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]',
+    primary: 'bg-[#EEF2FF] text-[#5B4BFF] border-[#C7D2FE]',
+    verified: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${variants[variant]} ${className}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors ${variants[variant]} ${className}`}>
       {children}
     </span>
   );

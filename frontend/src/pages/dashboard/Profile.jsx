@@ -6,7 +6,6 @@ import Avatar from '../../components/ui/Avatar';
 import toast from 'react-hot-toast';
 import { apiPut } from '../../services/api';
 import ImageCropperModal from '../../components/ui/ImageCropperModal';
-import { uploadImage } from '../../services/upload';
 
 const Profile = () => {
   const { user, setUser } = useAuthStore();
@@ -69,13 +68,22 @@ const Profile = () => {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-900 mb-6">Profile Settings</h1>
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl">
-        <div className="flex items-center gap-4 mb-8">
-          <Avatar src={user?.avatar} name={user?.name} size="xl" />
-          <div>
-            <h2 className="text-gray-900 font-semibold text-lg">{user?.name || 'User'}</h2>
-            <p className="text-gray-500 text-sm">{user?.email}</p>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-8 tracking-[-0.02em]">Profile Settings</h1>
+      
+      <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 max-w-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow">
+        <div className="flex flex-col sm:flex-row items-center gap-6 mb-10 pb-8 border-b border-[#F1F5F9]">
+          <div className="relative group">
+            <Avatar src={user?.avatar} name={user?.name} size="xl" className="ring-4 ring-[#F8FAFC] shadow-sm" />
+            <div 
+              className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <span className="text-white text-xs font-semibold">Edit</span>
+            </div>
+          </div>
+          <div className="text-center sm:text-left">
+            <h2 className="text-[#0F172A] font-bold text-[20px] mb-1">{user?.name || 'User'}</h2>
+            <p className="text-[#64748B] text-[15px] mb-4">{user?.email}</p>
             <input 
               type="file" 
               accept="image/*" 
@@ -84,23 +92,27 @@ const Profile = () => {
               onChange={handleFileChange} 
             />
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
-              className="mt-1 !text-indigo-600" 
+              className="font-semibold"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
-              {isUploading ? 'Uploading...' : 'Change photo'}
+              {isUploading ? 'Uploading...' : 'Change Photo'}
             </Button>
           </div>
         </div>
-        <div className="space-y-4">
-          <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Input label="Email" value={email} disabled className="!bg-gray-50" />
-          <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" />
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
+        
+        <div className="space-y-6">
+          <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+          <Input label="Email Address" value={email} disabled className="!bg-[#F1F5F9] opacity-70 cursor-not-allowed text-[#475569]" />
+          <Input label="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9876543210" className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+          
+          <div className="pt-4 flex justify-end">
+            <Button onClick={handleSave} disabled={isSaving} size="lg" className="px-8 shadow-[0_4px_14px_rgba(91,75,255,0.3)]">
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -114,24 +126,32 @@ const Profile = () => {
 
       {/* Seller Account Upgrade */}
       {user?.role === 'user' && (
-        <div className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-6 max-w-2xl">
-          <h3 className="text-lg font-semibold text-indigo-900 mb-2">Want to sell on Streamkart?</h3>
-          <p className="text-indigo-700 text-sm mb-4">Upgrade your account to a seller profile to access the Seller Dashboard, manage inventory, and receive orders.</p>
-          <Button 
-            onClick={async () => {
-              try {
-                const { becomeSeller } = await import('../../services/auth.service');
-                const res = await becomeSeller();
-                useAuthStore.getState().setUser(res.data);
-                toast.success('You are now a Seller!');
-                window.location.href = '/seller'; // Force a full navigation to ensure sidebar updates
-              } catch (err) {
-                toast.error(err.message || 'Failed to upgrade');
-              }
-            }}
-          >
-            Upgrade to Seller Account
-          </Button>
+        <div className="mt-8 bg-gradient-to-r from-[#5B4BFF]/5 to-[#7C3AED]/5 border border-[#5B4BFF]/20 rounded-[24px] p-8 max-w-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 bg-gradient-to-br from-[#5B4BFF]/20 to-[#7C3AED]/20 rounded-full blur-[24px]" />
+          
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl">🚀</span>
+              <h3 className="text-[18px] font-bold text-[#0F172A]">Want to sell on StreamKart?</h3>
+            </div>
+            <p className="text-[#64748B] text-[15px] mb-6 leading-relaxed">Upgrade your account to a seller profile to access the Seller Dashboard, manage inventory, and receive orders.</p>
+            <Button 
+              onClick={async () => {
+                try {
+                  const { becomeSeller } = await import('../../services/auth.service');
+                  const res = await becomeSeller();
+                  useAuthStore.getState().setUser(res.data);
+                  toast.success('You are now a Seller!');
+                  window.location.href = '/seller'; // Force a full navigation to ensure sidebar updates
+                } catch (err) {
+                  toast.error(err.message || 'Failed to upgrade');
+                }
+              }}
+              className="bg-[#0F172A] hover:bg-[#1E293B] shadow-[0_4px_14px_rgba(15,23,42,0.4)] border-none"
+            >
+              Upgrade to Seller Account
+            </Button>
+          </div>
         </div>
       )}
     </div>

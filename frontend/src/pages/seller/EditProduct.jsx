@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import toast from 'react-hot-toast';
 import { useProduct, useUpdateProduct } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
+import ImageCropperModal from '../../components/ui/ImageCropperModal';
 
 const categories = ['ott', 'ai-tools', 'vpn', 'education', 'software', 'cloud-storage', 'premium-membership'];
 
@@ -15,6 +16,12 @@ const EditProduct = () => {
   const updateMutation = useUpdateProduct();
   
   const [form, setForm] = useState({ title: '', logo: '', description: '', price: '', category: 'ai-tools', features: '', deliveryType: 'instant' });
+
+  // Image Upload States
+  const fileInputRef = useRef(null);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [croppedBlob, setCroppedBlob] = useState(null);
 
   useEffect(() => {
     if (productData?.data) {
@@ -27,18 +34,48 @@ const EditProduct = () => {
         category: p.category || 'ai-tools',
         features: p.features ? p.features.join(', ') : '',
       });
+      setPreviewUrl(p.logo || null);
     }
   }, [productData]);
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setImageSrc(reader.result?.toString() || ''));
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+  };
+
+  const handleCropComplete = (blob) => {
+    setImageSrc(null);
+    setCroppedBlob(blob);
+    // Create preview URL
+    const url = URL.createObjectURL(blob);
+    setPreviewUrl(url);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const featuresArray = form.features ? form.features.split(',').map(f => f.trim()).filter(f => f) : [];
+    
+    let base64Logo = form.logo;
+    if (croppedBlob) {
+      base64Logo = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(croppedBlob);
+      });
+    }
     
     updateMutation.mutate({
       id,
       data: {
         ...form,
+        logo: base64Logo,
         price: Number(form.price),
         features: featuresArray
       }
@@ -53,34 +90,89 @@ const EditProduct = () => {
     });
   };
 
-  if (isLoading) return <div className="flex justify-center py-12"><Spinner /></div>;
+  if (isLoading) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>;
 
   return (
-    <div>
-      <Link to="/seller/products" className="text-indigo-600 text-sm font-medium hover:text-indigo-500 mb-4 inline-block">← Back to Products</Link>
-      <h1 className="text-xl font-bold text-gray-900 mb-6">Edit Product</h1>
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl space-y-5">
-        <Input label="Product Title" placeholder="e.g. ChatGPT Plus" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-        <Input label="App Logo URL" placeholder="https://example.com/logo.png" value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} />
+    <div className="py-2">
+      <Link to="/seller/products" className="text-[#5B4BFF] text-[14px] font-semibold hover:text-[#4F3FE8] mb-6 inline-block transition-colors">← Back to Products</Link>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-8 tracking-[-0.02em]">Edit Product</h1>
+      
+      <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 max-w-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow space-y-6">
+        <Input label="Product Title" placeholder="e.g. ChatGPT Plus" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+        
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" required />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Input label="Price (₹)" type="number" placeholder="999" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-              {categories.map((c) => <option key={c} value={c}>{c.replace('-', ' ')}</option>)}
-            </select>
+          <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">App Logo</label>
+          <div className="flex items-center gap-5">
+            {previewUrl ? (
+              <div className="relative group">
+                <div className="w-20 h-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-2 overflow-hidden">
+                  <img src={previewUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                </div>
+                <div className="absolute inset-0 bg-black/40 rounded-[16px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-white text-[11px] font-bold uppercase tracking-wider">Change</button>
+                </div>
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-[16px] bg-[#F8FAFC] border-2 border-dashed border-[#CBD5E1] flex flex-col items-center justify-center text-[#94A3B8] text-[11px] font-bold uppercase tracking-wide gap-1 hover:border-[#5B4BFF] hover:bg-[#EEF2FF] hover:text-[#5B4BFF] transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <span className="text-2xl">+</span>
+                <span>Upload</span>
+              </div>
+            )}
+            
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+            />
+            
+            <div className="flex flex-col gap-2">
+              <Button type="button" variant="outline" size="sm" className="font-semibold" onClick={() => fileInputRef.current?.click()}>
+                {previewUrl ? 'Change Logo' : 'Choose File'}
+              </Button>
+              {previewUrl && (
+                <button type="button" className="text-[12px] text-[#EF4444] hover:text-[#DC2626] font-semibold text-left transition-colors" onClick={() => { setPreviewUrl(null); setCroppedBlob(null); setForm({...form, logo: ''}); }}>Remove logo</button>
+              )}
+            </div>
           </div>
         </div>
-        <Input label="Features (comma-separated)" placeholder="Feature 1, Feature 2, Feature 3" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} />
-        <div className="flex gap-3 pt-2">
-          <Button type="submit" loading={updateMutation.isPending}>Save Changes</Button>
-          <Button variant="secondary" onClick={() => navigate('/seller/products')} disabled={updateMutation.isPending}>Cancel</Button>
+
+        <div>
+          <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all resize-none" required />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-6">
+          <Input label="Price (₹)" type="number" placeholder="999" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+          <div>
+            <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Category</label>
+            <div className="relative">
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium">
+                {categories.map((c) => <option key={c} value={c}>{c.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+        
+        <div className="flex gap-4 pt-6 border-t border-[#F1F5F9]">
+          <Button type="button" variant="secondary" size="lg" className="flex-1" onClick={() => navigate('/seller/products')} disabled={updateMutation.isPending}>Cancel</Button>
+          <Button type="submit" size="lg" className="flex-1 shadow-[0_4px_14px_rgba(91,75,255,0.3)]" loading={updateMutation.isPending}>Save Changes</Button>
         </div>
       </form>
+
+      {imageSrc && (
+        <ImageCropperModal
+          imageSrc={imageSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setImageSrc(null)}
+        />
+      )}
     </div>
   );
 };

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HiMail, HiLockClosed } from 'react-icons/hi';
 import { FcGoogle } from 'react-icons/fc';
-import { FaApple } from 'react-icons/fa';
 import { signInWithEmail, signInWithGoogle } from '../../firebase/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -45,41 +44,38 @@ const Login = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back 👋</h1>
-      <p className="text-gray-500 mb-8">Login to access your Streamkart account</p>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Welcome back 👋</h1>
+      <p className="text-[#64748B] text-[15px] mb-8">Login to access your StreamKart account</p>
 
       <form onSubmit={handleEmailLogin} className="space-y-4">
-        <Input label="Email" type="email" icon={HiMail} placeholder="you@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input label="Email" type="email" icon={HiMail} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <div>
           <Input label="Password" type="password" icon={HiLockClosed} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          <div className="flex justify-end mt-1.5">
-            <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-500 font-medium">
+          <div className="flex justify-end mt-2">
+            <Link to="/forgot-password" className="text-[13px] text-[#5B4BFF] hover:text-[#4338CA] font-semibold transition-colors">
               Forgot password?
             </Link>
           </div>
         </div>
 
-        <Button type="submit" className="w-full" size="lg" loading={loading}>
-          Log in <span className="ml-1">→</span>
+        <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
+          Log in <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
         </Button>
       </form>
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-        <div className="relative flex justify-center"><span className="bg-white px-4 text-sm text-gray-400">or</span></div>
+      <div className="relative my-7">
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#E2E8F0]" /></div>
+        <div className="relative flex justify-center"><span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium uppercase tracking-wider">or</span></div>
       </div>
 
       <div className="space-y-3">
         <Button variant="secondary" onClick={handleGoogleLogin} className="w-full" size="lg">
           <FcGoogle className="w-5 h-5" /> Continue with Google
         </Button>
-        <Button variant="secondary" className="w-full" size="lg">
-          <FaApple className="w-5 h-5 text-gray-900" /> Continue with Apple
-        </Button>
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-6">
-        By continuing, you agree to our <Link to="/terms" className="text-indigo-600 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-indigo-600 hover:underline">Privacy Policy</Link>.
+      <p className="text-center text-[13px] text-[#64748B] mt-8 leading-relaxed">
+        By continuing, you agree to our <Link to="/terms" className="text-[#5B4BFF] hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy" className="text-[#5B4BFF] hover:underline font-medium">Privacy Policy</Link>.
       </p>
     </div>
   );

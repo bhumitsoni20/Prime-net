@@ -43,23 +43,31 @@ const PhoneLogin = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Phone Login 📱</h1>
-      <p className="text-gray-500 mb-8">Sign in with your phone number.</p>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Phone Login 📱</h1>
+      <p className="text-[#64748B] text-[15px] mb-8">Sign in with your phone number.</p>
+      
       {step === 'phone' ? (
-        <form onSubmit={handleSendOTP} className="space-y-4">
+        <form onSubmit={handleSendOTP} className="space-y-4 animate-fadeIn">
           <Input label="Phone Number" icon={HiPhone} placeholder="+91 9876543210" value={phone} onChange={(e) => setPhone(e.target.value)} required />
           <div id="recaptcha-container" />
-          <Button type="submit" className="w-full" size="lg" loading={loading}>Send OTP →</Button>
+          <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
+            Send OTP <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
+          </Button>
         </form>
       ) : (
-        <form onSubmit={handleVerifyOTP} className="space-y-4">
+        <form onSubmit={handleVerifyOTP} className="space-y-4 animate-scaleIn">
           <Input label="Enter OTP" placeholder="6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} maxLength={6} required />
-          <Button type="submit" className="w-full" size="lg" loading={loading}>Verify & Sign In →</Button>
-          <button onClick={() => setStep('phone')} className="text-sm text-indigo-600 hover:text-indigo-500 w-full text-center font-medium">Change phone number</button>
+          <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
+            Verify & Sign In <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
+          </Button>
+          <button type="button" onClick={() => setStep('phone')} className="text-[13px] text-[#5B4BFF] hover:text-[#4338CA] w-full text-center font-semibold transition-colors mt-2">
+            Change phone number
+          </button>
         </form>
       )}
-      <p className="text-center text-sm text-gray-500 mt-6">
-        <Link to="/login" className="text-indigo-600 font-medium hover:underline">← Back to Sign In</Link>
+      
+      <p className="text-center text-[14px] text-[#64748B] mt-8">
+        <Link to="/login" className="text-[#5B4BFF] font-semibold hover:underline">← Back to Sign In</Link>
       </p>
     </div>
   );

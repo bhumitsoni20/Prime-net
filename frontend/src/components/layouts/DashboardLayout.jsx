@@ -10,18 +10,18 @@ const DashboardLayout = () => {
   const isChatsPage = location.pathname.startsWith('/dashboard/chats');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
       {!isChatsPage && <Sidebar />}
-      <main className={`pt-20 min-h-screen overflow-x-hidden ${isChatsPage ? '' : 'lg:pl-60'}`}>
-        <div className="p-6 lg:p-8">
+      <main className={`pt-16 min-h-screen overflow-x-hidden ${isChatsPage ? '' : 'lg:pl-[240px]'}`}>
+        <div className="p-5 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
             >
               {outlet}
             </motion.div>

@@ -4,22 +4,22 @@ const Input = forwardRef(({ label, error, icon: Icon, className = '', type = 'te
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+        <label className="block text-[13px] font-semibold text-[#334155] mb-1.5">{label}</label>
       )}
-      <div className="relative">
+      <div className="relative group">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <Icon className="h-5 w-5 text-gray-400" />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200">
+            <Icon className="h-[18px] w-[18px] text-[#94A3B8] group-focus-within:text-[#5B4BFF] transition-colors duration-200" />
           </div>
         )}
         <input
           ref={ref}
           type={type}
-          className={`w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 ${Icon ? 'pl-11' : ''} ${error ? 'border-red-400 focus:ring-red-500/20 focus:border-red-500' : ''} ${className}`}
+          className={`w-full bg-white border border-[#E2E8F0] rounded-[12px] px-4 py-2.5 text-[#0F172A] text-sm placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] transition-all duration-200 hover:border-[#CBD5E1] ${Icon ? 'pl-11' : ''} ${error ? 'border-[#EF4444] focus:ring-[#EF4444]/10 focus:border-[#EF4444]' : ''} ${className}`}
           {...props}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-1.5 text-[13px] text-[#EF4444] font-medium">{error}</p>}
     </div>
   );
 });

@@ -5,7 +5,7 @@ import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import { useProducts } from '../../hooks/useProducts';
-import { HiSearch } from 'react-icons/hi';
+import { HiSearch, HiCheck } from 'react-icons/hi';
 
 const allCategories = [
   { value: 'ai-tools', label: 'AI & Machine Learning' },
@@ -48,111 +48,106 @@ const ProductList = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex gap-8">
         {/* Sidebar Filters */}
-        <aside className="hidden lg:block w-56 flex-shrink-0">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Filters</h3>
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <div className="sticky top-24">
+            <h3 className="text-[12px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-4 pl-1">Filters</h3>
 
-          {/* Categories */}
-          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
-            <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center justify-between">
-              Categories
-            </h4>
-            <div className="space-y-3">
-              {allCategories.map((cat) => (
-                <label key={cat.value} className="flex items-center gap-3 text-sm text-gray-600 cursor-pointer hover:text-gray-900 group">
-                  <div className="relative flex items-center justify-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCats.includes(cat.value)}
-                      onChange={() => toggleCategory(cat.value)}
-                      className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 checked:border-indigo-600 checked:bg-indigo-600 transition-all"
-                    />
-                    <span className="pointer-events-none absolute text-white opacity-0 peer-checked:opacity-100">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                      </svg>
+            {/* Categories */}
+            <div className="mb-6 bg-white p-5 rounded-[16px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <h4 className="text-[14px] font-bold text-[#0F172A] mb-4">Categories</h4>
+              <div className="space-y-3.5">
+                {allCategories.map((cat) => (
+                  <label key={cat.value} className="flex items-center gap-3 text-[14px] text-[#64748B] cursor-pointer hover:text-[#0F172A] group transition-colors">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedCats.includes(cat.value)}
+                        onChange={() => toggleCategory(cat.value)}
+                        className="peer h-[18px] w-[18px] cursor-pointer appearance-none rounded-[6px] border border-[#CBD5E1] checked:border-[#5B4BFF] checked:bg-[#5B4BFF] transition-all hover:border-[#94A3B8]"
+                      />
+                      <span className="pointer-events-none absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity">
+                        <HiCheck className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+                    <span className={`transition-all ${selectedCats.includes(cat.value) ? 'font-semibold text-[#0F172A]' : 'group-hover:font-medium'}`}>{cat.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Price Range */}
+            <div className="mb-6 bg-white p-5 rounded-[16px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <h4 className="text-[14px] font-bold text-[#0F172A] mb-4 flex justify-between items-center">
+                Max Price <span className="text-[#5B4BFF] font-mono bg-[#EEF2FF] px-2 py-1 rounded-[8px] text-xs">₹{priceRange[1]}</span>
+              </h4>
+              <input
+                type="range"
+                min="0"
+                max="2000"
+                step="50"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                className="w-full h-1.5 bg-[#E2E8F0] rounded-full appearance-none cursor-pointer accent-[#5B4BFF]"
+              />
+              <div className="flex justify-between text-[11px] text-[#94A3B8] mt-3 font-semibold">
+                <span>₹0</span>
+                <span>₹2000+</span>
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div className="mb-6 bg-white p-5 rounded-[16px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <h4 className="text-[14px] font-bold text-[#0F172A] mb-4">Minimum Rating</h4>
+              <div className="space-y-1.5">
+                {[5, 4, 3, 2, 1].map((r) => (
+                  <button 
+                    key={r} 
+                    onClick={() => { setRatingFilter(r); setPage(1); }} 
+                    className={`flex items-center justify-between w-full text-left text-sm p-2 rounded-[10px] transition-all ${ratingFilter === r ? 'bg-[#5B4BFF]/[0.06] border border-[#5B4BFF]/20' : 'hover:bg-[#F8FAFC] border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className={`text-lg leading-none ${i < r ? 'text-amber-400 drop-shadow-sm' : 'text-[#E2E8F0]'}`}>★</span>
+                      ))}
+                    </div>
+                    <span className={`text-[12px] font-semibold ${ratingFilter === r ? 'text-[#5B4BFF]' : 'text-[#94A3B8]'}`}>
+                      {r === 5 ? '5.0' : `${r}.0 & up`}
                     </span>
-                  </div>
-                  <span className="group-hover:font-medium transition-all">{cat.label}</span>
-                </label>
-              ))}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Price Range */}
-          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
-            <h4 className="text-sm font-bold text-gray-900 mb-4 flex justify-between items-center">
-              Max Price <span className="text-indigo-600 font-mono bg-indigo-50 px-2 py-1 rounded-lg">₹{priceRange[1]}</span>
-            </h4>
-            <input
-              type="range"
-              min="0"
-              max="2000"
-              step="50"
-              value={priceRange[1]}
-              onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-              className="w-full accent-indigo-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-400 mt-2 font-medium">
-              <span>₹0</span>
-              <span>₹2000+</span>
-            </div>
-          </div>
-
-          {/* Clear Filters */}
-          <Button variant="secondary" size="sm" className="w-full" onClick={clearFilters}>
-            Clear All Filters
-          </Button>
-
-          {/* Rating */}
-          <div className="mb-6 bg-white p-5 rounded-2xl border border-gray-200">
-            <h4 className="text-sm font-bold text-gray-900 mb-4">
-              Minimum Rating
-            </h4>
-            <div className="space-y-3">
-              {[5, 4, 3, 2, 1].map((r) => (
-                <button 
-                  key={r} 
-                  onClick={() => { setRatingFilter(r); setPage(1); }} 
-                  className={`flex items-center justify-between w-full text-left text-sm p-2 rounded-lg transition-all ${ratingFilter === r ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-gray-50 border border-transparent'}`}
-                >
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={`text-lg ${i < r ? 'text-amber-400 drop-shadow-sm' : 'text-gray-200'}`}>★</span>
-                    ))}
-                  </div>
-                  <span className={`text-xs font-medium ${ratingFilter === r ? 'text-indigo-600' : 'text-gray-400'}`}>
-                    {r === 5 ? '5.0' : `${r}.0 & up`}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <Button variant="outline" size="sm" className="w-full text-xs font-semibold" onClick={clearFilters}>
+              Clear All Filters
+            </Button>
           </div>
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Explore Marketplace</h1>
-            <p className="text-gray-500">Discover premium digital subscriptions and accelerate your workflow.</p>
+            <h1 className="text-[32px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Explore Marketplace</h1>
+            <p className="text-[#64748B] text-[15px]">Discover premium digital subscriptions and accelerate your workflow.</p>
           </div>
 
           {/* Search */}
-          <div className="relative mb-8">
-            <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="relative mb-8 group">
+            <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-[#94A3B8] group-focus-within:text-[#5B4BFF] transition-colors" />
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search products..."
-              className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+              className="w-full bg-white border border-[#E2E8F0] rounded-[16px] pl-11 pr-4 py-3.5 text-[#0F172A] text-sm placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] hover:border-[#CBD5E1] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
             />
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center py-16"><Spinner /></div>
+            <div className="flex justify-center py-16"><Spinner size="lg" /></div>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,13 +157,22 @@ const ProductList = () => {
               </div>
 
               {(!data?.data || data.data.length === 0) && (
-                <div className="text-center py-16"><p className="text-gray-500 text-lg">No products found</p></div>
+                <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px]">
+                  <div className="h-16 w-16 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center mx-auto mb-4 border border-[#F1F5F9]">
+                    <HiSearch className="w-8 h-8 text-[#94A3B8]" />
+                  </div>
+                  <p className="text-[#0F172A] text-lg font-bold mb-2">No products found</p>
+                  <p className="text-[#64748B] text-sm">Try adjusting your filters or search query.</p>
+                  <Button variant="secondary" className="mt-6" onClick={clearFilters}>Clear Filters</Button>
+                </div>
               )}
 
-              {data?.pagination && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">Showing 1-{data.data?.length || 0} of {data.pagination.total || 0} products</p>
-                  <Pagination page={data.pagination.page} totalPages={data.pagination.pages} onPageChange={setPage} />
+              {data?.pagination && data.pagination.total > 0 && (
+                <div className="mt-12 flex flex-col items-center border-t border-[#E2E8F0] pt-8">
+                  <p className="text-[13px] text-[#64748B] font-medium mb-4">
+                    Showing <span className="text-[#0F172A] font-semibold">1-{data.data?.length || 0}</span> of <span className="text-[#0F172A] font-semibold">{data.pagination.total || 0}</span> products
+                  </p>
+                  <Pagination currentPage={data.pagination.page} totalPages={data.pagination.pages} onPageChange={setPage} />
                 </div>
               )}
             </>

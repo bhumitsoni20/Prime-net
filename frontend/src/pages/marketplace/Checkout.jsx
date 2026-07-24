@@ -82,91 +82,103 @@ const Checkout = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {showSuccess && <PaymentSuccessAnimation onComplete={handleSuccessComplete} />}
+      
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-        <Link to="/" className="text-xl font-bold text-gray-900"><span className="text-indigo-600">Stream</span>kart</Link>
-        <div className="flex items-center gap-2 text-gray-500 text-sm"><HiLockClosed className="w-4 h-4" /> Secure Checkout</div>
-        <Link to="/products" className="text-sm text-gray-500 hover:text-gray-700">Cancel</Link>
+      <div className="flex items-center justify-between mb-10 pb-5 border-b border-[#F1F5F9]">
+        <Link to="/" className="text-[22px] font-extrabold text-[#0F172A] tracking-tight"><span className="text-[#5B4BFF]">Stream</span>Kart</Link>
+        <div className="flex items-center gap-2 text-[#64748B] text-[13px] font-semibold tracking-wide uppercase"><HiLockClosed className="w-4 h-4 text-[#5B4BFF]" /> Secure Checkout</div>
+        <Link to="/cart" className="text-[14px] text-[#64748B] hover:text-[#0F172A] font-medium transition-colors">Return to Cart</Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left — Payment Info */}
-        <div className="lg:col-span-3 space-y-8">
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center min-h-[400px]">
-            <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
-              <HiShieldCheck className="w-8 h-8" />
+        <div className="lg:col-span-7 space-y-8">
+          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[24px] p-10 flex flex-col items-center justify-center text-center min-h-[440px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-[#5B4BFF]/20 rounded-[24px] blur-[16px] animate-pulse" />
+              <div className="relative h-20 w-20 bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] text-white rounded-[24px] flex items-center justify-center shadow-[0_8px_24px_rgba(91,75,255,0.35)]">
+                <HiShieldCheck className="w-10 h-10" />
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Checkout Securely with Razorpay</h2>
-            <p className="text-gray-500 max-w-md mb-8 leading-relaxed">
+            
+            <h2 className="text-[26px] font-extrabold text-[#0F172A] mb-3 tracking-[-0.02em]">Checkout Securely with Razorpay</h2>
+            <p className="text-[#64748B] max-w-md mb-10 leading-relaxed text-[15px]">
               Click the button on the right to open the secure Razorpay payment gateway. You can pay effortlessly via UPI, Credit/Debit Cards, or Net Banking.
             </p>
-            <div className="flex items-center gap-6 text-sm text-gray-400 font-medium">
-              <span className="flex items-center gap-2"><HiShieldCheck className="w-5 h-5 text-green-500" /> PCI DSS Compliant</span>
-              <span className="flex items-center gap-2"><HiLockClosed className="w-5 h-5 text-indigo-500" /> 256-bit SSL</span>
+            
+            <div className="flex items-center justify-center gap-8 text-[13px] text-[#64748B] font-semibold uppercase tracking-wider">
+              <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-[#E2E8F0] shadow-sm"><HiShieldCheck className="w-4 h-4 text-[#22C55E]" /> PCI DSS Compliant</span>
+              <span className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-[#E2E8F0] shadow-sm"><HiLockClosed className="w-4 h-4 text-[#5B4BFF]" /> 256-bit SSL</span>
             </div>
           </div>
         </div>
 
         {/* Right — Order Summary */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 sticky top-24">
-            <h2 className="text-lg font-bold text-gray-900 mb-5">Order Summary</h2>
+        <div className="lg:col-span-5">
+          <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 lg:p-10 sticky top-24 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED]" />
+            <h2 className="text-[20px] font-bold text-[#0F172A] mb-8">Order Summary</h2>
 
             {cartItems.length === 0 ? (
-              <p className="text-gray-500 text-sm mb-5 pb-5 border-b border-gray-100">Your cart is empty.</p>
+              <p className="text-[#94A3B8] text-sm mb-6 pb-6 border-b border-[#F1F5F9]">Your cart is empty.</p>
             ) : (
-              cartItems.map((item) => (
-                <div key={item._id} className="flex items-center gap-3 mb-5 pb-5 border-b border-gray-100">
-                  <div className="h-14 w-14 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
-                    {item.logo ? (
-                      <img src={item.logo} alt={item.title} className="max-h-full max-w-full object-contain" />
-                    ) : (
-                      <span className="text-gray-400 font-bold text-lg">{item.title?.[0]}</span>
-                    )}
+              <div className="space-y-5 mb-8 pb-8 border-b border-[#F1F5F9]">
+                {cartItems.map((item) => (
+                  <div key={item._id} className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-[14px] bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+                      {item.logo ? (
+                        <img src={item.logo} alt={item.title} className="max-h-full max-w-full object-contain p-2" />
+                      ) : (
+                        <span className="text-[#94A3B8] font-extrabold text-xl">{item.title?.[0]}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[#0F172A] font-bold text-[15px] truncate mb-0.5">{item.title}</p>
+                      <p className="text-[#64748B] text-[13px] font-medium">Qty: 1</p>
+                    </div>
+                    <p className="text-[#0F172A] font-extrabold text-[15px]">₹{item.price.toLocaleString()}</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-gray-900 font-semibold text-sm">{item.title}</p>
-                    <p className="text-gray-500 text-xs">Qty: 1</p>
-                  </div>
-                  <p className="text-gray-900 font-bold">₹{item.price}</p>
-                </div>
-              ))
+                ))}
+              </div>
             )}
 
-            <div className="space-y-3 mb-5 pb-5 border-b border-gray-100 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span className="text-gray-900">₹{subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Platform Fee (2%)</span><span className="text-gray-900">₹{platformFee.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Taxes</span><span className="text-gray-900">₹0.00</span></div>
+            <div className="space-y-4 mb-8 pb-8 border-b border-[#F1F5F9] text-[15px]">
+              <div className="flex justify-between"><span className="text-[#64748B] font-medium">Subtotal</span><span className="text-[#0F172A] font-semibold">₹{subtotal.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-[#64748B] font-medium">Platform Fee (2%)</span><span className="text-[#0F172A] font-semibold">₹{platformFee.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-[#64748B] font-medium">Taxes</span><span className="text-[#0F172A] font-semibold">₹0.00</span></div>
             </div>
 
-            <div className="flex justify-between items-baseline mb-5">
-              <span className="text-gray-900 font-bold text-lg">Total</span>
+            <div className="flex justify-between items-baseline mb-8">
+              <span className="text-[#0F172A] font-bold text-[17px]">Total</span>
               <div className="text-right">
-                <p className="text-indigo-600 font-bold text-2xl">₹{total.toFixed(2)}</p>
-                <p className="text-gray-400 text-xs">Billed in INR</p>
+                <p className="text-[#0F172A] font-extrabold text-[32px] tracking-[-0.02em] leading-none mb-1">₹{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-[#94A3B8] text-[11px] font-bold tracking-[0.08em]">BILLED IN INR</p>
               </div>
             </div>
 
             <Button 
               size="lg" 
-              className="w-full mb-3" 
+              className="w-full mb-5 py-4 text-[17px] shadow-[0_4px_14px_rgba(91,75,255,0.4)]" 
               onClick={handlePayment} 
               disabled={isProcessing || cartItems.length === 0}
             >
-              {isProcessing ? 'Processing...' : 'Complete Purchase'}
+              {isProcessing ? 'Processing securely...' : 'Pay securely with Razorpay'}
             </Button>
-            <p className="text-xs text-gray-400 text-center">By clicking 'Complete Purchase', you agree to our <Link to="/terms" className="text-indigo-600 underline">Terms of Service</Link> and <Link to="/privacy" className="text-indigo-600 underline">Privacy Policy</Link>.</p>
+            
+            <p className="text-[12px] text-[#94A3B8] text-center leading-relaxed">
+              By confirming your purchase, you agree to the <Link to="/terms" className="text-[#5B4BFF] hover:underline font-medium">Terms of Service</Link>.
+            </p>
 
             {/* Guarantee */}
-            <div className="flex items-center gap-3 mt-5 pt-5 border-t border-gray-100 bg-gray-50 rounded-xl p-4 -mx-2">
-              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                <HiShieldCheck className="w-5 h-5 text-gray-500" />
+            <div className="flex items-center gap-4 mt-8 pt-6 border-t border-[#F1F5F9]">
+              <div className="h-10 w-10 rounded-[12px] bg-[#F0FDF4] flex items-center justify-center flex-shrink-0 border border-[#BBF7D0]">
+                <HiShieldCheck className="w-[18px] h-[18px] text-[#15803D]" />
               </div>
               <div>
-                <p className="text-gray-900 font-semibold text-sm">Streamkart Money-Back Guarantee</p>
-                <p className="text-gray-500 text-xs">Full refund within 30 days if not satisfied.</p>
+                <p className="text-[#0F172A] font-bold text-[13px]">StreamKart Money-Back Guarantee</p>
+                <p className="text-[#64748B] text-[12px] mt-0.5">Full refund within 30 days if not satisfied.</p>
               </div>
             </div>
           </div>

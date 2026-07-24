@@ -29,67 +29,70 @@ const Dashboard = () => {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Command Center</h1>
-            <p className="text-gray-500 text-sm">Welcome back, {user?.name || 'User'}. Here's your account overview.</p>
+            <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] mb-1">Command Center</h1>
+            <p className="text-[#64748B] text-[15px]">Welcome back, <span className="font-semibold text-[#0F172A]">{user?.name || 'User'}</span>. Here's your account overview.</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 text-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 pulse-dot" />
-              <span className="text-gray-700 font-medium">Live System Status</span>
+            <div className="flex items-center gap-2.5 bg-white border border-[#E2E8F0] rounded-[12px] px-4 py-2.5 text-[13px] shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+              </span>
+              <span className="text-[#334155] font-bold tracking-wide uppercase">Live System Status</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         <StatsCard icon={HiCube} label="Total Orders" value={isLoading ? '...' : totalOrders} color="blue" />
         <StatsCard icon={HiCurrencyDollar} label="Total Spent" value={isLoading ? '...' : `₹${totalSpent.toLocaleString()}`} color="purple" />
         <StatsCard icon={HiClock} label="Pending Orders" value={isLoading ? '...' : pendingOrders} color="orange" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Orders Table */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-900">Recent Orders</h2>
-            <Link to="/dashboard/orders"><Button variant="secondary" size="sm">View All</Button></Link>
+        <div className="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center justify-between p-6 border-b border-[#F1F5F9] bg-[#F8FAFC]">
+            <h2 className="text-[17px] font-bold text-[#0F172A]">Recent Orders</h2>
+            <Link to="/dashboard/orders"><Button variant="secondary" size="sm" className="font-semibold text-[13px]">View All</Button></Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead><tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                <th className="p-4">Item</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Date</th>
-                <th className="p-4">Amount</th>
+              <thead><tr className="border-b border-[#F1F5F9] text-left text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] bg-white">
+                <th className="p-5 pl-6">Item</th>
+                <th className="p-5">Status</th>
+                <th className="p-5">Date</th>
+                <th className="p-5 pr-6 text-right">Amount</th>
               </tr></thead>
               <tbody>
                 {isLoading ? (
-                  <tr><td colSpan={4} className="p-8 text-center text-gray-500 animate-pulse">Loading orders...</td></tr>
+                  <tr><td colSpan={4} className="p-12 text-center text-[#94A3B8] font-medium animate-pulse">Loading orders...</td></tr>
                 ) : orders.length === 0 ? (
-                  <tr><td colSpan={4} className="p-8 text-center text-gray-500">No orders yet. Start shopping!</td></tr>
+                  <tr><td colSpan={4} className="p-12 text-center text-[#64748B] font-medium bg-[#F8FAFC]">No orders yet. Start shopping!</td></tr>
                 ) : (
                   orders.slice(0, 5).map((o, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-lg">📦</div>
+                    <tr key={i} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors group">
+                      <td className="p-5 pl-6">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-[14px] bg-[#EEF2FF] border border-[#E0E7FF] flex items-center justify-center text-xl shadow-sm">📦</div>
                           <div>
-                            <p className="text-gray-900 font-medium text-sm line-clamp-1">{o.product?.title || 'Product Item'}</p>
-                            <p className="text-gray-400 text-xs">#{o._id.substring(0,8).toUpperCase()}</p>
+                            <p className="text-[#0F172A] font-bold text-[14px] line-clamp-1 group-hover:text-[#5B4BFF] transition-colors">{o.product?.title || 'Product Item'}</p>
+                            <p className="text-[#94A3B8] text-[12px] font-mono mt-0.5">#{o._id.substring(0,8).toUpperCase()}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-5">
                         <Badge variant={o.orderStatus === 'delivered' ? 'success' : o.orderStatus === 'cancelled' ? 'danger' : 'warning'}>
                           {o.orderStatus || 'Pending'}
                         </Badge>
                       </td>
-                      <td className="p-4"><p className="text-gray-700 text-sm">{dayjs(o.createdAt).format('MMM DD, YYYY')}</p></td>
-                      <td className="p-4"><span className="text-gray-900 font-semibold text-sm">₹{(o.amount || o.totalAmount || 0).toLocaleString()}</span></td>
+                      <td className="p-5"><p className="text-[#64748B] text-[14px] font-medium">{dayjs(o.createdAt).format('MMM DD, YYYY')}</p></td>
+                      <td className="p-5 pr-6 text-right"><span className="text-[#0F172A] font-extrabold text-[15px]">₹{(o.amount || o.totalAmount || 0).toLocaleString()}</span></td>
                     </tr>
                   ))
                 )}
@@ -99,12 +102,15 @@ const Dashboard = () => {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-4">
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white">
-            <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 text-2xl">💬</div>
-            <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-            <p className="text-gray-400 text-sm mb-6 leading-relaxed">Our dedicated support team is available 24/7 to assist with your purchases and account needs.</p>
-            <Button variant="secondary" className="w-full !bg-white !text-gray-900 hover:!bg-gray-50">Contact Support</Button>
+        <div className="space-y-6">
+          <div className="bg-[#0F172A] rounded-[24px] p-8 text-white relative overflow-hidden shadow-[0_8px_30px_-4px_rgba(15,23,42,0.4)]">
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-40 h-40 bg-[#5B4BFF] rounded-full blur-[64px] opacity-40"></div>
+            <div className="relative">
+              <div className="h-14 w-14 rounded-[16px] bg-white/10 border border-white/20 flex items-center justify-center mb-6 text-2xl backdrop-blur-md shadow-inner">💬</div>
+              <h3 className="text-[20px] font-bold mb-3 tracking-tight">Need Help?</h3>
+              <p className="text-[#94A3B8] text-[14px] mb-8 leading-relaxed">Our dedicated support team is available 24/7 to assist with your purchases and account needs.</p>
+              <Button variant="secondary" className="w-full !bg-white !text-[#0F172A] hover:!bg-[#F8FAFC] border-none font-bold shadow-lg">Contact Support</Button>
+            </div>
           </div>
         </div>
       </div>

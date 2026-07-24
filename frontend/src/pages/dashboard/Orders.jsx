@@ -17,26 +17,26 @@ const Orders = () => {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-900 mb-6">My Orders</h1>
+      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-8 tracking-[-0.02em]">My Orders</h1>
       
       {isLoading ? (
-        <div className="flex justify-center p-12">
+        <div className="flex justify-center p-16">
           <Spinner size="lg" />
         </div>
       ) : isError ? (
-        <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl p-6 text-center">
+        <div className="bg-[#FEF2F2] border border-[#FECACA] text-[#EF4444] rounded-[24px] p-8 text-center font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
           Failed to load orders. Please try again later.
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
-          <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+        <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-12 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="h-20 w-20 bg-[#F8FAFC] rounded-[20px] border border-[#F1F5F9] flex items-center justify-center mx-auto mb-5 text-3xl shadow-sm">
             🛍️
           </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-2">No Orders Yet</h2>
-          <p className="text-gray-500 text-sm">Your order history will appear here once you make your first purchase.</p>
+          <h2 className="text-[20px] font-bold text-[#0F172A] mb-2">No Orders Yet</h2>
+          <p className="text-[#64748B] text-[15px] max-w-sm mx-auto">Your order history will appear here once you make your first purchase.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {orders.map((order) => (
             <OrderCard key={order._id} order={order} />
           ))}

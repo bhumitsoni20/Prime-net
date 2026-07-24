@@ -72,30 +72,33 @@ const Chats = () => {
   };
 
   if (isLoading) {
-    return <div className="h-[calc(100vh-80px)] flex items-center justify-center"><Spinner /></div>;
+    return <div className="h-[calc(100vh-80px)] flex items-center justify-center"><Spinner size="lg" /></div>;
   }
 
   // Mobile layout state
   const isMobileChatOpen = !!selectedOrderId;
 
   return (
-    <div className="-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 h-[calc(100vh-80px)] flex bg-white overflow-hidden">
+    <div className="-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 h-[calc(100vh-80px)] flex bg-white overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] border-t border-[#E2E8F0]">
       
       {/* Left Pane - Chat List */}
       <div 
-        className={`w-full md:w-96 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`w-full md:w-96 flex-shrink-0 border-r border-[#E2E8F0] bg-white flex flex-col transition-transform duration-300 ease-in-out ${
           isMobileChatOpen ? 'hidden md:flex' : 'flex'
         }`}
       >
-        <div className="h-16 px-6 border-b border-gray-200 flex items-center shrink-0 bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-900">Chats</h2>
+        <div className="h-[72px] px-6 border-b border-[#E2E8F0] flex items-center shrink-0 bg-[#F8FAFC]">
+          <h2 className="text-[20px] font-extrabold text-[#0F172A] tracking-[-0.02em]">Messages</h2>
         </div>
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 custom-scrollbar bg-[#F1F5F9]/30">
           {chats.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <p>No active chats.</p>
-              <p className="text-sm mt-2">When you make a purchase or sell an item, your chats will appear here.</p>
+            <div className="p-10 text-center text-[#64748B] flex flex-col items-center">
+              <div className="w-16 h-16 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center mb-4 border border-[#F1F5F9] shadow-sm">
+                <span className="text-2xl opacity-50">💬</span>
+              </div>
+              <p className="font-bold text-[#0F172A]">No active chats</p>
+              <p className="text-[13px] mt-2 leading-relaxed">When you make a purchase or sell an item, your chats will appear here.</p>
             </div>
           ) : (
             chats.map((item) => {
@@ -108,32 +111,32 @@ const Chats = () => {
                 <div 
                   key={order._id}
                   onClick={() => handleSelectChat(order._id)}
-                  className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-colors mb-1 ${
-                    isActive ? 'bg-indigo-50 hover:bg-indigo-100' : 'hover:bg-gray-50'
+                  className={`flex items-center gap-4 p-3.5 rounded-[16px] cursor-pointer transition-all duration-200 mb-1.5 ${
+                    isActive ? 'bg-white border border-[#5B4BFF]/20 shadow-[0_2px_8px_rgba(91,75,255,0.08)]' : 'bg-transparent border border-transparent hover:bg-white hover:border-[#E2E8F0] hover:shadow-sm'
                   }`}
                 >
                   <div className="relative shrink-0">
-                    <Avatar src={otherUser?.avatar} name={otherUser?.name || 'User'} size="md" />
+                    <Avatar src={otherUser?.avatar} name={otherUser?.name || 'User'} size="md" className="ring-2 ring-white shadow-sm" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
-                        {unreadCount}
+                      <span className="absolute -top-1.5 -right-1.5 bg-[#EF4444] text-white text-[10px] font-extrabold h-[22px] w-[22px] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <h3 className="font-semibold text-gray-900 truncate pr-2">{otherUser?.name || 'Unknown'}</h3>
-                      <span className={`text-xs whitespace-nowrap ${unreadCount > 0 ? 'text-indigo-600 font-bold' : 'text-gray-400'}`}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className={`font-bold truncate pr-2 text-[15px] ${isActive ? 'text-[#0F172A]' : 'text-[#334155]'}`}>{otherUser?.name || 'Unknown'}</h3>
+                      <span className={`text-[11px] whitespace-nowrap font-medium ${unreadCount > 0 ? 'text-[#5B4BFF] font-bold' : 'text-[#94A3B8]'}`}>
                         {dayjs(lastActivity).fromNow(true)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`text-sm truncate ${unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                      <p className={`text-[13px] truncate ${unreadCount > 0 ? 'text-[#0F172A] font-semibold' : 'text-[#64748B]'}`}>
                         {lastMessage ? lastMessage.content : `Order: ${order.product?.title || 'Unknown Product'}`}
                       </p>
                     </div>
-                    <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1 truncate">
+                    <div className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mt-1.5 truncate">
                       {order.product?.title || 'Unknown Product'}
                     </div>
                   </div>
@@ -146,7 +149,7 @@ const Chats = () => {
 
       {/* Right Pane - Chat Window */}
       <div 
-        className={`flex-1 bg-[#F9F9F9] flex flex-col relative overflow-hidden ${
+        className={`flex-1 bg-[#F8FAFC] flex flex-col relative overflow-hidden ${
           !isMobileChatOpen ? 'hidden md:flex' : 'flex'
         }`}
       >
@@ -158,7 +161,7 @@ const Chats = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="absolute inset-0 flex flex-col"
+              className="absolute inset-0 flex flex-col bg-white"
             >
               <OrderChat orderId={selectedOrderId} onBack={handleBack} />
             </motion.div>
@@ -168,15 +171,18 @@ const Chats = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 hidden md:flex bg-gray-50"
+              className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 hidden md:flex bg-[#F8FAFC]"
             >
-              <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-12 h-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-[#5B4BFF]/20 rounded-full blur-[24px] animate-pulse" />
+                <div className="relative w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#E2E8F0]">
+                  <svg className="w-10 h-10 text-[#5B4BFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">StreamKart Chats</h2>
-              <p className="text-gray-500 max-w-sm">Select a conversation from the left to view messages and manage order credentials.</p>
+              <h2 className="text-[24px] font-bold text-[#0F172A] mb-2 tracking-[-0.02em]">StreamKart Messages</h2>
+              <p className="text-[#64748B] text-[15px] max-w-sm leading-relaxed">Select a conversation from the left to view messages and manage order credentials.</p>
             </motion.div>
           )}
         </AnimatePresence>

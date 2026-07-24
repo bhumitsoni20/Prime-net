@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiPlay, HiChatAlt2 } from 'react-icons/hi';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiChatAlt2 } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useCartStore from '../../store/cartStore';
 import { apiGet } from '../../services/api';
@@ -11,11 +11,18 @@ import Button from '../ui/Button';
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const { user, isAuthenticated } = useAuthStore();
   const itemCount = useCartStore((s) => s.items.length);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,78 +68,90 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'glass-nav shadow-[0_1px_3px_rgba(0,0,0,0.04)]' : 'bg-white/95 backdrop-blur-sm border-b border-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
-            <img src="/streamkart_logo.png" alt="StreamKart" className="h-16 scale-[1.35] w-auto object-contain origin-left ml-4" />
+            <img src="/streamkart_logo.png" alt="StreamKart" className="h-14 scale-[1.3] w-auto object-contain origin-left ml-2" />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-7">
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link key={link.label} to={link.to} className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium">
+              <NavLink
+                key={link.label}
+                to={link.to}
+                className={({ isActive }) =>
+                  `relative px-4 py-2 text-[13px] font-medium rounded-[10px] transition-all duration-200 ${
+                    isActive
+                      ? 'text-[#5B4BFF] bg-[#5B4BFF]/5'
+                      : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
+                  }`
+                }
+              >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </div>
 
           {/* Right Side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
             {isAuthenticated ? (
               <>
                 {user?.role === 'user' && (
                   <Link 
                     to="/dashboard/apply-seller" 
-                    className="hidden sm:flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-full transition-colors mr-2"
+                    className="hidden sm:flex items-center text-[13px] font-semibold text-[#5B4BFF] hover:text-[#4F3FE8] bg-[#5B4BFF]/[0.06] hover:bg-[#5B4BFF]/[0.1] px-4 py-2 rounded-full transition-all duration-200 mr-1"
                   >
                     Become a Seller
                   </Link>
                 )}
-                <button onClick={() => navigate('/search')} className="p-2 text-gray-500 hover:text-gray-700 transition-colors hidden sm:block">
-                  <HiSearch className="w-5 h-5" />
+                <button onClick={() => navigate('/search')} className="p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 hidden sm:flex items-center justify-center">
+                  <HiSearch className="w-[18px] h-[18px]" />
                 </button>
-                <Link to="/wishlist" className="relative p-2 text-gray-500 hover:text-pink-500 transition-colors hidden sm:block">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                <Link to="/wishlist" className="relative p-2 text-[#94A3B8] hover:text-pink-500 hover:bg-pink-50 rounded-[10px] transition-all duration-200 hidden sm:flex items-center justify-center">
+                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </Link>
-                <Link to="/notifications" className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                  <HiBell className="w-5 h-5" />
+                <Link to="/notifications" className="relative p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 flex items-center justify-center">
+                  <HiBell className="w-[18px] h-[18px]" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#EF4444] ring-2 ring-white animate-pulse" />
                   )}
                 </Link>
-                <Link to="/dashboard/chats" className="relative p-2 text-gray-500 hover:text-indigo-600 transition-colors" title="Chats">
-                  <HiChatAlt2 className="w-5 h-5" />
+                <Link to="/dashboard/chats" className="relative p-2 text-[#94A3B8] hover:text-[#5B4BFF] hover:bg-[#5B4BFF]/5 rounded-[10px] transition-all duration-200 flex items-center justify-center" title="Chats">
+                  <HiChatAlt2 className="w-[18px] h-[18px]" />
                 </Link>
-                <Link to="/cart" className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors">
-                  <HiShoppingCart className="w-5 h-5" />
+                <Link to="/cart" className="relative p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 flex items-center justify-center">
+                  <HiShoppingCart className="w-[18px] h-[18px]" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-4.5 w-4.5 rounded-full bg-indigo-600 text-[10px] font-bold text-white flex items-center justify-center">
+                    <span className="absolute -top-0 -right-0 h-[18px] min-w-[18px] px-1 rounded-full bg-[#5B4BFF] text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white">
                       {itemCount}
                     </span>
                   )}
                 </Link>
                 <div className="relative ml-1" ref={dropdownRef}>
-                  <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 hover:opacity-80 transition-opacity p-0.5 rounded-full">
                     <Avatar src={user?.avatar} name={user?.name} size="sm" />
                   </button>
                   {profileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 animate-slideDown">
-                      <div className="px-4 py-2.5 border-b border-gray-100">
-                        <p className="text-gray-900 text-sm font-medium truncate" title={user?.name}>{user?.name}</p>
-                        <p className="text-gray-500 text-xs truncate" title={user?.email}>{user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-[16px] shadow-[0_12px_32px_-4px_rgba(0,0,0,0.12)] py-1.5 animate-slideDown overflow-hidden">
+                      <div className="px-4 py-3 border-b border-[#F1F5F9]">
+                        <p className="text-[#0F172A] text-sm font-semibold truncate" title={user?.name}>{user?.name}</p>
+                        <p className="text-[#94A3B8] text-xs truncate mt-0.5" title={user?.email}>{user?.email}</p>
                       </div>
-                      <Link to="/dashboard" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Dashboard</Link>
-                      <Link to="/dashboard/profile" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Profile</Link>
-                      {(user?.role === 'seller' || user?.role === 'admin') && (
-                        <Link to="/seller" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Seller Panel</Link>
-                      )}
-                      {user?.role === 'admin' && (
-                        <Link to="/admin" onClick={() => setProfileOpen(false)} className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">Admin Panel</Link>
-                      )}
-                      <div className="border-t border-gray-100 mt-1">
-                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">Sign Out</button>
+                      <div className="py-1">
+                        <Link to="/dashboard" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium">Dashboard</Link>
+                        <Link to="/dashboard/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium">Profile</Link>
+                        {(user?.role === 'seller' || user?.role === 'admin') && (
+                          <Link to="/seller" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium">Seller Panel</Link>
+                        )}
+                        {user?.role === 'admin' && (
+                          <Link to="/admin" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium">Admin Panel</Link>
+                        )}
+                      </div>
+                      <div className="border-t border-[#F1F5F9] pt-1">
+                        <button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-[#EF4444] hover:bg-[#FEF2F2] transition-colors font-medium">Sign Out</button>
                       </div>
                     </div>
                   )}
@@ -140,7 +159,7 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/dashboard/apply-seller" className="hidden sm:block text-sm font-medium text-indigo-600 hover:text-indigo-500 mr-2">
+                <Link to="/dashboard/apply-seller" className="hidden sm:block text-[13px] font-semibold text-[#5B4BFF] hover:text-[#4F3FE8] mr-2 transition-colors">
                   Become a Seller
                 </Link>
                 <Link to="/login"><Button variant="ghost" size="sm">Log In</Button></Link>
@@ -148,16 +167,16 @@ const Navbar = () => {
               </div>
             )}
 
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-gray-500 hover:text-gray-700">
-              {mobileOpen ? <HiX className="w-6 h-6" /> : <HiMenu className="w-6 h-6" />}
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all ml-1">
+              {mobileOpen ? <HiX className="w-5 h-5" /> : <HiMenu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 animate-slideDown">
+          <div className="md:hidden py-3 border-t border-[#F1F5F9] animate-slideDown">
             {navLinks.map((link) => (
-              <Link key={link.label} to={link.to} onClick={() => setMobileOpen(false)} className="block py-2.5 text-gray-600 hover:text-gray-900 transition-colors font-medium">
+              <Link key={link.label} to={link.to} onClick={() => setMobileOpen(false)} className="block py-2.5 px-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC] rounded-[10px] transition-all font-medium text-sm">
                 {link.label}
               </Link>
             ))}

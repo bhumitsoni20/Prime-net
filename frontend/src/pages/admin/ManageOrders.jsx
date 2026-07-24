@@ -1,12 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getAllOrders } from '../../services/admin.service';
-import { updateOrderStatus } from '../../services/order.service';
-import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
 const ManageOrders = () => {
-  const queryClient = useQueryClient();
-
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['adminOrders'],
     queryFn: async () => {
@@ -14,33 +10,6 @@ const ManageOrders = () => {
       return response.data || [];
     },
   });
-
-  const statusMutation = useMutation({
-    mutationFn: ({ orderId, newStatus }) => updateOrderStatus(orderId, newStatus),
-    onMutate: async ({ orderId, newStatus }) => {
-      await queryClient.cancelQueries({ queryKey: ['adminOrders'] });
-      const previousOrders = queryClient.getQueryData(['adminOrders']);
-      
-      // Optimistically update the UI to instantly reflect the new status
-      queryClient.setQueryData(['adminOrders'], (old) => 
-        old?.map(order => order._id === orderId ? { ...order, orderStatus: newStatus } : order)
-      );
-      
-      return { previousOrders };
-    },
-    onError: (err, variables, context) => {
-      queryClient.setQueryData(['adminOrders'], context.previousOrders);
-      toast.error('Failed to update status');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
-    },
-    onSuccess: () => toast.success('Order status updated'),
-  });
-
-  const handleStatusChange = (orderId, newStatus) => {
-    statusMutation.mutate({ orderId, newStatus });
-  };
 
   return (
     <div>
@@ -78,23 +47,13 @@ const ManageOrders = () => {
                     <td className="p-5 text-[15px] font-extrabold text-[#0F172A] text-right">₹{(order.amount || order.totalAmount || 0).toLocaleString()}</td>
                     <td className="p-5 text-[13px] font-medium text-[#64748B]">{dayjs(order.createdAt).format('MMM DD, YYYY')}</td>
                     <td className="p-5 pr-6">
-                      <div className="relative">
-                        <select
-                          className="w-full appearance-none bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] px-4 py-2 pr-8 text-[13px] font-bold text-[#334155] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
-                          value={order.orderStatus}
-                          onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                          disabled={statusMutation.isPending && statusMutation.variables?.orderId === order._id}
-                        >
-                          <option value="placed">Placed</option>
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-[#94A3B8]">
-                          <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
-                        </div>
+                      <div className={`inline-flex px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm border ${
+                        order.orderStatus === 'delivered' ? 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]' : 
+                        order.orderStatus === 'completed' ? 'bg-[#EEF2FF] text-[#5B4BFF] border-[#C7D2FE]' :
+                        order.orderStatus === 'cancelled' ? 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]' :
+                        'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]'
+                      }`}>
+                        {order.orderStatus}
                       </div>
                     </td>
                   </tr>

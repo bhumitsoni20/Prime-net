@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiSupport, HiChat, HiSparkles } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useUiStore from '../../store/uiStore';
@@ -7,6 +7,11 @@ import Button from '../ui/Button';
 const Sidebar = () => {
   const { user } = useAuthStore();
   const { sidebarOpen, setSidebarOpen } = useUiStore();
+  const { pathname } = useLocation();
+
+  const isSellerContext = pathname.startsWith('/seller');
+  const isAdminContext = pathname.startsWith('/admin');
+  const isMainContext = !isSellerContext && !isAdminContext;
 
   const userLinks = [
     { to: '/dashboard', icon: HiHome, label: 'Dashboard', end: true },
@@ -71,9 +76,9 @@ const Sidebar = () => {
 
 
         <div className="px-3 py-4 flex-1 space-y-6">
-          {renderSection('Main', userLinks)}
-          {(user?.role === 'seller' || user?.role === 'admin') && renderSection('Seller', sellerLinks)}
-          {user?.role === 'admin' && renderSection('Admin', adminLinks)}
+          {isMainContext && renderSection('Main', userLinks)}
+          {isSellerContext && (user?.role === 'seller' || user?.role === 'admin') && renderSection('Seller', sellerLinks)}
+          {isAdminContext && user?.role === 'admin' && renderSection('Admin', adminLinks)}
         </div>
 
         {/* Bottom */}

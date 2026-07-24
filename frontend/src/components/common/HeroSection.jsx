@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import SearchBar from '../ui/SearchBar';
 import { HiShieldCheck, HiSparkles } from 'react-icons/hi';
+import { SiCanva } from 'react-icons/si';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
 import { motion } from 'framer-motion';
@@ -25,7 +26,7 @@ const FloatingIcon = ({ icon, color, delay, xOffset, yOffset, size = 60 }) => (
       height: size, 
       left: `calc(50% + ${xOffset}px)`, 
       top: `calc(50% + ${yOffset}px)`,
-      zIndex: 10
+      zIndex: 30
     }}
   >
     {icon}
@@ -151,23 +152,29 @@ const HeroSection = ({ onSearch }) => {
 
               {/* Floating App Icons */}
               <FloatingIcon delay={0} xOffset={-140} yOffset={-120} size={70} icon={
-                <div className="w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center text-white font-bold">S</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" alt="Spotify" className="w-10 h-10 object-contain" />
               } />
               
               <FloatingIcon delay={1} xOffset={100} yOffset={-150} size={80} icon={
-                <div className="w-12 h-12 bg-black text-[#E50914] flex items-center justify-center font-extrabold text-xl rounded-[8px]">N</div>
+                <img src="https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.png" alt="Netflix" className="w-10 h-10 object-contain rounded-md" />
               } />
 
               <FloatingIcon delay={2} xOffset={120} yOffset={40} size={65} icon={
-                <div className="w-10 h-10 rounded-[10px] bg-[#FF0000] flex items-center justify-center text-white"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" className="w-10 h-10 object-contain" />
               } />
 
-              <FloatingIcon delay={1.5} xOffset={-150} yOffset={80} size={75} icon={
-                <div className="text-[#00A8E1] font-bold text-[24px]">prime</div>
+              <FloatingIcon delay={1.5} xOffset={-150} yOffset={80} size={85} icon={
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg" alt="Prime Video" className="w-16 h-16 object-contain" />
               } />
 
-              <FloatingIcon delay={0.5} xOffset={150} yOffset={-50} size={50} color="bg-white border border-[#E2E8F0]" icon={
-                <div className="w-6 h-6 text-[#5B4BFF]"><HiShieldCheck className="w-full h-full" /></div>
+              <FloatingIcon delay={2.5} xOffset={0} yOffset={-170} size={75} icon={
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT" className="w-10 h-10 object-contain" />
+              } />
+
+              <FloatingIcon delay={1.2} xOffset={80} yOffset={140} size={70} icon={
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00C4CC] to-[#7D2AE8] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]">
+                  <SiCanva className="w-8 h-8 text-white" />
+                </div>
               } />
 
             </motion.div>

@@ -4,10 +4,10 @@ import { HiShieldCheck, HiClock, HiSupport } from 'react-icons/hi';
 
 const Footer = () => {
   const columns = [
-    { title: 'Product', links: [{ label: 'Marketplace', to: '/products' }, { label: 'Features', to: '/about' }, { label: 'Pricing', to: '/products' }, { label: 'Enterprise', to: '/about' }] },
-    { title: 'Company', links: [{ label: 'About', to: '/about' }, { label: 'Contact', to: '/contact' }, { label: 'Careers', to: '/about' }] },
-    { title: 'Resources', links: [{ label: 'Help Center', to: '/contact' }, { label: 'FAQs', to: '/contact' }, { label: 'Community', to: '/about' }] },
-    { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }, { label: 'Cookie Policy', to: '/privacy' }] },
+    { title: 'Marketplace', links: [{ label: 'All Categories', to: '/products' }, { label: 'Features', to: '/about' }, { label: 'Pricing', to: '/products' }, { label: 'How it Works', to: '/about' }, { label: 'Become a Seller', to: '/register' }] },
+    { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: '/about' }, { label: 'Contact Us', to: '/contact' }, { label: 'Press Kit', to: '/about' }] },
+    { title: 'Resources', links: [{ label: 'Help Center', to: '/contact' }, { label: 'FAQs', to: '/contact' }, { label: 'Community', to: '/about' }, { label: 'Guides', to: '/about' }] },
+    { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }, { label: 'Refund Policy', to: '/privacy' }, { label: 'Cookie Policy', to: '/privacy' }] },
   ];
 
   const socialLinks = [
@@ -18,45 +18,23 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#0F172A] mt-auto">
-      {/* Newsletter */}
-      <div className="border-b border-white/[0.06]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <h3 className="text-white font-bold text-lg mb-1">Stay in the loop</h3>
-              <p className="text-[#64748B] text-sm">Get updates on new products, features, and deals.</p>
-            </div>
-            <div className="flex w-full md:w-auto gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 md:w-72 px-4 py-2.5 bg-white/[0.06] border border-white/[0.08] rounded-[12px] text-white text-sm placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#5B4BFF]/40 focus:border-[#5B4BFF]/40 transition-all"
-              />
-              <button className="px-5 py-2.5 bg-[#5B4BFF] hover:bg-[#4F3FE8] text-white text-sm font-semibold rounded-[12px] transition-all shadow-[0_2px_8px_rgba(91,75,255,0.3)] hover:shadow-[0_4px_16px_rgba(91,75,255,0.4)]">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <footer className="bg-[#0F172A] mt-auto text-white">
       {/* Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-x-8 gap-y-12">
           {/* Brand Column */}
-          <div className="col-span-2 sm:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
+          <div className="col-span-2 sm:col-span-4 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-[10px] bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] flex items-center justify-center">
+              <div className="h-8 w-8 rounded-[10px] bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] flex items-center justify-center shadow-lg">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
               </div>
-              <span className="text-white font-bold text-[15px]">StreamKart</span>
+              <span className="text-white font-extrabold text-[20px] tracking-tight">Stream<span className="text-[#A855F7]">Kart</span></span>
             </div>
-            <p className="text-[#64748B] text-sm leading-relaxed mb-6">Your one-stop marketplace for premium digital subscriptions.</p>
+            <p className="text-[#94A3B8] text-[13px] leading-relaxed mb-6 max-w-xs">Your one-stop marketplace for premium digital subscriptions.</p>
             {/* Social */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               {socialLinks.map(({ icon: Icon, href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="p-2 text-[#64748B] hover:text-white hover:bg-white/[0.06] rounded-[10px] transition-all duration-200">
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} className="w-10 h-10 flex items-center justify-center text-[#94A3B8] hover:text-white bg-white/[0.04] hover:bg-white/[0.1] rounded-[10px] transition-all duration-300">
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
@@ -65,11 +43,11 @@ const Footer = () => {
 
           {columns.map((col) => (
             <div key={col.title}>
-              <h4 className="text-[#94A3B8] font-semibold text-[12px] uppercase tracking-[0.08em] mb-4">{col.title}</h4>
-              <ul className="space-y-2.5">
+              <h4 className="text-white font-bold text-[14px] mb-5">{col.title}</h4>
+              <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.to} className="text-[#64748B] hover:text-white text-sm transition-colors duration-200">
+                    <Link to={link.to} className="text-[#94A3B8] hover:text-white text-[13px] transition-colors duration-200">
                       {link.label}
                     </Link>
                   </li>
@@ -79,30 +57,41 @@ const Footer = () => {
           ))}
         </div>
 
-        {/* Trust badges */}
-        <div className="flex flex-wrap items-center gap-6 mt-10 pt-8 border-t border-white/[0.06]">
-          <div className="flex items-center gap-2 text-[#64748B] text-xs font-medium">
-            <HiShieldCheck className="w-4 h-4 text-[#22C55E]" />
-            <span>Secure Payments</span>
-          </div>
-          <div className="flex items-center gap-2 text-[#64748B] text-xs font-medium">
-            <HiClock className="w-4 h-4 text-[#F59E0B]" />
-            <span>Instant Delivery</span>
-          </div>
-          <div className="flex items-center gap-2 text-[#64748B] text-xs font-medium">
-            <HiSupport className="w-4 h-4 text-[#5B4BFF]" />
-            <span>24/7 Support</span>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-8 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[#475569] text-xs">
+        {/* Bottom Section */}
+        <div className="mt-16 pt-8 border-t border-white/[0.08] flex flex-col lg:flex-row items-center justify-between gap-6">
+          <p className="text-[#64748B] text-[12px]">
             © {new Date().getFullYear()} StreamKart. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-xs text-[#475569]">
-            <Link to="/privacy" className="hover:text-[#94A3B8] transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-[#94A3B8] transition-colors">Terms</Link>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <div className="flex items-center gap-2 text-[#94A3B8] text-[12px] font-semibold">
+              <HiShieldCheck className="w-[18px] h-[18px] text-[#22C55E]" />
+              <span>Secure Payments</span>
+            </div>
+            <div className="flex items-center gap-2 text-[#94A3B8] text-[12px] font-semibold">
+              <HiClock className="w-[18px] h-[18px] text-[#F59E0B]" />
+              <span>Instant Delivery</span>
+            </div>
+            <div className="flex items-center gap-2 text-[#94A3B8] text-[12px] font-semibold">
+              <HiSupport className="w-[18px] h-[18px] text-[#A855F7]" />
+              <span>24/7 Support</span>
+            </div>
+          </div>
+
+          {/* Payment Logos (Mockup using text blocks to simulate the image) */}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-6 bg-white rounded-[4px] flex items-center justify-center text-[8px] font-black text-[#1A1F71] tracking-widest shadow-sm">VISA</div>
+            <div className="w-10 h-6 bg-white rounded-[4px] flex items-center justify-center shadow-sm relative overflow-hidden">
+               <div className="w-4 h-4 rounded-full bg-[#EB001B] absolute left-1 mix-blend-multiply opacity-90"></div>
+               <div className="w-4 h-4 rounded-full bg-[#F79E1B] absolute right-1 mix-blend-multiply opacity-90"></div>
+            </div>
+            <div className="w-10 h-6 bg-white rounded-[4px] flex items-center justify-center text-[9px] font-black italic text-[#64748B] shadow-sm border border-[#F1F5F9]">UPI</div>
+            <div className="w-10 h-6 bg-white rounded-[4px] flex items-center justify-center text-[9px] font-bold text-[#002970] shadow-sm">Paytm</div>
+            <div className="w-10 h-6 bg-white rounded-[4px] flex items-center gap-0.5 justify-center text-[#5F6368] shadow-sm">
+              <svg className="w-2.5 h-2.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <span className="text-[9px] font-semibold">Pay</span>
+            </div>
           </div>
         </div>
       </div>

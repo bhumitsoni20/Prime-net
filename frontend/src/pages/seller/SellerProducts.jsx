@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
-import { HiPlus, HiPencil, HiTrash } from 'react-icons/hi';
+import Modal from '../../components/ui/Modal';
+import { HiPlus, HiPencil, HiTrash, HiExclamation } from 'react-icons/hi';
 import { useSellerProducts, useDeleteProduct } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -8,13 +10,21 @@ import toast from 'react-hot-toast';
 const SellerProducts = () => {
   const { data, isLoading } = useSellerProducts();
   const deleteMutation = useDeleteProduct();
+  const [productToDelete, setProductToDelete] = useState(null);
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteMutation.mutate(id, {
-        onSuccess: () => toast.success('Product deleted successfully')
-      });
-    }
+  const confirmDelete = () => {
+    if (!productToDelete) return;
+    
+    deleteMutation.mutate(productToDelete._id, {
+      onSuccess: () => {
+        toast.success('Product deleted successfully');
+        setProductToDelete(null);
+      },
+      onError: () => {
+        toast.error('Failed to delete product');
+        setProductToDelete(null);
+      }
+    });
   };
 
   if (isLoading) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>;
@@ -78,7 +88,7 @@ const SellerProducts = () => {
                       <Link to={`/seller/products/${product._id}/edit`} className="inline-flex p-2.5 text-[#64748B] hover:text-[#5B4BFF] hover:bg-[#EEF2FF] rounded-[10px] transition-colors">
                         <HiPencil className="w-[18px] h-[18px]" />
                       </Link>
-                      <button onClick={() => handleDelete(product._id)} className="p-2.5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#FEF2F2] rounded-[10px] transition-colors">
+                      <button onClick={() => setProductToDelete(product)} className="p-2.5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#FEF2F2] rounded-[10px] transition-colors">
                         <HiTrash className="w-[18px] h-[18px]" />
                       </button>
                     </div>
@@ -89,6 +99,33 @@ const SellerProducts = () => {
           </table>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={!!productToDelete} onClose={() => setProductToDelete(null)} title="Delete Product">
+        <div className="flex flex-col items-center text-center p-2">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 bg-[#EF4444] rounded-full blur-[24px] opacity-20"></div>
+            <div className="w-16 h-16 rounded-[20px] bg-[#FEF2F2] flex items-center justify-center relative border border-[#FECACA]">
+              <HiExclamation className="w-8 h-8 text-[#EF4444]" />
+            </div>
+          </div>
+          <h3 className="text-[20px] font-extrabold text-[#0F172A] mb-3">Delete {productToDelete?.title}?</h3>
+          <p className="text-[#64748B] text-[15px] mb-8 leading-relaxed">
+            Are you sure you want to permanently delete this product? This action cannot be undone.
+          </p>
+          <div className="flex gap-4 w-full">
+            <Button variant="secondary" size="lg" className="flex-1 border-[#E2E8F0]" onClick={() => setProductToDelete(null)}>Cancel</Button>
+            <Button 
+              size="lg"
+              className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] focus:ring-[#EF4444]/20 border-transparent text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)]" 
+              onClick={confirmDelete}
+              isLoading={deleteMutation.isPending}
+            >
+              Delete Product
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

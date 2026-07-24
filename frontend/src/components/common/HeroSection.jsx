@@ -1,9 +1,36 @@
 import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import SearchBar from '../ui/SearchBar';
-import { HiShieldCheck } from 'react-icons/hi';
+import { HiShieldCheck, HiSparkles } from 'react-icons/hi';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
+import { motion } from 'framer-motion';
+
+const FloatingIcon = ({ icon, color, delay, xOffset, yOffset, size = 60 }) => (
+  <motion.div
+    initial={{ y: 0 }}
+    animate={{ 
+      y: [-10, 10, -10],
+      rotate: [-5, 5, -5]
+    }}
+    transition={{ 
+      duration: 5, 
+      repeat: Infinity, 
+      ease: "easeInOut",
+      delay: delay 
+    }}
+    className={`absolute rounded-[24px] shadow-2xl flex items-center justify-center bg-white ${color}`}
+    style={{ 
+      width: size, 
+      height: size, 
+      left: `calc(50% + ${xOffset}px)`, 
+      top: `calc(50% + ${yOffset}px)`,
+      zIndex: 10
+    }}
+  >
+    {icon}
+  </motion.div>
+);
 
 const HeroSection = ({ onSearch }) => {
   const { data: stats } = useQuery({
@@ -16,51 +43,136 @@ const HeroSection = ({ onSearch }) => {
 
   const userCountText = stats?.totalUsers !== undefined
     ? `${stats.totalUsers.toLocaleString()}+` 
-    : '50k+';
+    : '4+'; // Matching design exactly "Trusted by 4+ users worldwide"
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white to-[#F8FAFC]">
-      {/* Gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-20%] left-[10%] w-[500px] h-[500px] rounded-full bg-[#5B4BFF]/[0.04] blur-[80px]" />
-        <div className="absolute top-[-10%] right-[15%] w-[400px] h-[400px] rounded-full bg-[#7C3AED]/[0.04] blur-[80px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[#5B4BFF]/[0.03] blur-[100px]" />
+    <section className="relative overflow-hidden bg-[#FAFBFF] pt-16 pb-24 lg:pt-24 lg:pb-32">
+      {/* Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#5B4BFF]/[0.05] blur-[100px]" />
+        <div className="absolute top-[10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-[#7C3AED]/[0.05] blur-[100px]" />
       </div>
 
-      {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%235B4BFF\' fill-opacity=\'1\'%3E%3Cpath d=\'M0 0h1v1H0V0zm20 0h1v1h-1V0zM0 20h1v1H0v-1zm20 0h1v1h-1v-1z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Content */}
+          <div className="max-w-2xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 bg-[#F3F1FF] text-[#5B4BFF] rounded-full px-4 py-2 text-[13px] font-bold mb-6"
+            >
+              <HiSparkles className="w-4 h-4" />
+              Trusted by {userCountText} users worldwide
+            </motion.div>
 
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
-        {/* Pill badge */}
-        <div className="inline-flex items-center gap-2 bg-[#5B4BFF]/[0.06] border border-[#5B4BFF]/10 text-[#5B4BFF] rounded-full px-4 py-1.5 text-[13px] font-semibold mb-6 animate-fadeIn">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#5B4BFF] animate-pulse" />
-          Trusted by {userCountText} users worldwide
-        </div>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-[40px] sm:text-[56px] lg:text-[64px] font-extrabold text-[#0F172A] leading-[1.1] tracking-[-0.03em] mb-6"
+            >
+              Your Digital World,<br />
+              <span className="bg-gradient-to-r from-[#5B4BFF] to-[#A855F7] text-transparent bg-clip-text">All in One Place</span>
+            </motion.h1>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-[#0F172A] mb-5 leading-[1.1] tracking-[-0.03em] animate-slideUp text-balance">
-          Empower Your<br />
-          <span className="gradient-text">Digital Lifestyle.</span>
-        </h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-[#64748B] text-[18px] sm:text-[20px] mb-10 leading-relaxed max-w-lg"
+            >
+              Discover, compare and subscribe to premium digital services at unbeatable prices. Fast, secure and reliable.
+            </motion.p>
 
-        <p className="text-[#64748B] text-lg max-w-xl mx-auto mb-8 animate-slideUp animate-stagger-1 leading-relaxed">
-          Discover and manage premium digital subscriptions in one seamless platform.
-        </p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="relative max-w-lg mb-10"
+            >
+              <SearchBar onSearch={onSearch} className="w-full" size="lg" buttonText="Search" buttonColor="primary" />
+            </motion.div>
 
-        <SearchBar onSearch={onSearch} className="max-w-xl mx-auto mb-8 animate-slideUp animate-stagger-2" />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="flex flex-wrap items-center gap-6 text-[#334155]"
+            >
+              <span className="flex items-center gap-2 text-[14px] font-bold">
+                <div className="w-5 h-5 rounded-full bg-[#10B981] flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                Verified Sellers
+              </span>
+              <span className="flex items-center gap-2 text-[14px] font-bold">
+                <div className="w-5 h-5 rounded-[6px] bg-transparent border-2 border-[#5B4BFF] flex items-center justify-center text-[#5B4BFF]">
+                  <HiShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                Secure Payments
+              </span>
+              <span className="flex items-center gap-2 text-[14px] font-bold">
+                <div className="w-5 h-5 rounded-[6px] bg-transparent flex items-center justify-center text-[#F59E0B]">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clipRule="evenodd" /></svg>
+                </div>
+                Instant Delivery
+              </span>
+            </motion.div>
+          </div>
 
-        <div className="flex items-center justify-center gap-6 text-[#94A3B8] animate-slideUp animate-stagger-3">
-          <span className="flex items-center gap-1.5 text-sm font-medium">
-            <HiShieldCheck className="w-4 h-4 text-[#22C55E]" />
-            Verified sellers
-          </span>
-          <span className="flex items-center gap-1.5 text-sm font-medium">
-            <HiShieldCheck className="w-4 h-4 text-[#5B4BFF]" />
-            Secure payments
-          </span>
-          <span className="flex items-center gap-1.5 text-sm font-medium">
-            <HiShieldCheck className="w-4 h-4 text-[#F59E0B]" />
-            Instant delivery
-          </span>
+          {/* Right Content - Abstract Floating Illustration */}
+          <div className="relative h-[400px] sm:h-[500px] lg:h-[600px] hidden sm:block">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              {/* Main glowing orb behind cart */}
+              <div className="w-[300px] h-[300px] rounded-full bg-gradient-to-tr from-[#5B4BFF]/20 to-[#A855F7]/20 blur-[40px]" />
+              
+              {/* Main Center Image/Icon (The Cart) */}
+              <motion.div 
+                animate={{ y: [-15, 15, -15] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute z-20 flex items-center justify-center"
+              >
+                <div className="relative w-64 h-64">
+                   <div className="absolute inset-0 bg-white rounded-[32px] shadow-[0_20px_50px_rgba(91,75,255,0.15)] flex items-center justify-center border border-[#F1F5F9] rotate-[-5deg]">
+                     <div className="w-32 h-32 text-[#5B4BFF]">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                     </div>
+                   </div>
+                </div>
+              </motion.div>
+
+              {/* Floating App Icons */}
+              <FloatingIcon delay={0} xOffset={-140} yOffset={-120} size={70} icon={
+                <div className="w-10 h-10 rounded-full bg-[#1DB954] flex items-center justify-center text-white font-bold">S</div>
+              } />
+              
+              <FloatingIcon delay={1} xOffset={100} yOffset={-150} size={80} icon={
+                <div className="w-12 h-12 bg-black text-[#E50914] flex items-center justify-center font-extrabold text-xl rounded-[8px]">N</div>
+              } />
+
+              <FloatingIcon delay={2} xOffset={120} yOffset={40} size={65} icon={
+                <div className="w-10 h-10 rounded-[10px] bg-[#FF0000] flex items-center justify-center text-white"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+              } />
+
+              <FloatingIcon delay={1.5} xOffset={-150} yOffset={80} size={75} icon={
+                <div className="text-[#00A8E1] font-bold text-[24px]">prime</div>
+              } />
+
+              <FloatingIcon delay={0.5} xOffset={150} yOffset={-50} size={50} color="bg-white border border-[#E2E8F0]" icon={
+                <div className="w-6 h-6 text-[#5B4BFF]"><HiShieldCheck className="w-full h-full" /></div>
+              } />
+
+            </motion.div>
+          </div>
+
         </div>
       </div>
     </section>

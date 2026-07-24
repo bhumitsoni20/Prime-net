@@ -73,72 +73,81 @@ const AddProduct = () => {
     <div className="py-2">
       <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-8 tracking-[-0.02em]">Add New Product</h1>
       
-      <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 max-w-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow space-y-6">
-        <Input label="Product Title" placeholder="e.g. ChatGPT Plus" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
-        
-        <div>
-          <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">App Logo</label>
-          <div className="flex items-center gap-5">
-            {previewUrl ? (
-              <div className="relative group">
-                <div className="w-20 h-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-2 overflow-hidden">
-                  <img src={previewUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
-                </div>
-                <div className="absolute inset-0 bg-black/40 rounded-[16px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-white text-[11px] font-bold uppercase tracking-wider">Change</button>
+      <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 max-w-5xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
+          
+          {/* Left Column */}
+          <div className="space-y-6">
+            <Input label="Product Title" placeholder="e.g. ChatGPT Plus" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+            
+            <div>
+              <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">App Logo</label>
+              <div className="flex items-center gap-5">
+                {previewUrl ? (
+                  <div className="relative group">
+                    <div className="w-20 h-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-2 overflow-hidden">
+                      <img src={previewUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                    </div>
+                    <div className="absolute inset-0 bg-black/40 rounded-[16px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="text-white text-[11px] font-bold uppercase tracking-wider">Change</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-[16px] bg-[#F8FAFC] border-2 border-dashed border-[#CBD5E1] flex flex-col items-center justify-center text-[#94A3B8] text-[11px] font-bold uppercase tracking-wide gap-1 hover:border-[#5B4BFF] hover:bg-[#EEF2FF] hover:text-[#5B4BFF] transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <span className="text-2xl">+</span>
+                    <span>Upload</span>
+                  </div>
+                )}
+                
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                />
+                
+                <div className="flex flex-col gap-2">
+                  <Button type="button" variant="outline" size="sm" className="font-semibold" onClick={() => fileInputRef.current?.click()}>
+                    {previewUrl ? 'Change Logo' : 'Choose File'}
+                  </Button>
+                  {previewUrl && (
+                    <button type="button" className="text-[12px] text-[#EF4444] hover:text-[#DC2626] font-semibold text-left transition-colors" onClick={() => { setPreviewUrl(null); setCroppedBlob(null); }}>Remove logo</button>
+                  )}
                 </div>
               </div>
-            ) : (
-              <div className="w-20 h-20 rounded-[16px] bg-[#F8FAFC] border-2 border-dashed border-[#CBD5E1] flex flex-col items-center justify-center text-[#94A3B8] text-[11px] font-bold uppercase tracking-wide gap-1 hover:border-[#5B4BFF] hover:bg-[#EEF2FF] hover:text-[#5B4BFF] transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <span className="text-2xl">+</span>
-                <span>Upload</span>
-              </div>
-            )}
-            
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-            />
-            
-            <div className="flex flex-col gap-2">
-              <Button type="button" variant="outline" size="sm" className="font-semibold" onClick={() => fileInputRef.current?.click()}>
-                {previewUrl ? 'Change Logo' : 'Choose File'}
-              </Button>
-              {previewUrl && (
-                <button type="button" className="text-[12px] text-[#EF4444] hover:text-[#DC2626] font-semibold text-left transition-colors" onClick={() => { setPreviewUrl(null); setCroppedBlob(null); }}>Remove logo</button>
-              )}
             </div>
-          </div>
-        </div>
 
-        <div>
-          <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all resize-none" required />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-6">
-          <Input label="Price (₹)" type="number" placeholder="999" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
-          <div>
-            <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Category</label>
-            <div className="relative">
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium">
-                {categories.map((c) => <option key={c} value={c}>{c.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+            <div>
+              <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all resize-none" required />
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <Input label="Price (₹)" type="number" placeholder="999" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
+              <div>
+                <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Category</label>
+                <div className="relative">
+                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium">
+                    {categories.map((c) => <option key={c} value={c}>{c.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                  </div>
+                </div>
               </div>
             </div>
+            
+            <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
           </div>
         </div>
         
-        <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
-        
-        <div className="flex gap-4 pt-6 border-t border-[#F1F5F9]">
-          <Button type="button" variant="secondary" size="lg" className="flex-1" onClick={() => navigate('/seller/products')} disabled={createMutation.isPending}>Cancel</Button>
-          <Button type="submit" size="lg" className="flex-1 shadow-[0_4px_14px_rgba(91,75,255,0.3)]" loading={createMutation.isPending}>Create Product</Button>
+        <div className="flex gap-4 pt-8 mt-8 border-t border-[#F1F5F9] justify-end">
+          <Button type="button" variant="secondary" size="lg" className="w-40" onClick={() => navigate('/seller/products')} disabled={createMutation.isPending}>Cancel</Button>
+          <Button type="submit" size="lg" className="w-48 shadow-[0_4px_14px_rgba(91,75,255,0.3)]" loading={createMutation.isPending}>Create Product</Button>
         </div>
       </form>
 

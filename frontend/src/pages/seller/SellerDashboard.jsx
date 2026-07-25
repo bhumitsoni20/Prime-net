@@ -10,6 +10,7 @@ import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import RevenueChart from '../../components/ui/RevenueChart';
 
 const SellerDashboard = () => {
   const { user } = useAuthStore();
@@ -64,32 +65,8 @@ const SellerDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Revenue Forecast (MOCK) */}
-        <div className="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-[24px] p-7 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-[18px] font-bold text-[#0F172A]">Revenue Forecast</h2>
-              <p className="text-[#64748B] text-[13px] font-medium mt-1">Estimated earnings for Q3 2024</p>
-            </div>
-          </div>
-          {/* Chart placeholder — bar chart */}
-          <div className="flex items-end gap-3 h-52 pt-4">
-            {[30, 45, 38, 52, 60, 80, 72, 55, 48, 42, 35, 28].map((h, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative">
-                <div className={`w-full rounded-t-[6px] transition-all duration-500 hover:opacity-80 cursor-pointer ${i === 5 ? 'bg-[#5B4BFF] shadow-[0_-4px_14px_rgba(91,75,255,0.3)]' : 'bg-[#E2E8F0] hover:bg-[#CBD5E1]'}`} style={{ height: `${h}%` }}>
-                  {i === 5 && (
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#0F172A] text-white text-[11px] font-bold px-2 py-1 rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                      Peak Sales
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0F172A]"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-3 text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] px-1">
-            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => <span key={m} className={i === 5 ? 'text-[#5B4BFF]' : ''}>{m}</span>)}
-          </div>
+        <div className="lg:col-span-2">
+          <RevenueChart totalRevenue={totalSales} />
         </div>
 
         {/* Payout Card */}

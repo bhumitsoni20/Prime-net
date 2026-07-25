@@ -51,13 +51,14 @@ const SellerProducts = () => {
         </div>
       ) : (
         <div className="bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px] text-left border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#F1F5F9] text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em]">
                 <th className="p-5 pl-6">Product</th>
-                <th className="p-5 hidden sm:table-cell">Category</th>
+                <th className="p-5">Category</th>
                 <th className="p-5">Price</th>
-                <th className="p-5 hidden sm:table-cell">Status</th>
+                <th className="p-5">Status</th>
                 <th className="p-5 pr-6 text-right">Actions</th>
               </tr>
             </thead>
@@ -76,9 +77,9 @@ const SellerProducts = () => {
                       <span className="font-bold text-[15px] group-hover:text-[#5B4BFF] transition-colors">{product.title}</span>
                     </div>
                   </td>
-                  <td className="p-5 text-[14px] font-medium text-[#64748B] hidden sm:table-cell">{product.category}</td>
+                  <td className="p-5 text-[14px] font-medium text-[#64748B]">{product.category}</td>
                   <td className="p-5 text-[15px] font-extrabold text-[#0F172A]">₹{product.price.toLocaleString()}</td>
-                  <td className="p-5 hidden sm:table-cell">
+                  <td className="p-5">
                     <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${product.status === 'active' ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' : 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'}`}>
                       {product.status || 'Active'}
                     </span>
@@ -96,7 +97,8 @@ const SellerProducts = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
 

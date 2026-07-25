@@ -143,14 +143,14 @@ const Home = () => {
             </div>
 
             <div className="w-full md:w-auto flex-1 max-w-md">
-              <form className="flex bg-[#F8FAFC] p-1.5 rounded-[16px] border border-[#E2E8F0] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/10 focus-within:border-[#5B4BFF] transition-all">
+              <form className="flex flex-col sm:flex-row bg-[#F8FAFC] p-1.5 rounded-[16px] border border-[#E2E8F0] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/10 focus-within:border-[#5B4BFF] transition-all gap-2 sm:gap-0">
                 <input 
                   type="email" 
                   placeholder="Enter your email address" 
-                  className="w-full bg-transparent border-none px-5 text-[15px] text-[#0F172A] placeholder-[#94A3B8] focus:ring-0 outline-none"
+                  className="w-full bg-transparent border-none px-4 sm:px-5 py-3 sm:py-0 text-[15px] text-[#0F172A] placeholder-[#94A3B8] focus:ring-0 outline-none"
                   required
                 />
-                <Button type="submit" size="lg" className="px-8 rounded-[12px] shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex items-center gap-2 flex-shrink-0">
+                <Button type="submit" size="lg" className="w-full sm:w-auto px-8 rounded-[12px] shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex items-center justify-center gap-2 flex-shrink-0">
                   Subscribe <HiPaperAirplane className="w-4 h-4 rotate-90" />
                 </Button>
               </form>

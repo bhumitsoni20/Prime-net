@@ -177,9 +177,9 @@ const EditProduct = () => {
           </div>
         </div>
         
-        <div className="flex gap-4 pt-8 mt-8 border-t border-[#F1F5F9] justify-end">
-          <Button type="button" variant="secondary" size="lg" className="w-40" onClick={() => navigate('/seller/products')} disabled={updateMutation.isPending}>Cancel</Button>
-          <Button type="submit" size="lg" className="w-48 shadow-[0_4px_14px_rgba(91,75,255,0.3)]" loading={updateMutation.isPending}>Save Changes</Button>
+        <div className="flex flex-col-reverse sm:flex-row gap-4 pt-8 mt-8 border-t border-[#F1F5F9] sm:justify-end">
+          <Button type="button" variant="secondary" size="lg" className="w-full sm:w-40" onClick={() => navigate('/seller/products')} disabled={updateMutation.isPending}>Cancel</Button>
+          <Button type="submit" size="lg" className="w-full sm:w-48 shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex justify-center" loading={updateMutation.isPending}>Update Product</Button>
         </div>
       </form>
 

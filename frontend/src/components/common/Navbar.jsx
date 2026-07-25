@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiChatAlt2 } from 'react-icons/hi';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { HiMenu, HiX, HiShoppingCart, HiBell, HiSearch, HiChatAlt2, HiMenuAlt2 } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
+import useUiStore from '../../store/uiStore';
 import useCartStore from '../../store/cartStore';
 import { apiGet } from '../../services/api';
 import { signOut } from '../../firebase/auth';
@@ -15,8 +16,11 @@ const Navbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const { user, isAuthenticated } = useAuthStore();
+  const { setSidebarOpen } = useUiStore();
   const itemCount = useCartStore((s) => s.items.length);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isDashboardRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/seller') || pathname.startsWith('/admin');
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
@@ -70,10 +74,20 @@ const Navbar = () => {
     <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'glass-nav shadow-[0_1px_3px_rgba(0,0,0,0.04)]' : 'bg-white/95 backdrop-blur-sm border-b border-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
-            <img src="/streamkart_logo.png" alt="StreamKart" className="h-14 scale-[1.3] w-auto object-contain origin-left ml-2" />
-          </Link>
+          {/* Logo & Mobile Sidebar Toggle */}
+          <div className="flex items-center">
+            {isAuthenticated && isDashboardRoute && (
+              <button 
+                onClick={() => setSidebarOpen(true)} 
+                className="lg:hidden p-2 -ml-2 mr-1 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all"
+              >
+                <HiMenuAlt2 className="w-5 h-5" />
+              </button>
+            )}
+            <Link to="/" className="flex items-center hover:opacity-90 transition-opacity">
+              <img src="/streamkart_logo.png" alt="StreamKart" className="h-14 scale-[1.3] w-auto object-contain origin-left ml-2" />
+            </Link>
+          </div>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">

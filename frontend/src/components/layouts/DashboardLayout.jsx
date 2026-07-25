@@ -14,7 +14,7 @@ const DashboardLayout = () => {
       <Navbar />
       {!isChatsPage && <Sidebar />}
       <main className={`pt-16 min-h-screen overflow-x-hidden ${isChatsPage ? '' : 'lg:pl-[240px]'}`}>
-        <div className="p-5 lg:p-8">
+        <div className="p-4 sm:p-5 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

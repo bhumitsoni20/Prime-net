@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import Badge from '../ui/Badge';
 import { HiClipboardList } from 'react-icons/hi';
 
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, action }) => {
   const statusColors = {
     placed: 'border-l-[#F59E0B]',
     preparing: 'border-l-[#5B4BFF]',
@@ -31,9 +31,12 @@ const OrderCard = ({ order }) => {
           <p className="text-[#0F172A] font-bold text-sm">₹{order.amount}</p>
           <p className="text-[#94A3B8] text-[11px] mt-0.5">{new Date(order.createdAt).toLocaleDateString()}</p>
         </div>
-        <Badge variant={badgeVariant[order.paymentStatus] || 'default'}>
-          {order.paymentStatus}
-        </Badge>
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <Badge variant={badgeVariant[order.paymentStatus] || 'default'}>
+            {order.paymentStatus}
+          </Badge>
+          {action && <div onClick={(e) => e.preventDefault()}>{action}</div>}
+        </div>
       </div>
     </Link>
   );

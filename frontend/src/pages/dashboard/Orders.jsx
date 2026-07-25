@@ -1,9 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Spinner from '../../components/ui/Spinner';
 import OrderCard from '../../components/cards/OrderCard';
+import ReviewModal from '../../components/ui/ReviewModal';
 import { getMyOrders } from '../../services/order.service';
+import { apiPost } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Orders = () => {
+  const queryClient = useQueryClient();
+  const [reviewingOrder, setReviewingOrder] = useState(null);
+
   const { data: rawOrders = [], isLoading, isError } = useQuery({
     queryKey: ['myOrders'],
     queryFn: async () => {
@@ -14,6 +21,24 @@ const Orders = () => {
 
   // Filter out abandoned checkouts
   const orders = rawOrders.filter((o) => o.paymentStatus === 'paid');
+
+  const submitReview = async ({ rating, comment }) => {
+    if (!rating) return toast.error('Please select a rating');
+    try {
+      const productId = typeof reviewingOrder.product === 'object' ? reviewingOrder.product?._id : reviewingOrder.product;
+      if (!productId) return toast.error('Product no longer exists');
+      await apiPost('/reviews', {
+        productId,
+        rating,
+        comment,
+      });
+      toast.success('Review submitted successfully!');
+      setReviewingOrder(null);
+      queryClient.invalidateQueries(['myOrders']);
+    } catch (err) {
+      toast.error('Failed to submit review');
+    }
+  };
 
   return (
     <div>
@@ -38,10 +63,30 @@ const Orders = () => {
       ) : (
         <div className="space-y-5">
           {orders.map((order) => (
-            <OrderCard key={order._id} order={order} />
+            <OrderCard 
+              key={order._id} 
+              order={order} 
+              action={
+                order.orderStatus === 'completed' && !order.isReviewed && order.product ? (
+                  <button 
+                    onClick={() => setReviewingOrder(order)}
+                    className="text-[11px] font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1.5 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all"
+                  >
+                    Leave Review
+                  </button>
+                ) : null
+              }
+            />
           ))}
         </div>
       )}
+
+      <ReviewModal 
+        isOpen={!!reviewingOrder}
+        onClose={() => setReviewingOrder(null)}
+        onSubmit={submitReview}
+        otherUserName={reviewingOrder?.seller?.name}
+      />
     </div>
   );
 };

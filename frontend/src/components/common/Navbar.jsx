@@ -9,6 +9,8 @@ import { signOut } from '../../firebase/auth';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 
+import toast from 'react-hot-toast';
+
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -62,6 +64,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await signOut();
+    toast.success("You've been logged out successfully.");
     navigate('/');
   };
 

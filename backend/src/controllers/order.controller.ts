@@ -64,7 +64,15 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
       Order.countDocuments({ user: req.user._id }),
     ]);
 
-    return sendPaginated(res, orders, page, limit, total);
+    const { Review } = await import('../models/Review');
+    const enrichedOrders = await Promise.all(
+      orders.map(async (order) => {
+        const isReviewed = await Review.exists({ user: req.user._id, product: order.product?._id });
+        return { ...order, isReviewed: !!isReviewed };
+      })
+    );
+
+    return sendPaginated(res, enrichedOrders, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
   }
@@ -90,7 +98,10 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
       return sendError(res, 'Not authorized.', 403);
     }
 
-    return sendSuccess(res, order);
+    const { Review } = await import('../models/Review');
+    const isReviewed = await Review.exists({ user: req.user._id, product: order.product?._id });
+
+    return sendSuccess(res, { ...order, isReviewed: !!isReviewed });
   } catch (error: any) {
     return sendError(res, error.message);
   }

@@ -6,6 +6,7 @@ import {
   deleteUser,
   getAllProducts,
   updateProductStatus,
+  deleteProduct,
   getAllOrders,
   getApplications,
   updateApplicationStatus,
@@ -23,8 +24,10 @@ router.put('/users/:id/role', updateUserRole);
 router.delete('/users/:id', deleteUser);
 router.get('/products', getAllProducts);
 router.put('/products/:id/status', updateProductStatus);
+router.delete('/products/:id', deleteProduct);
 router.get('/orders', getAllOrders);
 router.get('/applications', getApplications);
 router.put('/applications/:id/status', updateApplicationStatus);
 
 export default router;
+// trigger restart

@@ -245,3 +245,16 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     return sendError(res, error.message);
   }
 };
+
+// DELETE /api/admin/products/:id
+export const deleteProduct = async (req: AuthRequest, res: Response) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return sendError(res, 'Product not found.', 404);
+
+    await Product.findByIdAndDelete(req.params.id);
+    return sendSuccess(res, null, 'Product deleted successfully.');
+  } catch (error: any) {
+    return sendError(res, error.message);
+  }
+};

@@ -163,12 +163,6 @@ StreamKart/
     └── package.json
 ```
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=5B4BFF&height=100&section=footer" width="100%" alt="Footer Wave" />
 </div>

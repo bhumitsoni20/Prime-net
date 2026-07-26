@@ -24,11 +24,10 @@ const Footer = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-x-8 gap-y-12">
           {/* Brand Column */}
           <div className="col-span-2 sm:col-span-4 lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-[10px] bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] flex items-center justify-center shadow-lg">
-                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-              </div>
-              <span className="text-white font-extrabold text-[20px] tracking-tight">Stream<span className="text-[#A855F7]">Kart</span></span>
+            <div className="flex items-center gap-2 mb-4 ">
+              <Link to="/" className="hover:opacity-90 transition-opacity">
+                <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-14 scale-[3.0] origin-left w-auto object-contain drop-shadow-md" />
+              </Link>
             </div>
             <p className="text-[#94A3B8] text-[13px] leading-relaxed mb-6 max-w-xs">Your one-stop marketplace for premium digital subscriptions.</p>
             {/* Social */}

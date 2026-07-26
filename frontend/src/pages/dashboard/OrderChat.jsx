@@ -230,7 +230,7 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
         </head>
         <body>
           <div class="header">
-             <div class="brand">StreamKart</div>
+             <div class="brand" style="margin-left: -10px;"><img src="${window.location.origin}/streamkart-logo-nav.png" alt="StreamKart" style="height: 120px; width: auto; object-fit: contain; transform: scale(1.2); transform-origin: left center;" /></div>
              <div class="invoice-details">
                <div><strong style="color:#0f172a; font-size:16px;">INVOICE</strong></div>
                <div>Date: ${new Date(order.createdAt).toLocaleDateString()}</div>

@@ -9,6 +9,7 @@ import ImageCropperModal from '../../components/ui/ImageCropperModal';
 
 const categories = [
   { value: 'ott', label: 'OTT Platforms' },
+  { value: 'gaming', label: 'Games & Accounts' },
   { value: 'ai-tools', label: 'AI & Productivity' },
   { value: 'vpn', label: 'VPN & Security' },
   { value: 'education', label: 'Education & Learning' },

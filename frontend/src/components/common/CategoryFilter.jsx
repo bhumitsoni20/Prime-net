@@ -1,10 +1,11 @@
-import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog } from 'react-icons/hi';
+import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog, HiPuzzle } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
 
 const categories = [
   { value: 'ott', label: 'OTT Platforms', subtitle: '120+ Services', icon: HiFilm, color: '#5B4BFF', bg: 'bg-[#5B4BFF]/10', text: 'text-[#5B4BFF]' },
+  { value: 'gaming', label: 'Games & Accounts', subtitle: '50+ Services', icon: HiPuzzle, color: '#10B981', bg: 'bg-[#10B981]/10', text: 'text-[#10B981]' },
   { value: 'ai-tools', label: 'AI & Productivity', subtitle: '80+ Services', icon: HiLightningBolt, color: '#3B82F6', bg: 'bg-[#3B82F6]/10', text: 'text-[#3B82F6]' },
   { value: 'vpn', label: 'VPN & Security', subtitle: '70+ Services', icon: HiShieldCheck, color: '#22C55E', bg: 'bg-[#22C55E]/10', text: 'text-[#22C55E]' },
   { value: 'education', label: 'Education & Learning', subtitle: '80+ Services', icon: HiAcademicCap, color: '#F59E0B', bg: 'bg-[#F59E0B]/10', text: 'text-[#F59E0B]' },

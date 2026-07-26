@@ -8,21 +8,24 @@ import { useProducts } from '../../hooks/useProducts';
 import { HiSearch, HiCheck } from 'react-icons/hi';
 
 const allCategories = [
-  { value: 'ai-tools', label: 'AI & Machine Learning' },
-  { value: 'software', label: 'Creative Tools' },
-  { value: 'ott', label: 'Productivity' },
-  { value: 'education', label: 'Developer Tools' },
-  { value: 'cloud-storage', label: 'Data & Analytics' },
+  { value: 'ott', label: 'OTT Platforms' },
+  { value: 'gaming', label: 'Games & Accounts' },
+  { value: 'ai-tools', label: 'AI & Productivity' },
+  { value: 'vpn', label: 'VPN & Security' },
+  { value: 'education', label: 'Education & Learning' },
+  { value: 'cloud-storage', label: 'Cloud & Storage' },
+  { value: 'music', label: 'Music & Audio' },
+  { value: 'software', label: 'Software & Tools' },
 ];
 
 const ProductList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [selectedCats, setSelectedCats] = useState(category ? [category] : []);
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [ratingFilter, setRatingFilter] = useState(0);
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [selectedCats, setSelectedCats] = useState(category ? category.split(',') : []);
+  const [priceRange, setPriceRange] = useState([0, parseInt(searchParams.get('maxPrice')) || 2000]);
+  const [ratingFilter, setRatingFilter] = useState(parseInt(searchParams.get('minRating')) || 0);
 
   const params = new URLSearchParams();
   params.set('page', page.toString());
@@ -34,17 +37,57 @@ const ProductList = () => {
 
   const { data, isLoading } = useProducts(params.toString());
 
+  const updateURLParams = (updates) => {
+    const currentParams = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '' || (key === 'maxPrice' && value >= 2000) || (key === 'minRating' && value <= 0)) {
+        currentParams.delete(key);
+      } else {
+        currentParams.set(key, value);
+      }
+    });
+    setSearchParams(currentParams, { replace: true });
+  };
+
   const toggleCategory = (cat) => {
-    setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    const newCats = selectedCats.includes(cat) 
+      ? selectedCats.filter(c => c !== cat) 
+      : [...selectedCats, cat];
+      
+    setSelectedCats(newCats);
     setPage(1);
+    updateURLParams({ category: newCats.length > 0 ? newCats.join(',') : null, page: 1 });
+  };
+
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    setPage(1);
+    updateURLParams({ search: val, page: 1 });
+  };
+
+  const handlePriceChange = (val) => {
+    setPriceRange([0, val]);
+    updateURLParams({ maxPrice: val });
+  };
+
+  const handleRatingChange = (r) => {
+    setRatingFilter(r);
+    setPage(1);
+    updateURLParams({ minRating: r, page: 1 });
+  };
+
+  const handlePageChange = (p) => {
+    setPage(p);
+    updateURLParams({ page: p });
   };
 
   const clearFilters = () => {
     setSelectedCats([]);
     setPriceRange([0, 2000]);
     setRatingFilter(0);
-    setSearchParams({});
+    setSearch('');
     setPage(1);
+    setSearchParams({}, { replace: true });
   };
 
   return (
@@ -89,7 +132,7 @@ const ProductList = () => {
                 max="2000"
                 step="50"
                 value={priceRange[1]}
-                onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                onChange={(e) => handlePriceChange(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-[#E2E8F0] rounded-full appearance-none cursor-pointer accent-[#5B4BFF]"
               />
               <div className="flex justify-between text-[11px] text-[#94A3B8] mt-3 font-semibold">
@@ -105,7 +148,7 @@ const ProductList = () => {
                 {[5, 4, 3, 2, 1].map((r) => (
                   <button 
                     key={r} 
-                    onClick={() => { setRatingFilter(r); setPage(1); }} 
+                    onClick={() => handleRatingChange(r)} 
                     className={`flex items-center justify-between w-full text-left text-sm p-2 rounded-[10px] transition-all ${ratingFilter === r ? 'bg-[#5B4BFF]/[0.06] border border-[#5B4BFF]/20' : 'hover:bg-[#F8FAFC] border border-transparent'}`}
                   >
                     <div className="flex items-center gap-1">
@@ -140,7 +183,7 @@ const ProductList = () => {
             <input
               type="text"
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search products..."
               className="w-full bg-white border border-[#E2E8F0] rounded-[16px] pl-11 pr-4 py-3.5 text-[#0F172A] text-sm placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] hover:border-[#CBD5E1] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
             />
@@ -172,7 +215,7 @@ const ProductList = () => {
                   <p className="text-[13px] text-[#64748B] font-medium mb-4">
                     Showing <span className="text-[#0F172A] font-semibold">1-{data.data?.length || 0}</span> of <span className="text-[#0F172A] font-semibold">{data.pagination.total || 0}</span> products
                   </p>
-                  <Pagination currentPage={data.pagination.page} totalPages={data.pagination.pages} onPageChange={setPage} />
+                  <Pagination currentPage={data.pagination.page} totalPages={data.pagination.pages} onPageChange={handlePageChange} />
                 </div>
               )}
             </>

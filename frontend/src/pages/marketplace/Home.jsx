@@ -10,10 +10,15 @@ import { motion } from 'framer-motion';
 
 const Home = () => {
   const navigate = useNavigate();
+
   const { data, isLoading } = useProducts('limit=4&sort=rating');
 
   const handleSearch = (query) => {
     navigate(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleCategorySelect = (cat) => {
+    navigate(`/products?category=${cat}`);
   };
 
   return (
@@ -28,7 +33,7 @@ const Home = () => {
             View all categories <span className="text-[18px]">→</span>
           </Link>
         </div>
-        <CategoryFilter selected="" onSelect={(cat) => navigate(`/products?category=${cat}`)} variant="cards" />
+        <CategoryFilter selected="" onSelect={handleCategorySelect} variant="cards" />
       </section>
 
       {/* Trending */}

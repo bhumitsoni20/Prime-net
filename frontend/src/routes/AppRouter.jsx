@@ -29,6 +29,7 @@ const Contact = lazy(() => import('../pages/public/Contact'));
 const Privacy = lazy(() => import('../pages/public/Privacy'));
 const Terms = lazy(() => import('../pages/public/Terms'));
 const NotFound = lazy(() => import('../pages/public/NotFound'));
+const RequestProduct = lazy(() => import('../pages/public/RequestProduct'));
 
 // Dashboard Pages (Lazy Loaded)
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
@@ -39,6 +40,7 @@ const Profile = lazy(() => import('../pages/dashboard/Profile'));
 const Notifications = lazy(() => import('../pages/marketplace/Notifications'));
 const SellerApplication = lazy(() => import('../pages/dashboard/SellerApplication'));
 const SellerReview = lazy(() => import('../pages/dashboard/SellerReview'));
+const MyRequests = lazy(() => import('../pages/dashboard/MyRequests'));
 
 // Seller Pages (Lazy Loaded)
 const SellerDashboard = lazy(() => import('../pages/seller/SellerDashboard'));
@@ -46,6 +48,7 @@ const AddProduct = lazy(() => import('../pages/seller/AddProduct'));
 const EditProduct = lazy(() => import('../pages/seller/EditProduct'));
 const SellerProducts = lazy(() => import('../pages/seller/SellerProducts'));
 const SellerOrders = lazy(() => import('../pages/seller/SellerOrders'));
+const SellerProductRequests = lazy(() => import('../pages/seller/SellerProductRequests'));
 
 // Admin Pages (Lazy Loaded)
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
@@ -53,6 +56,7 @@ const ManageUsers = lazy(() => import('../pages/admin/ManageUsers'));
 const ManageProducts = lazy(() => import('../pages/admin/ManageProducts'));
 const ManageOrders = lazy(() => import('../pages/admin/ManageOrders'));
 const ManageApplications = lazy(() => import('../pages/admin/ManageApplications'));
+const AdminProductRequests = lazy(() => import('../pages/admin/AdminProductRequests'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -80,6 +84,7 @@ const router = createBrowserRouter([
       { path: 'contact', element: withSuspense(Contact) },
       { path: 'privacy', element: withSuspense(Privacy) },
       { path: 'terms', element: withSuspense(Terms) },
+      { path: 'request-product', element: withSuspense(RequestProduct) },
     ],
   },
   {
@@ -110,6 +115,7 @@ const router = createBrowserRouter([
       { path: 'profile', element: withSuspense(Profile) },
       { path: 'apply-seller', element: withSuspense(SellerApplication) },
       { path: 'seller-review', element: withSuspense(SellerReview) },
+      { path: 'my-requests', element: withSuspense(MyRequests) },
     ],
   },
   {
@@ -125,6 +131,7 @@ const router = createBrowserRouter([
       { path: 'products/new', element: withSuspense(AddProduct) },
       { path: 'products/:id/edit', element: withSuspense(EditProduct) },
       { path: 'orders', element: withSuspense(SellerOrders) },
+      { path: 'product-requests', element: withSuspense(SellerProductRequests) },
     ],
   },
   {
@@ -140,6 +147,7 @@ const router = createBrowserRouter([
       { path: 'products', element: withSuspense(ManageProducts) },
       { path: 'orders', element: withSuspense(ManageOrders) },
       { path: 'applications', element: withSuspense(ManageApplications) },
+      { path: 'product-requests', element: withSuspense(AdminProductRequests) },
     ],
   },
   { path: '*', element: withSuspense(NotFound) },

@@ -4,7 +4,7 @@ import Badge from '../../components/ui/Badge';
 import toast from 'react-hot-toast';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
-import { HiTrash, HiExclamation } from 'react-icons/hi';
+import { HiTrash, HiExclamation, HiClipboardCopy } from 'react-icons/hi';
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -92,7 +92,19 @@ const ManageProducts = () => {
                             {product.title?.charAt(0) || 'P'}
                           </div>
                         )}
-                        <span className="font-bold text-[14px] text-[#0F172A] group-hover:text-[#5B4BFF] transition-colors">{product.title}</span>
+                        <div>
+                          <span className="font-bold text-[14px] text-[#0F172A] group-hover:text-[#5B4BFF] transition-colors block">{product.title}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(product._id);
+                              toast.success('Product ID copied!');
+                            }}
+                            className="flex items-center gap-1 text-[11px] text-[#94A3B8] hover:text-[#5B4BFF] transition-colors mt-0.5"
+                            title="Copy ID"
+                          >
+                            <HiClipboardCopy className="w-3.5 h-3.5" /> ID: {product._id}
+                          </button>
+                        </div>
                       </div>
                     </td>
                     <td className="p-5 text-[14px] font-semibold text-[#475569]">{product.seller?.name || 'Unknown'}</td>

@@ -15,8 +15,10 @@ import notificationRoutes from './routes/notification.routes';
 import reviewRoutes from './routes/review.routes';
 import adminRoutes from './routes/admin.routes';
 import sellerRoutes from './routes/seller.routes';
+import productRequestRoutes from './routes/productRequest.routes';
 
 const app = express();
+
 
 // ─── Security Middleware ────────────────────────────────
 app.use(helmet());
@@ -48,6 +50,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
+app.use('/api/requests', productRequestRoutes);
 
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';

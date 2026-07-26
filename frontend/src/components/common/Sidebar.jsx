@@ -24,6 +24,7 @@ const Sidebar = () => {
     { to: '/seller/products', icon: HiCube, label: 'Inventory', end: true },
     { to: '/seller/products/new', icon: HiPlus, label: 'Add Product' },
     { to: '/seller/orders', icon: HiClipboardList, label: 'Orders' },
+    { to: '/seller/product-requests', icon: HiSparkles, label: 'Demand Board' },
   ];
 
   const adminLinks = [
@@ -32,6 +33,7 @@ const Sidebar = () => {
     { to: '/admin/applications', icon: HiClipboardList, label: 'Applications' },
     { to: '/admin/products', icon: HiCube, label: 'Integrations' },
     { to: '/admin/orders', icon: HiCog, label: 'Settings' },
+    { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },
   ];
 
   const renderSection = (title, links) => (

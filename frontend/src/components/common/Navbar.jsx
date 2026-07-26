@@ -81,6 +81,7 @@ const Navbar = () => {
 
   const navLinks = [
     { label: "Marketplace", to: "/products" },
+    { label: "Request Product", to: "/request-product" },
     { label: "Features", to: "/about" },
   ];
 
@@ -227,6 +228,13 @@ const Navbar = () => {
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium"
                         >
                           Profile
+                        </Link>
+                        <Link
+                          to="/dashboard/my-requests"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors font-medium"
+                        >
+                          My Requests
                         </Link>
                         {(user?.role === "seller" ||
                           user?.role === "admin") && (

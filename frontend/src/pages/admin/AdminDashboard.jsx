@@ -51,7 +51,7 @@ const AdminDashboard = () => {
       </div>
 
       <div className="w-full">
-        <RevenueChart totalRevenue={stats.totalRevenue} />
+        <RevenueChart totalRevenue={stats.totalRevenue} data={stats.monthlyRevenue} />
       </div>
     </div>
   );

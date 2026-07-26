@@ -9,7 +9,15 @@ import { firebaseAuth } from '../config/firebase';
 // GET /api/admin/stats
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    const [totalUsers, totalProducts, totalOrders, totalRevenue] = await Promise.all([
+    const latestOrder = await Order.findOne({ paymentStatus: 'paid' }).sort({ createdAt: -1 });
+    const anchorDate = latestOrder ? latestOrder.createdAt : new Date();
+    
+    const sixMonthsAgo = new Date(anchorDate);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const [totalUsers, totalProducts, totalOrders, totalRevenue, monthlyRevenueRaw] = await Promise.all([
       User.countDocuments(),
       Product.countDocuments(),
       Order.countDocuments(),
@@ -17,7 +25,32 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         { $match: { paymentStatus: 'paid' } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
+      Order.aggregate([
+        { $match: { paymentStatus: 'paid', createdAt: { $gte: sixMonthsAgo } } },
+        { 
+          $group: { 
+            _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+            total: { $sum: '$amount' }
+          }
+        }
+      ])
     ]);
+
+    // Format monthly revenue
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyRevenue = [];
+    const now = anchorDate;
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth() + 1; // MongoDB months are 1-12
+      
+      const match = monthlyRevenueRaw.find(m => m._id.year === year && m._id.month === month);
+      monthlyRevenue.push({
+        name: monthNames[d.getMonth()],
+        value: match ? match.total : 0
+      });
+    }
 
     const recentOrders = await Order.find()
       .populate('user', 'name email')
@@ -31,6 +64,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       totalProducts,
       totalOrders,
       totalRevenue: totalRevenue[0]?.total || 0,
+      monthlyRevenue,
       recentOrders,
     });
   } catch (error: any) {

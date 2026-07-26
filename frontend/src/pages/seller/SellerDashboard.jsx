@@ -11,6 +11,7 @@ import Avatar from '../../components/ui/Avatar';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import RevenueChart from '../../components/ui/RevenueChart';
+import { generateLast6MonthsData } from '../../utils/chartHelpers';
 
 const SellerDashboard = () => {
   const { user } = useAuthStore();
@@ -66,7 +67,7 @@ const SellerDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <div className="lg:col-span-2">
-          <RevenueChart totalRevenue={totalSales} />
+          <RevenueChart totalRevenue={totalSales} data={generateLast6MonthsData(orders)} />
         </div>
 
         {/* Payout Card */}

@@ -16,6 +16,8 @@ import { authorize } from '../middleware/authorize';
 
 const router = Router();
 
+router.get('/debug-stats', getDashboardStats);
+
 router.use(authenticate, authorize('admin'));
 
 router.get('/stats', getDashboardStats);

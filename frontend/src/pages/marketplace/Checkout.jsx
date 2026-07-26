@@ -72,6 +72,42 @@ const Checkout = () => {
     }
   };
 
+  const handleStripePayment = async () => {
+    if (cartItems.length === 0) return toast.error('Your cart is empty');
+
+    try {
+      setIsProcessing(true);
+
+      const productIds = cartItems.map(item => item._id);
+
+      // 1. Create pending DB orders for all items
+      const orderPromises = cartItems.map(item => 
+        apiPost('/orders', {
+          productId: item._id,
+          paymentMethod: 'stripe'
+        })
+      );
+      const dbOrdersResponses = await Promise.all(orderPromises);
+      const orderIds = dbOrdersResponses.map(res => res.data._id);
+
+      // 2. Create Stripe Checkout Session
+      const { data } = await apiPost('/payments/stripe/create-session', {
+        productIds,
+        orderIds
+      });
+
+      // 3. Redirect to Stripe Checkout
+      if (data && data.sessionUrl) {
+        window.location.href = data.sessionUrl;
+      } else {
+        throw new Error('Failed to get session URL');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to initiate Stripe payment');
+      setIsProcessing(false);
+    }
+  };
+
   const handleSuccessComplete = () => {
     if (successOrderIds.length === 1) {
       navigate(`/dashboard/chats/${successOrderIds[0]}`);
@@ -103,9 +139,9 @@ const Checkout = () => {
               </div>
             </div>
             
-            <h2 className="text-[26px] font-extrabold text-[#0F172A] mb-3 tracking-[-0.02em]">Checkout Securely with Razorpay</h2>
+            <h2 className="text-[26px] font-extrabold text-[#0F172A] mb-3 tracking-[-0.02em]">Checkout Securely</h2>
             <p className="text-[#64748B] max-w-md mb-10 leading-relaxed text-[15px]">
-              Click the button on the right to open the secure Razorpay payment gateway. You can pay effortlessly via UPI, Credit/Debit Cards, or Net Banking.
+              Click the button on the right to open your preferred payment gateway. You can pay effortlessly via UPI, Credit/Debit Cards, or Net Banking.
             </p>
             
             <div className="flex items-center justify-center gap-8 text-[13px] text-[#64748B] font-semibold uppercase tracking-wider">
@@ -158,14 +194,25 @@ const Checkout = () => {
               </div>
             </div>
 
-            <Button 
-              size="lg" 
-              className="w-full mb-5 py-4 text-[17px] shadow-[0_4px_14px_rgba(91,75,255,0.4)]" 
-              onClick={handlePayment} 
-              disabled={isProcessing || cartItems.length === 0}
-            >
-              {isProcessing ? 'Processing securely...' : 'Pay securely with Razorpay'}
-            </Button>
+            <div className="flex flex-col gap-3 mb-5">
+              <Button 
+                size="lg" 
+                className="w-full py-4 text-[17px] shadow-[0_4px_14px_rgba(91,75,255,0.4)]" 
+                onClick={handlePayment} 
+                disabled={isProcessing || cartItems.length === 0}
+              >
+                {isProcessing ? 'Processing securely...' : 'Pay securely with Razorpay'}
+              </Button>
+              
+              <Button 
+                size="lg" 
+                className="w-full py-4 text-[17px] bg-[#635BFF] hover:bg-[#5249E5] text-white shadow-[0_4px_14px_rgba(99,91,255,0.4)] transition-all" 
+                onClick={handleStripePayment} 
+                disabled={isProcessing || cartItems.length === 0}
+              >
+                {isProcessing ? 'Processing securely...' : 'Pay securely with Stripe'}
+              </Button>
+            </div>
             
             <p className="text-[12px] text-[#94A3B8] text-center leading-relaxed">
               By confirming your purchase, you agree to the <Link to="/terms" className="text-[#5B4BFF] hover:underline font-medium">Terms of Service</Link>.

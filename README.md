@@ -1,6 +1,6 @@
 <div align="center">
   
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=5B4BFF&height=200&section=header&text=StreamKart&fontSize=70&fontColor=ffffff&animation=fadeIn" alt="StreamKart Header" />
+  <img src="frontend/public/streamkart-logo-nav.png" alt="StreamKart Logo" width="450" />
 
   <a href="https://git.io/typing-svg">
     <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=800&size=24&duration=3000&pause=1000&color=5B4BFF&center=true&vCenter=true&width=600&lines=Your+Premium+Digital+Marketplace;Buy+%26+Sell+Digital+Subscriptions;OTT%2C+AI+Tools%2C+VPNs+%26+More" alt="Typing SVG" />

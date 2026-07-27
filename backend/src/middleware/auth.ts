@@ -59,6 +59,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       await user.save();
     }
 
+    // Check for active suspension
+    if (user.suspensionExpiry && new Date(user.suspensionExpiry) > new Date()) {
+      return sendError(res, `Your account is temporarily suspended due to poor reviews. It will be reactivated on ${new Date(user.suspensionExpiry).toLocaleString()}.`, 403);
+    }
+
     req.user = user;
     next();
   } catch (error: any) {

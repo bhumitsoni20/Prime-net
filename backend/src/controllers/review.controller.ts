@@ -27,6 +27,31 @@ export const createReview = async (req: AuthRequest, res: Response) => {
     // Update product ratings
     const reviews = await Review.find({ product: productId });
     const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    
+    // Penalty system for sellers
+    if (rating < 3) {
+      const product = await Product.findById(productId);
+      if (product && product.seller) {
+        const { User } = await import('../models/User');
+        const { sendSellerSuspensionEmail } = await import('../services/email.service');
+        
+        const seller = await User.findById(product.seller);
+        if (seller) {
+          seller.badReviewCount = (seller.badReviewCount || 0) + 1;
+          
+          if (seller.badReviewCount > 4) {
+            const now = new Date();
+            seller.suspensionExpiry = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+            seller.probationExpiry = new Date(now.getTime() + 11 * 24 * 60 * 60 * 1000); // 24 hours + 10 days
+            seller.badReviewCount = 0; // Reset count
+            
+            await sendSellerSuspensionEmail(seller.email, seller.name);
+          }
+          await seller.save();
+        }
+      }
+    }
+
     await Product.findByIdAndUpdate(productId, {
       ratings: Math.round(avgRating * 10) / 10,
       totalReviews: reviews.length,

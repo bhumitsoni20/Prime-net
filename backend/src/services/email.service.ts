@@ -448,3 +448,99 @@ export const sendRequestFulfilledEmail = async (email: string, name: string, pro
     return false;
   }
 };
+
+export const sendSellerSuspensionEmail = async (email: string, name: string) => {
+  try {
+    if (!env.SMTP_USER || !env.SMTP_PASS) {
+      logger.warn('SMTP credentials not configured. Skipping seller suspension email.');
+      return false;
+    }
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body {
+    background-color: #f9fafb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 600px;
+    margin: 40px auto;
+    background-color: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .header {
+    background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .content {
+    padding: 40px 32px;
+    color: #374151;
+    line-height: 1.6;
+    text-align: center;
+  }
+  .greeting {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+  .footer {
+    background-color: #f3f4f6;
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${env.CLIENT_URL}/streamkart-logo-nav.png" alt="StreamKart" style="height: 56px; object-fit: contain; margin-bottom: 16px;" />
+      <h1 class="title">Action Required: Seller Account Suspended</h1>
+    </div>
+    <div class="content">
+      <div class="greeting">Hi ${name},</div>
+      <p>We are writing to inform you that your seller account has been temporarily suspended for 24 hours.</p>
+      <p>This action was taken automatically because you have received more than 4 reviews with a rating of less than 3 stars. Maintaining a high quality of service is crucial to our marketplace.</p>
+      <p><strong>What happens next?</strong><br/>
+      After 24 hours, your account will be automatically reactivated. You will then be placed on a 10-day probation period. During this time, you must improve your ratings. If you continue to receive poor reviews during this period, your account may face further penalties.</p>
+      <p>Please review your product offerings and customer service practices to ensure the best experience for our buyers.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} Streamkart. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await transporter.sendMail({
+      from: '"Streamkart Trust & Safety" <noreply@streamkart.com>',
+      to: email,
+      subject: 'Action Required: Your Streamkart Seller Account has been suspended',
+      html: htmlContent,
+    });
+    
+    logger.info(`Seller suspension email sent to ${email}`);
+    return true;
+  } catch (error) {
+    logger.error(`Error sending seller suspension email: ${error}`);
+    return false;
+  }
+};

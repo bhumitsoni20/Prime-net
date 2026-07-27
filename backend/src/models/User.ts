@@ -12,6 +12,9 @@ export interface IUser extends Document {
   avatar?: string;
   isVerified: boolean;
   fcmToken?: string;
+  badReviewCount: number;
+  suspensionExpiry?: Date;
+  probationExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +70,16 @@ const userSchema = new Schema<IUser>(
     fcmToken: {
       type: String,
       default: '',
+    },
+    badReviewCount: {
+      type: Number,
+      default: 0,
+    },
+    suspensionExpiry: {
+      type: Date,
+    },
+    probationExpiry: {
+      type: Date,
     },
   },
   {

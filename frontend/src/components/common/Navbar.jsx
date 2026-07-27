@@ -110,7 +110,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <NavLink
                 key={link.label}
@@ -289,7 +289,7 @@ const Navbar = () => {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all ml-1"
+              className="lg:hidden p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all ml-1"
             >
               {mobileOpen ? (
                 <HiX className="w-5 h-5" />
@@ -301,7 +301,7 @@ const Navbar = () => {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden py-3 border-t border-[#F1F5F9] animate-slideDown">
+          <div className="lg:hidden py-3 border-t border-[#F1F5F9] animate-slideDown">
             {navLinks.map((link) => (
               <Link
                 key={link.label}

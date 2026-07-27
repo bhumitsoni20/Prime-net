@@ -1,4 +1,5 @@
 import express from 'express';
+// Trigger restart
 import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env';
@@ -16,6 +17,7 @@ import reviewRoutes from './routes/review.routes';
 import adminRoutes from './routes/admin.routes';
 import sellerRoutes from './routes/seller.routes';
 import productRequestRoutes from './routes/productRequest.routes';
+import supportRoutes from './routes/support.routes';
 
 const app = express();
 
@@ -51,6 +53,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/requests', productRequestRoutes);
+app.use('/api/support', supportRoutes);
 
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';

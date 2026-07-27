@@ -4,19 +4,35 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { HiCurrencyDollar, HiShieldCheck, HiShoppingBag, HiSearch, HiPaperClip, HiChatAlt2, HiMail, HiOutlineClock } from 'react-icons/hi';
 import toast from 'react-hot-toast';
+import useAuthStore from '../../store/authStore';
 
 const Contact = () => {
-  const [form, setForm] = useState({ topic: '', subject: '', description: '' });
+  const { user } = useAuthStore();
+  const [form, setForm] = useState({ topic: '', subject: '', description: '', email: user?.email || '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/support/ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit ticket');
+      }
+
       toast.success('Ticket submitted! We\'ll get back to you soon.');
-      setForm({ topic: '', subject: '', description: '' });
+      setForm({ topic: '', subject: '', description: '', email: user?.email || '' });
+    } catch (error) {
+      toast.error('Failed to submit ticket. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   const topicCards = [
@@ -44,31 +60,6 @@ const Contact = () => {
             How can we <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#5B4BFF]">help you?</span>
           </motion.h1>
 
-          {/* Search */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative max-w-xl mx-auto mb-6 group"
-          >
-            <input
-              type="text"
-              placeholder="Search our knowledge base..."
-              className="w-full bg-white/5 border border-white/10 rounded-[20px] pl-6 pr-16 py-5 text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#5B4BFF]/50 focus:border-[#5B4BFF]/50 shadow-2xl text-[16px] backdrop-blur-md transition-all"
-            />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 h-12 w-12 rounded-[14px] bg-[#5B4BFF] hover:bg-[#4F3FE8] flex items-center justify-center transition-all shadow-[0_4px_14px_rgba(91,75,255,0.3)] hover:shadow-[0_6px_20px_rgba(91,75,255,0.4)]">
-              <HiSearch className="w-5 h-5 text-white" />
-            </button>
-          </motion.div>
-
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-[#94A3B8] text-[15px]"
-          >
-            Browse our Knowledge Base or contact our support team.
-          </motion.p>
         </div>
       </div>
 
@@ -123,6 +114,8 @@ const Contact = () => {
                 <Input label="Subject" placeholder="Brief subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} required className="bg-[#F8FAFC] border-[#E2E8F0] focus:bg-white" />
               </div>
               
+              <Input type="email" label="Your Email" placeholder="hello@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="bg-[#F8FAFC] border-[#E2E8F0] focus:bg-white" />
+              
               <div>
                 <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
                 <textarea
@@ -154,21 +147,21 @@ const Contact = () => {
               </div>
               <h3 className="font-extrabold text-[#0F172A] text-[18px] mb-2">Email Support</h3>
               <p className="text-[#64748B] text-[14px] mb-6 leading-relaxed">Prefer to email us directly? We're here to help.</p>
-              <a href="mailto:support@streamkart.com" className="inline-flex text-[#5B4BFF] font-bold text-[15px] hover:text-[#4F3FE8] transition-colors">
-                support@streamkart.com
+              <a href="mailto:creativecornerpass@gmail.com" className="inline-flex text-[#5B4BFF] font-bold text-[15px] hover:text-[#4F3FE8] transition-colors">
+                creativecornerpass@gmail.com
               </a>
             </div>
 
             <div className="bg-[#0F172A] rounded-[32px] p-8 shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#5B4BFF]/20 rounded-full blur-[40px] group-hover:bg-[#5B4BFF]/30 transition-colors" />
-              <div className="w-12 h-12 rounded-[14px] bg-white/10 text-white flex items-center justify-center mb-6 relative z-10 backdrop-blur-sm">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#25D366]/20 rounded-full blur-[40px] group-hover:bg-[#25D366]/30 transition-colors" />
+              <div className="w-12 h-12 rounded-[14px] bg-white/10 text-[#25D366] flex items-center justify-center mb-6 relative z-10 backdrop-blur-sm">
                 <HiChatAlt2 className="w-6 h-6" />
               </div>
-              <h3 className="font-extrabold text-white text-[18px] mb-2 relative z-10">Live Chat</h3>
-              <p className="text-[#94A3B8] text-[14px] mb-6 leading-relaxed relative z-10">Chat directly with our support team for immediate assistance.</p>
-              <Button variant="secondary" className="w-full relative z-10 border-none font-bold text-[#0F172A] hover:bg-gray-50">
-                Start Chat
-              </Button>
+              <h3 className="font-extrabold text-white text-[18px] mb-2 relative z-10">WhatsApp Support</h3>
+              <p className="text-[#94A3B8] text-[14px] mb-6 leading-relaxed relative z-10">Chat directly with our support team on WhatsApp for immediate assistance.</p>
+              <a href="https://wa.me/9471955119" target="_blank" rel="noopener noreferrer" className="block w-full text-center py-3 bg-white text-[#0F172A] rounded-xl font-bold hover:bg-gray-50 transition-colors relative z-10">
+                Chat Now: +9471955119
+              </a>
             </div>
             
             <div className="flex items-center gap-3 px-2">

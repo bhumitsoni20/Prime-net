@@ -4,9 +4,9 @@ import { HiShieldCheck, HiClock, HiSupport } from 'react-icons/hi';
 
 const Footer = () => {
   const columns = [
-    { title: 'Marketplace', links: [{ label: 'All Categories', to: '/products' }, { label: 'Features', to: '/about' }, { label: 'Pricing', to: '/products' }, { label: 'How it Works', to: '/about' }, { label: 'Become a Seller', to: '/register' }] },
-    { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: '/about' }, { label: 'Contact Us', to: '/contact' }, { label: 'Press Kit', to: '/about' }] },
-    { title: 'Resources', links: [{ label: 'Help Center', to: '/contact' }, { label: 'FAQs', to: '/contact' }, { label: 'Community', to: '/about' }, { label: 'Guides', to: '/about' }] },
+    { title: 'Marketplace', links: [{ label: 'All Categories', to: '/products' }, { label: 'Features', to: '/about' }, { label: 'Pricing', to: '/products' }, { label: 'How it Works', to: '/about' }] },
+    { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: '/about' }, { label: 'Contact Us', to: '/contact' }] },
+    { title: 'Resources', links: [{ label: 'Help Center', to: '/contact' }] },
     { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }] },
   ];
 

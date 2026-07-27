@@ -13,6 +13,144 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+export const sendSupportTicketEmail = async (topic: string, subject: string, description: string, customerEmail: string) => {
+  try {
+    if (!env.SMTP_USER || !env.SMTP_PASS) {
+      logger.warn('SMTP credentials not configured. Skipping support ticket email.');
+      return false;
+    }
+
+    const mailOptions = {
+      from: `"StreamKart Support" <${env.SMTP_USER}>`,
+      to: 'creativecornerpass@gmail.com',
+      replyTo: customerEmail,
+      subject: `New Support Ticket: [${topic}] ${subject}`,
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  body {
+    background-color: #f9fafb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 600px;
+    margin: 40px auto;
+    background-color: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  .header {
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .logo {
+    display: inline-block;
+    background-color: #4f46e5;
+    color: white;
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  .title {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .content {
+    padding: 40px 32px;
+    color: #374151;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .field {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .field-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .field-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+  }
+  .desc-box {
+    background-color: #f3f4f6;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    white-space: pre-wrap;
+    color: #374151;
+    margin-top: 16px;
+  }
+  .footer {
+    background-color: #f3f4f6;
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${env.CLIENT_URL}/streamkart-logo-nav.png" alt="StreamKart" style="height: 56px; object-fit: contain; margin-bottom: 16px;" />
+      <h1 class="title">New Support Ticket</h1>
+    </div>
+    <div class="content">
+      <div class="field">
+        <div class="field-label">Customer Email</div>
+        <div class="field-value"><a href="mailto:${customerEmail}" style="color: #4f46e5; text-decoration: none;">${customerEmail}</a></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Topic</div>
+        <div class="field-value">${topic}</div>
+      </div>
+      <div class="field" style="border-bottom: none;">
+        <div class="field-label">Subject</div>
+        <div class="field-value">${subject}</div>
+      </div>
+      
+      <div class="field-label" style="margin-top: 24px;">Message Details</div>
+      <div class="desc-box">${description}</div>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} Streamkart Marketplace. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Support ticket email sent: ${info.messageId}`);
+    return true;
+  } catch (error) {
+    logger.error('Error sending support ticket email:', error);
+    return false;
+  }
+};
+
 export const sendCustomVerificationEmail = async (email: string, displayName: string) => {
   try {
     if (!env.SMTP_USER || !env.SMTP_PASS) {
@@ -105,7 +243,7 @@ export const sendCustomVerificationEmail = async (email: string, displayName: st
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">▶</div>
+      <img src="${env.CLIENT_URL}/streamkart-logo-nav.png" alt="StreamKart" style="height: 56px; object-fit: contain; margin-bottom: 16px;" />
       <h1 class="title">Welcome to Streamkart!</h1>
     </div>
     <div class="content">
@@ -177,7 +315,7 @@ export const sendCustomPasswordResetEmail = async (email: string, displayName?: 
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">▶</div>
+      <img src="${env.CLIENT_URL}/streamkart-logo-nav.png" alt="StreamKart" style="height: 56px; object-fit: contain; margin-bottom: 16px;" />
       <h1 class="title">Reset Your Password</h1>
     </div>
     <div class="content">
@@ -269,7 +407,7 @@ export const sendRequestFulfilledEmail = async (email: string, name: string, pro
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">▶</div>
+      <img src="${env.CLIENT_URL}/streamkart-logo-nav.png" alt="StreamKart" style="height: 56px; object-fit: contain; margin-bottom: 16px;" />
       <h1 class="title">Your Request is Fulfilled!</h1>
     </div>
     <div class="content">

@@ -98,6 +98,11 @@ const productSchema = new Schema<IProduct>(
 );
 
 productSchema.index({ title: 'text', description: 'text' });
+productSchema.index({ status: 1 });
+productSchema.index({ category: 1 });
+productSchema.index({ seller: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ ratings: -1 });
 productSchema.index({ category: 1, status: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ createdAt: -1 });

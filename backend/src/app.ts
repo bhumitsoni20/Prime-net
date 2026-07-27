@@ -6,6 +6,7 @@ import compression from 'compression';
 import { env } from './config/env';
 import { apiLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
+import { Cache } from './utils/cache';
 
 // Route imports
 import authRoutes from './routes/auth.routes';
@@ -84,6 +85,11 @@ import { Product } from './models/Product';
 
 app.get('/api/public/stats', async (_req, res) => {
   try {
+    const cachedStats = Cache.get('public_stats');
+    if (cachedStats) {
+      return sendSuccess(res, cachedStats);
+    }
+
     const totalUsers = await User.countDocuments();
     
     const categoryCounts = await Product.aggregate([
@@ -96,7 +102,10 @@ app.get('/api/public/stats', async (_req, res) => {
       return acc;
     }, {});
 
-    return sendSuccess(res, { totalUsers, categories });
+    const stats = { totalUsers, categories };
+    Cache.set('public_stats', stats, 300); // 5 minutes cache
+
+    return sendSuccess(res, stats);
   } catch (error: any) {
     return sendError(res, error.message);
   }

@@ -14,7 +14,7 @@ const ProductCard = ({ product }) => {
       <Link to={`/products/${product._id}`} className="block">
         <div className="relative h-44 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center overflow-hidden mb-5">
           {product.logo ? (
-            <img src={product.logo} alt={product.title} className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500 ease-out drop-shadow-sm rounded-[16px]" />
+            <img src={product.logo} alt={product.title} loading="lazy" decoding="async" className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500 ease-out drop-shadow-sm rounded-[16px]" />
           ) : (
             <div className="h-20 w-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center text-3xl font-extrabold text-[#5B4BFF]">
               {product.title?.[0]}

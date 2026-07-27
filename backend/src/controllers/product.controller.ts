@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Product } from '../models/Product';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
+import { Cache } from '../utils/cache';
 
 // GET /api/products
 export const getProducts = async (req: Request, res: Response) => {
@@ -52,12 +53,25 @@ export const getProduct = async (req: Request, res: Response) => {
     if (!product) return sendError(res, 'Product not found.', 404);
 
     if (product.seller) {
-      const vendorStats = await Product.aggregate([
-        { $match: { seller: (product.seller as any)._id } },
-        { $group: { _id: null, totalSales: { $sum: '$totalSales' }, avgRating: { $avg: '$ratings' } } }
-      ]);
-      (product.seller as any).totalSales = vendorStats[0]?.totalSales || 0;
-      (product.seller as any).ratings = vendorStats[0]?.avgRating || 0;
+      const sellerId = (product.seller as any)._id.toString();
+      const cacheKey = `vendor_stats_${sellerId}`;
+      let vendorStats = Cache.get(cacheKey);
+
+      if (!vendorStats) {
+        const stats = await Product.aggregate([
+          { $match: { seller: (product.seller as any)._id } },
+          { $group: { _id: null, totalSales: { $sum: '$totalSales' }, avgRating: { $avg: '$ratings' } } }
+        ]);
+        
+        vendorStats = {
+          totalSales: stats[0]?.totalSales || 0,
+          ratings: stats[0]?.avgRating || 0
+        };
+        Cache.set(cacheKey, vendorStats, 300); // 5 mins
+      }
+
+      (product.seller as any).totalSales = vendorStats.totalSales;
+      (product.seller as any).ratings = vendorStats.ratings;
     }
 
     return sendSuccess(res, product);

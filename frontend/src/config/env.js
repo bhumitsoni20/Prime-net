@@ -1,0 +1,29 @@
+const requiredEnvVars = [
+  'VITE_API_URL',
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+  'VITE_FIREBASE_MEASUREMENT_ID',
+  'VITE_FIREBASE_VAPID_KEY',
+  'VITE_STRIPE_PUBLISHABLE_KEY',
+  'VITE_RAZORPAY_KEY_ID',
+];
+
+export const validateEnv = () => {
+  const missing = [];
+  requiredEnvVars.forEach((key) => {
+    if (!import.meta.env[key]) {
+      missing.push(key);
+    }
+  });
+
+  if (missing.length > 0) {
+    console.error('CRITICAL: Missing required environment variables:', missing);
+    if (import.meta.env.PROD) {
+      throw new Error(`CRITICAL: Missing environment variables: ${missing.join(', ')}`);
+    }
+  }
+};

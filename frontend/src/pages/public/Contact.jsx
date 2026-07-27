@@ -5,6 +5,7 @@ import Input from '../../components/ui/Input';
 import { HiCurrencyDollar, HiShieldCheck, HiShoppingBag, HiSearch, HiPaperClip, HiChatAlt2, HiMail, HiOutlineClock } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
+import { apiPost } from '../../services/api';
 
 const Contact = () => {
   const { user } = useAuthStore();
@@ -16,18 +17,18 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/support/ticket`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      const data = await apiPost('/support/ticket', {
+        topic: form.topic,
+        subject: form.subject,
+        description: form.description,
+        email: form.email
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to submit ticket');
+      if (data.success) {
+        toast.success('Support ticket submitted successfully! We will get back to you soon.');
+        setForm({ topic: '', subject: '', description: '', email: user?.email || '' });
+      } else {
+        toast.error('Failed to submit ticket. Please try again.');
       }
-
-      toast.success('Ticket submitted! We\'ll get back to you soon.');
-      setForm({ topic: '', subject: '', description: '', email: user?.email || '' });
     } catch (error) {
       toast.error('Failed to submit ticket. Please try again.');
     } finally {

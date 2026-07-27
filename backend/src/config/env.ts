@@ -21,8 +21,7 @@ interface EnvConfig {
 const getEnv = (key: string, fallback?: string): string => {
   const value = process.env[key] || fallback;
   if (!value) {
-    console.warn(`⚠️  Missing environment variable: ${key}`);
-    return '';
+    throw new Error(`CRITICAL: Missing required environment variable: ${key}`);
   }
   return value;
 };

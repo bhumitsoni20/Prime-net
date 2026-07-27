@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HiMail, HiLockClosed } from 'react-icons/hi';
 import { FcGoogle } from 'react-icons/fc';
 import { signInWithEmail, signInWithGoogle } from '../../firebase/auth';
@@ -12,6 +12,10 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const redirectUrl = searchParams.get('redirect') || '/';
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -24,7 +28,7 @@ const Login = () => {
         return;
       }
       toast.success('Welcome back!');
-      navigate('/');
+      navigate(redirectUrl);
     } catch (error) {
       toast.error(error.message || 'Login failed');
     } finally {
@@ -36,7 +40,7 @@ const Login = () => {
     try {
       await signInWithGoogle();
       toast.success('Welcome!');
-      navigate('/');
+      navigate(redirectUrl);
     } catch (error) {
       toast.error(error.message || 'Google login failed');
     }

@@ -11,7 +11,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { io } from 'socket.io-client';
 dayjs.extend(relativeTime);
 
-const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api', '');
 
 const Chats = () => {
   const { orderId } = useParams();

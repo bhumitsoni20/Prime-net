@@ -8,7 +8,7 @@ import { HiPlus, HiClock, HiCheckCircle, HiXCircle } from 'react-icons/hi';
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api', '');
 
 const getStatusBadge = (status) => {
   switch (status) {

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import { lazy, Suspense } from 'react';
 import Modal from '../ui/Modal';
-import Login from '../../pages/auth/Login';
-import Register from '../../pages/auth/Register';
+
+const Login = lazy(() => import('../../pages/auth/Login'));
+const Register = lazy(() => import('../../pages/auth/Register'));
 
 const GlobalLoginPrompt = () => {
   const { isAuthenticated } = useAuthStore();
@@ -29,7 +31,9 @@ const GlobalLoginPrompt = () => {
   return (
     <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="" size="sm">
       <div className="-mt-4">
-        {mode === 'login' ? <Login /> : <Register />}
+        <Suspense fallback={<div>Loading...</div>}>
+          {mode === 'login' ? <Login /> : <Register />}
+        </Suspense>
         
         {/* Toggle */}
         <div className="flex justify-center pt-8">

@@ -2,6 +2,7 @@ import express from 'express';
 // Trigger restart
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import { env } from './config/env';
 import { apiLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
@@ -21,14 +22,35 @@ import supportRoutes from './routes/support.routes';
 
 const app = express();
 
+app.set('trust proxy', 1);
 
 // ─── Security Middleware ────────────────────────────────
 app.use(helmet());
+app.use(compression());
+
+const allowedOrigins = [
+  'https://streamkart.in',
+  'https://www.streamkart.in',
+  'http://localhost:5173',
+];
+if (env.CLIENT_URL && !allowedOrigins.includes(env.CLIENT_URL)) {
+  allowedOrigins.push(env.CLIENT_URL);
+}
+
 app.use(
   cors({
-    origin: env.NODE_ENV === 'production' ? env.CLIENT_URL : true,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`Blocked CORS request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(apiLimiter);

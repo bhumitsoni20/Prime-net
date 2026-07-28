@@ -49,7 +49,7 @@ const Home = () => {
 
         {isLoading ? (
           <div className="flex justify-center py-16"><Spinner size="lg" /></div>
-        ) : (
+        ) : data?.data?.length > 0 ? (
           <div className="relative">
             {/* Optional Carousel Arrows (Visual only for now as requested by UI design) */}
             <button className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
@@ -60,12 +60,12 @@ const Home = () => {
             </button>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {data?.data?.map((product) => (
+              {data.data.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         {!isLoading && (!data?.data || data.data.length === 0) && (
           <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.04)] mt-6">

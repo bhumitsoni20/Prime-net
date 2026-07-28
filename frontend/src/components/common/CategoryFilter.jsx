@@ -60,16 +60,16 @@ const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
       <div className="relative group">
         <button 
           onClick={scrollLeft}
-          className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex"
+          className="absolute left-0 sm:-left-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
 
         <button 
           onClick={scrollRight}
-          className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex"
+          className="absolute right-0 sm:-right-6 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </button>
 
         <motion.div 
@@ -78,14 +78,14 @@ const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-50px" }}
-          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {categories.map((cat) => (
             <motion.button
               variants={item}
               key={cat.value}
               onClick={() => onSelect(selected === cat.value ? '' : cat.value)}
-              className={`group relative flex flex-col items-center justify-center p-6 w-[160px] shrink-0 snap-start rounded-[24px] bg-white transition-all duration-300 overflow-hidden ${
+              className={`group relative flex flex-col items-center justify-center p-4 sm:p-6 w-[130px] sm:w-[160px] shrink-0 snap-start rounded-[20px] sm:rounded-[24px] bg-white transition-all duration-300 overflow-hidden ${
               selected === cat.value
                 ? 'shadow-[0_8px_30px_rgba(0,0,0,0.08)] -translate-y-1'
                 : 'shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1'

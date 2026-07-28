@@ -199,7 +199,7 @@ const Navbar = () => {
                     <Avatar src={user?.avatar} name={user?.name} size="sm" />
                   </button>
                   {profileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-[16px] shadow-[0_12px_32px_-4px_rgba(0,0,0,0.12)] py-1.5 animate-slideDown overflow-hidden">
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-[16px] shadow-[0_12px_32px_-4px_rgba(0,0,0,0.12)] py-1.5 animate-slideDown overflow-hidden z-50">
                       <div className="px-4 py-3 border-b border-[#F1F5F9]">
                         <p
                           className="text-[#0F172A] text-sm font-semibold truncate"

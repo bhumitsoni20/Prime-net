@@ -109,7 +109,9 @@ const Dashboard = () => {
               <div className="h-14 w-14 rounded-[16px] bg-white/10 border border-white/20 flex items-center justify-center mb-6 text-2xl backdrop-blur-md shadow-inner">💬</div>
               <h3 className="text-[20px] font-bold mb-3 tracking-tight">Need Help?</h3>
               <p className="text-[#94A3B8] text-[14px] mb-8 leading-relaxed">Our dedicated support team is available 24/7 to assist with your purchases and account needs.</p>
-              <Button variant="secondary" className="w-full !bg-white !text-[#0F172A] hover:!bg-[#F8FAFC] border-none font-bold shadow-lg">Contact Support</Button>
+              <Link to="/contact" className="block w-full">
+                <Button variant="secondary" className="w-full !bg-white !text-[#0F172A] hover:!bg-[#F8FAFC] border-none font-bold shadow-lg">Contact Support</Button>
+              </Link>
             </div>
           </div>
         </div>

@@ -306,36 +306,36 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
   return (
     <div className="flex-1 flex flex-col bg-[#F8FAFC] overflow-hidden font-sans h-full">
       {/* Top Navbar */}
-      <header className="h-[72px] bg-white/80 backdrop-blur-md border-b border-[#E2E8F0] flex items-center justify-between px-6 z-10 shrink-0 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack || (() => window.history.back())} className="p-2 hover:bg-[#F1F5F9] rounded-full transition-colors md:hidden">
+      <header className="h-[72px] bg-white/80 backdrop-blur-md border-b border-[#E2E8F0] flex items-center justify-between px-3 sm:px-6 z-10 shrink-0 shadow-sm gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <button onClick={onBack || (() => window.history.back())} className="p-1.5 sm:p-2 hover:bg-[#F1F5F9] rounded-full transition-colors md:hidden shrink-0">
             <HiChevronLeft className="w-[22px] h-[22px] text-[#64748B]" />
           </button>
           {!onBack && (
-            <Link to="/dashboard/orders" className="p-2 hover:bg-[#F1F5F9] rounded-full transition-colors hidden md:block">
+            <Link to="/dashboard/orders" className="p-2 hover:bg-[#F1F5F9] rounded-full transition-colors hidden md:block shrink-0">
               <HiChevronLeft className="w-[22px] h-[22px] text-[#64748B]" />
             </Link>
           )}
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-[12px] bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] shrink-0">
               {order.product?.logo ? <img src={order.product.logo} className="w-full h-full object-contain p-1.5"/> : <span className="font-extrabold text-[#5B4BFF]">{order.product?.title?.[0] || '?'}</span>}
             </div>
-            <div>
-              <h1 className="font-bold text-[#0F172A] leading-tight truncate max-w-xs text-[17px]">{order.product?.title || 'Unknown Product'}</h1>
-              <div className="text-[12px] text-[#94A3B8] font-semibold tracking-wide mt-0.5">ORDER #{order._id.substring(order._id.length - 8).toUpperCase()}</div>
+            <div className="min-w-0">
+              <h1 className="font-bold text-[#0F172A] leading-tight truncate text-[15px] sm:text-[17px]">{order.product?.title || 'Unknown Product'}</h1>
+              <div className="text-[11px] sm:text-[12px] text-[#94A3B8] font-semibold tracking-wide mt-0.5 truncate">ORDER #{order._id.substring(order._id.length - 8).toUpperCase()}</div>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${
+        <div className="flex items-center gap-1 sm:gap-4 shrink-0">
+          <div className={`px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${
             order.orderStatus === 'delivered' ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' : 
             order.orderStatus === 'completed' ? 'bg-[#EEF2FF] text-[#5B4BFF] border border-[#C7D2FE]' :
             'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'
           }`}>
             {order.orderStatus}
           </div>
-          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-2 hover:bg-[#F1F5F9] rounded-full lg:hidden transition-colors">
+          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-1 sm:p-2 hover:bg-[#F1F5F9] rounded-full lg:hidden transition-colors shrink-0">
             <HiDotsVertical className="w-5 h-5 text-[#64748B]"/>
           </button>
         </div>
@@ -401,21 +401,21 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
 
               if (msg.type === 'credentials') {
                 return (
-                  <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                    <div className="w-full max-w-sm bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-[24px] p-7 text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] border border-[#334155]">
-                      <div className="flex items-center gap-4 mb-5 border-b border-[#334155] pb-5">
-                        <div className="w-12 h-12 bg-[#22C55E]/10 rounded-[14px] border border-[#22C55E]/20 flex items-center justify-center backdrop-blur-sm shadow-inner"><HiShieldCheck className="w-7 h-7 text-[#4ADE80]"/></div>
-                        <div>
-                          <h4 className="font-bold text-[17px] mb-0.5 tracking-tight">Secure Delivery</h4>
-                          <p className="text-[12px] text-[#94A3B8] font-medium">Credentials have been delivered</p>
+                  <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} max-w-full`}>
+                    <div className="w-full max-w-[280px] sm:max-w-sm bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-[24px] p-4 sm:p-7 text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] border border-[#334155]">
+                      <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5 border-b border-[#334155] pb-4 sm:pb-5">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-[#22C55E]/10 rounded-[14px] border border-[#22C55E]/20 flex items-center justify-center backdrop-blur-sm shadow-inner"><HiShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-[#4ADE80]"/></div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-[15px] sm:text-[17px] mb-0.5 tracking-tight truncate">Secure Delivery</h4>
+                          <p className="text-[11px] sm:text-[12px] text-[#94A3B8] font-medium leading-tight truncate">Credentials delivered</p>
                         </div>
                       </div>
                       
                       {!isMine && order.credentials && (
-                        <div className="space-y-4 bg-black/40 p-5 rounded-[16px] font-mono text-[13px] border border-[#334155]/50 shadow-inner">
-                          <div><span className="text-[#64748B] text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Email / Username</span><span className="text-white select-all">{order.credentials.email}</span></div>
-                          <div><span className="text-[#64748B] text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Password</span><span className="text-white select-all">{order.credentials.password}</span></div>
-                          {order.credentials.notes && <div><span className="text-[#64748B] text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Notes</span><span className="text-white whitespace-pre-wrap">{order.credentials.notes}</span></div>}
+                        <div className="space-y-4 bg-black/40 p-4 sm:p-5 rounded-[16px] font-mono text-[12px] sm:text-[13px] border border-[#334155]/50 shadow-inner break-all">
+                          <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Email / Username</span><span className="text-white select-all">{order.credentials.email}</span></div>
+                          <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Password</span><span className="text-white select-all">{order.credentials.password}</span></div>
+                          {order.credentials.notes && <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Notes</span><span className="text-white whitespace-pre-wrap">{order.credentials.notes}</span></div>}
                         </div>
                       )}
                       {isMine && (
@@ -468,29 +468,29 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
           </div>
 
           {/* Chat Input */}
-          <div className="p-5 bg-white border-t border-[#E2E8F0] z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-            <form onSubmit={sendMessage} className="flex items-center gap-3">
-              <button type="button" className="p-3 text-[#94A3B8] hover:text-[#5B4BFF] hover:bg-[#EEF2FF] rounded-full transition-colors hidden sm:block">
+          <div className="p-3 sm:p-5 bg-white border-t border-[#E2E8F0] z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+            <form onSubmit={sendMessage} className="flex items-center gap-2 sm:gap-3">
+              <button type="button" className="p-2 sm:p-3 text-[#94A3B8] hover:text-[#5B4BFF] hover:bg-[#EEF2FF] rounded-full transition-colors hidden sm:block shrink-0">
                 <HiPaperClip className="w-[22px] h-[22px]" />
               </button>
-              <div className="flex-1 relative">
+              <div className="flex-1 relative min-w-0">
                 <input
                   type="text"
                   value={newMessage}
                   onChange={handleTyping}
                   placeholder="Type a message..."
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:bg-white focus:border-[#5B4BFF] focus:ring-[3px] focus:ring-[#5B4BFF]/10 rounded-full pl-6 pr-12 py-3.5 text-[15px] text-[#0F172A] placeholder-[#94A3B8] transition-all shadow-sm outline-none"
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:bg-white focus:border-[#5B4BFF] focus:ring-[3px] focus:ring-[#5B4BFF]/10 rounded-full pl-4 sm:pl-6 pr-10 sm:pr-12 py-3 sm:py-3.5 text-[14px] sm:text-[15px] text-[#0F172A] placeholder-[#94A3B8] transition-all shadow-sm outline-none"
                 />
-                <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-[#94A3B8] hover:text-[#5B4BFF] transition-colors">
-                  <HiEmojiHappy className="w-[22px] h-[22px]" />
+                <button type="button" className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 text-[#94A3B8] hover:text-[#5B4BFF] transition-colors shrink-0">
+                  <HiEmojiHappy className="w-[20px] h-[20px] sm:w-[22px] sm:h-[22px]" />
                 </button>
               </div>
               <button 
                 type="submit" 
                 disabled={!newMessage.trim()}
-                className="w-[52px] h-[52px] bg-[#5B4BFF] hover:bg-[#4F3FE8] disabled:bg-[#E2E8F0] disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(91,75,255,0.4)] transition-all active:scale-95 disabled:shadow-none disabled:text-[#94A3B8]"
+                className="w-[44px] h-[44px] sm:w-[52px] sm:h-[52px] shrink-0 bg-[#5B4BFF] hover:bg-[#4F3FE8] disabled:bg-[#E2E8F0] disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(91,75,255,0.4)] transition-all active:scale-95 disabled:shadow-none disabled:text-[#94A3B8]"
               >
-                <HiPaperAirplane className="w-6 h-6 transform rotate-90 ml-1" />
+                <HiPaperAirplane className="w-5 h-5 sm:w-6 sm:h-6 transform rotate-90 ml-1" />
               </button>
             </form>
           </div>

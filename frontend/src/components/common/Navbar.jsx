@@ -80,6 +80,7 @@ const Navbar = () => {
   };
 
   const navLinks = [
+    { label: "Home", to: "/" },
     { label: "Marketplace", to: "/products" },
     { label: "Request Product", to: "/request-product" },
     { label: "Features", to: "/about" },
@@ -105,7 +106,7 @@ const Navbar = () => {
               to="/"
               className="flex items-center hover:opacity-90 transition-opacity"
             >
-              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-14 md:h-16 scale-[1.3] sm:scale-[2.0] origin-left w-auto object-contain drop-shadow-sm ml-2" />
+              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-14 md:h-16 origin-left w-auto object-contain drop-shadow-sm ml-1" />
             </Link>
           </div>
 
@@ -142,13 +143,13 @@ const Navbar = () => {
                 )}
                 <button
                   onClick={() => navigate("/search")}
-                  className="p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 hidden sm:flex items-center justify-center"
+                  className="p-1 sm:p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 flex items-center justify-center"
                 >
                   <HiSearch className="w-[18px] h-[18px]" />
                 </button>
                 <Link
                   to="/wishlist"
-                  className="relative p-2 text-[#94A3B8] hover:text-pink-500 hover:bg-pink-50 rounded-[10px] transition-all duration-200 hidden sm:flex items-center justify-center"
+                  className="relative p-1 sm:p-2 text-[#94A3B8] hover:text-pink-500 hover:bg-pink-50 rounded-[10px] transition-all duration-200 flex items-center justify-center"
                 >
                   <svg
                     className="w-[18px] h-[18px]"
@@ -175,10 +176,9 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/dashboard/chats"
-                  className="relative p-2 text-[#94A3B8] hover:text-[#5B4BFF] hover:bg-[#5B4BFF]/5 rounded-[10px] transition-all duration-200 flex items-center justify-center"
-                  title="Chats"
+                  className="hidden sm:flex items-center text-[12px] sm:text-[13px] font-semibold text-white bg-[#5B4BFF] hover:bg-[#4F3FE8] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 shadow-sm mx-0.5 sm:mx-1"
                 >
-                  <HiChatAlt2 className="w-[18px] h-[18px]" />
+                  Chats
                 </Link>
                 <Link
                   to="/cart"
@@ -312,6 +312,17 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {isAuthenticated && (
+              <div className="px-2 pt-2 pb-1 border-t border-[#F1F5F9] mt-2">
+                <Link
+                  to="/dashboard/chats"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center w-full py-2.5 bg-[#5B4BFF] hover:bg-[#4F3FE8] text-white rounded-[10px] transition-all font-semibold text-sm shadow-sm"
+                >
+                  Chats
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

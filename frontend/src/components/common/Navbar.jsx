@@ -103,9 +103,9 @@ const Navbar = () => {
             )}
             <Link
               to="/"
-              className="flex items-center hover:opacity-90 transition-opacity pr-10 sm:pr-24"
+              className="flex items-center hover:opacity-90 transition-opacity"
             >
-              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-10 sm:h-12 md:h-14 scale-[1.3] sm:scale-[2.0] origin-left w-auto object-contain drop-shadow-sm ml-2" />
+              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-14 md:h-16 scale-[1.3] sm:scale-[2.0] origin-left w-auto object-contain drop-shadow-sm ml-2" />
             </Link>
           </div>
 
@@ -129,7 +129,7 @@ const Navbar = () => {
           </div>
 
           {/* Right Side */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {isAuthenticated ? (
               <>
                 {user?.role === "user" && (

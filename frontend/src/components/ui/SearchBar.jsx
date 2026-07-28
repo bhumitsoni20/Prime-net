@@ -28,7 +28,7 @@ const SearchBar = ({ onSearch, className = '' }) => {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder="Search subscriptions, services..."
-          className="flex-1 px-3 py-3 bg-transparent text-[#0F172A] text-sm placeholder-[#94A3B8] outline-none"
+          className="flex-1 min-w-0 w-0 px-3 py-3 bg-transparent text-[#0F172A] text-sm placeholder-[#94A3B8] outline-none"
         />
         {query && (
           <button
@@ -41,7 +41,7 @@ const SearchBar = ({ onSearch, className = '' }) => {
         )}
         <button
           type="submit"
-          className="mr-1.5 px-4 py-1.5 bg-[#5B4BFF] text-white text-sm font-semibold rounded-[10px] hover:bg-[#4F3FE8] transition-colors shadow-[0_1px_2px_rgba(91,75,255,0.3)]"
+          className="mr-1.5 px-4 py-1.5 bg-[#5B4BFF] text-white text-sm font-semibold rounded-[10px] hover:bg-[#4F3FE8] transition-colors shadow-[0_1px_2px_rgba(91,75,255,0.3)] flex-shrink-0"
         >
           Search
         </button>

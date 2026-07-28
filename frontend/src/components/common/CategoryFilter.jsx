@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog, HiPuzzle } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -40,21 +41,51 @@ const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
 
   const categoryCounts = data?.categories || {};
 
+  const scrollContainerRef = useRef(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   if (variant === 'cards') {
     return (
-      <motion.div 
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-50px" }}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4"
-      >
-        {categories.map((cat) => (
-          <motion.button
-            variants={item}
-            key={cat.value}
-            onClick={() => onSelect(selected === cat.value ? '' : cat.value)}
-            className={`group relative flex flex-col items-center justify-center p-6 rounded-[24px] bg-white transition-all duration-300 overflow-hidden ${
+      <div className="relative group">
+        <button 
+          onClick={scrollLeft}
+          className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+
+        <button 
+          onClick={scrollRight}
+          className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.15)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+
+        <motion.div 
+          ref={scrollContainerRef}
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {categories.map((cat) => (
+            <motion.button
+              variants={item}
+              key={cat.value}
+              onClick={() => onSelect(selected === cat.value ? '' : cat.value)}
+              className={`group relative flex flex-col items-center justify-center p-6 w-[160px] shrink-0 snap-start rounded-[24px] bg-white transition-all duration-300 overflow-hidden ${
               selected === cat.value
                 ? 'shadow-[0_8px_30px_rgba(0,0,0,0.08)] -translate-y-1'
                 : 'shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1'
@@ -83,6 +114,7 @@ const CategoryFilter = ({ selected, onSelect, variant = 'cards' }) => {
           </motion.button>
         ))}
       </motion.div>
+    </div>
     );
   }
 

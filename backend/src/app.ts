@@ -33,6 +33,8 @@ const allowedOrigins = [
   'https://streamkart.in',
   'https://www.streamkart.in',
   'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
 ];
 if (env.CLIENT_URL && !allowedOrigins.includes(env.CLIENT_URL)) {
   allowedOrigins.push(env.CLIENT_URL);

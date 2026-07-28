@@ -104,9 +104,9 @@ const Navbar = () => {
             )}
             <Link
               to="/"
-              className="flex items-center hover:opacity-90 transition-opacity"
+              className="flex items-center hover:opacity-90 transition-opacity mr-10 sm:mr-24 md:mr-32"
             >
-              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-14 md:h-16 origin-left w-auto object-contain drop-shadow-sm ml-1" />
+              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-16 md:h-16 origin-left w-auto object-contain drop-shadow-sm ml-1 scale-[1.8] sm:scale-[2.0]" />
             </Link>
           </div>
 

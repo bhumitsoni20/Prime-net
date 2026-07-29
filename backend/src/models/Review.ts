@@ -2,7 +2,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IReview extends Document {
   user: mongoose.Types.ObjectId;
-  product: mongoose.Types.ObjectId;
+  product?: mongoose.Types.ObjectId;
+  bundle?: mongoose.Types.ObjectId;
   rating: number;
   comment: string;
   createdAt: Date;
@@ -19,7 +20,10 @@ const reviewSchema = new Schema<IReview>(
     product: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
-      required: true,
+    },
+    bundle: {
+      type: Schema.Types.ObjectId,
+      ref: 'Bundle',
     },
     rating: {
       type: Number,
@@ -39,6 +43,8 @@ const reviewSchema = new Schema<IReview>(
 );
 
 reviewSchema.index({ product: 1, createdAt: -1 });
-reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+reviewSchema.index({ bundle: 1, createdAt: -1 });
+reviewSchema.index({ user: 1, product: 1 }, { unique: true, partialFilterExpression: { product: { $exists: true } } });
+reviewSchema.index({ user: 1, bundle: 1 }, { unique: true, partialFilterExpression: { bundle: { $exists: true } } });
 
 export const Review = mongoose.model<IReview>('Review', reviewSchema);

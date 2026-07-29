@@ -29,7 +29,7 @@ const useCartStore = create(
       clearCart: () => set({ items: [] }),
 
       getTotal: () => {
-        return get().items.reduce((total, item) => total + item.price * item.quantity, 0);
+        return get().items.reduce((total, item) => total + (item.price || item.bundlePrice || 0) * item.quantity, 0);
       },
 
       getItemCount: () => get().items.length,

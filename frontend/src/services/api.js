@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getIdToken } from '../firebase/auth';
+import { getIdToken, signOut } from '../firebase/auth';
 import useAuthStore from '../store/authStore';
 import { handleApiError } from '../lib/errorHandler';
 
@@ -40,7 +40,15 @@ api.interceptors.response.use(
     // return response.data makes it easier for components.
     return response.data;
   },
-  (error) => {
+  async (error) => {
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout();
+      try {
+        await signOut();
+      } catch (err) {
+        console.warn('Firebase signout failed', err);
+      }
+    }
     handleApiError(error);
     return Promise.reject(error);
   }

@@ -20,6 +20,8 @@ import adminRoutes from './routes/admin.routes';
 import sellerRoutes from './routes/seller.routes';
 import productRequestRoutes from './routes/productRequest.routes';
 import supportRoutes from './routes/support.routes';
+import bundleRoutes from './routes/bundle.routes';
+import bundleOrderRoutes from './routes/bundleOrder.routes';
 
 const app = express();
 
@@ -79,11 +81,14 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/requests', productRequestRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/bundles', bundleRoutes);
+app.use('/api/bundle-orders', bundleOrderRoutes);
 
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';
 
 import { Product } from './models/Product';
+import { Bundle } from './models/Bundle';
 
 app.get('/api/public/stats', async (_req, res) => {
   try {
@@ -103,6 +108,9 @@ app.get('/api/public/stats', async (_req, res) => {
       acc[curr._id] = curr.count;
       return acc;
     }, {});
+
+    const bundleCount = await Bundle.countDocuments({ status: 'active', visibility: 'public' });
+    categories['bundles'] = bundleCount;
 
     const stats = { totalUsers, categories };
     Cache.set('public_stats', stats, 300); // 5 minutes cache

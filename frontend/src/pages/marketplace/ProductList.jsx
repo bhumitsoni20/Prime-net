@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/cards/ProductCard';
+import BundleCard from '../../components/cards/BundleCard';
 import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import { useProducts } from '../../hooks/useProducts';
+import { useQuery } from '@tanstack/react-query';
+import api from '../../services/api';
 import { HiSearch, HiCheck } from 'react-icons/hi';
 
 const allCategories = [
+  { value: 'bundles', label: 'Bundles & Deals' },
   { value: 'ott', label: 'OTT Platforms' },
   { value: 'gaming', label: 'Games & Accounts' },
   { value: 'ai-tools', label: 'AI & Productivity' },
@@ -35,7 +39,31 @@ const ProductList = () => {
   if (priceRange[1] < 2000) params.set('maxPrice', priceRange[1].toString());
   if (ratingFilter > 0) params.set('minRating', ratingFilter.toString());
 
-  const { data, isLoading } = useProducts(params.toString());
+  const isBundleOnly = selectedCats.length === 1 && selectedCats[0] === 'bundles';
+  const showBundles = selectedCats.length === 0 || selectedCats.includes('bundles');
+  const showProducts = selectedCats.length === 0 || selectedCats.some(c => c !== 'bundles');
+
+  // Fetch Products
+  const { data: productData, isLoading: isProductsLoading } = useProducts(
+    showProducts ? params.toString() : null
+  );
+
+  // Fetch Bundles
+  const bundleParams = new URLSearchParams(params);
+  if (selectedCats.includes('bundles')) bundleParams.delete('category'); // Fetch all bundles if bundles is selected or nothing is selected
+  
+  const { data: bundleData, isLoading: isBundlesLoading } = useQuery({
+    queryKey: ['publicBundles', bundleParams.toString()],
+    queryFn: async () => {
+      const res = await api.get(`/bundles?${bundleParams.toString()}`);
+      return res;
+    },
+    enabled: showBundles
+  });
+
+  const isLoading = (showProducts && isProductsLoading) || (showBundles && isBundlesLoading);
+
+  console.log('ProductList render:', { showBundles, bundleData });
 
   const updateURLParams = (updates) => {
     const currentParams = new URLSearchParams(searchParams);
@@ -193,29 +221,52 @@ const ProductList = () => {
             <div className="flex justify-center py-16"><Spinner size="lg" /></div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {data?.data?.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
+              {showBundles && bundleData?.data?.length > 0 && (
+                <div className="mb-12">
+                  <h2 className="text-xl font-bold text-[#0F172A] mb-6 flex items-center gap-2">
+                    <span className="text-2xl">🎁</span> Featured Bundles
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {bundleData.data.map((bundle) => (
+                      <BundleCard key={bundle._id} bundle={bundle} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              {(!data?.data || data.data.length === 0) && (
+              {showProducts && productData?.data?.length > 0 && (
+                <div>
+                  {showBundles && bundleData?.data?.length > 0 && (
+                    <h2 className="text-xl font-bold text-[#0F172A] mb-6 border-t border-[#E2E8F0] pt-10">
+                      Individual Subscriptions
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {productData.data.map((product) => (
+                      <ProductCard key={product._id} product={product} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {((!showProducts || !productData?.data || productData.data.length === 0) && (!showBundles || !bundleData?.data || bundleData.data.length === 0)) && (
                 <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px]">
                   <div className="h-16 w-16 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center mx-auto mb-4 border border-[#F1F5F9]">
                     <HiSearch className="w-8 h-8 text-[#94A3B8]" />
                   </div>
-                  <p className="text-[#0F172A] text-lg font-bold mb-2">No products found</p>
+                  <p className="text-[#0F172A] text-lg font-bold mb-2">No results found</p>
                   <p className="text-[#64748B] text-sm">Try adjusting your filters or search query.</p>
                   <Button variant="secondary" className="mt-6" onClick={clearFilters}>Clear Filters</Button>
                 </div>
               )}
 
-              {data?.pagination && data.pagination.total > 0 && (
+              {((showProducts && productData?.pagination?.total > 0) || (isBundleOnly && bundleData?.pagination?.total > 0)) && (
                 <div className="mt-12 flex flex-col items-center border-t border-[#E2E8F0] pt-8">
-                  <p className="text-[13px] text-[#64748B] font-medium mb-4">
-                    Showing <span className="text-[#0F172A] font-semibold">1-{data.data?.length || 0}</span> of <span className="text-[#0F172A] font-semibold">{data.pagination.total || 0}</span> products
-                  </p>
-                  <Pagination currentPage={data.pagination.page} totalPages={data.pagination.pages} onPageChange={handlePageChange} />
+                  <Pagination 
+                    currentPage={isBundleOnly ? bundleData.pagination.page : productData.pagination.page} 
+                    totalPages={isBundleOnly ? bundleData.pagination.pages : productData.pagination.pages} 
+                    onPageChange={handlePageChange} 
+                  />
                 </div>
               )}
             </>

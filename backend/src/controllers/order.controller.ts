@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
 import { Product } from '../models/Product';
 import { Message } from '../models/Message';
+import mongoose from 'mongoose';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { getIO } from '../socket';
 import { sendPushNotification } from '../services/notification.service';
@@ -53,22 +54,40 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const [orders, total] = await Promise.all([
+    const BundleOrder = mongoose.model('BundleOrder');
+
+    const [allOrders, allBundleOrders] = await Promise.all([
       Order.find({ user: req.user._id })
         .populate('product', 'title logo price category')
         .populate('seller', 'name')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
         .lean(),
-      Order.countDocuments({ user: req.user._id }),
+      BundleOrder.find({ user: req.user._id })
+        .populate('bundle', 'title thumbnail category')
+        .populate('seller', 'name')
+        .lean()
     ]);
+
+    const mappedBundleOrders = allBundleOrders.map((b: any) => ({
+      ...b,
+      isBundle: true,
+      product: b.bundle ? { _id: b.bundle._id, title: b.bundle.title, logo: b.bundle.thumbnail, price: b.bundlePrice, category: b.bundle.category } : null
+    }));
+
+    const combinedOrders = [...allOrders, ...mappedBundleOrders].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const total = combinedOrders.length;
+    const paginatedOrders = combinedOrders.slice(skip, skip + limit);
 
     const { Review } = await import('../models/Review');
     const enrichedOrders = await Promise.all(
-      orders.map(async (order) => {
-        const isReviewed = await Review.exists({ user: req.user._id, product: order.product?._id });
-        return { ...order, isReviewed: !!isReviewed };
+      paginatedOrders.map(async (order: any) => {
+        let isReviewed = false;
+        if (order.isBundle) {
+          isReviewed = !!(await Review.exists({ user: req.user._id, bundle: order.product?._id }));
+        } else {
+          isReviewed = !!(await Review.exists({ user: req.user._id, product: order.product?._id }));
+        }
+        return { ...order, isReviewed };
       })
     );
 
@@ -81,11 +100,26 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
 // GET /api/orders/:id
 export const getOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const order = await Order.findById(req.params.id)
+    let order: any = await Order.findById(req.params.id)
       .populate('product')
-      .populate('seller', 'name email')
-      .populate('user', 'name email')
+      .populate('seller', 'name email avatar')
+      .populate('user', 'name email avatar')
       .lean();
+
+    let isBundle = false;
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id)
+        .populate({
+          path: 'bundle',
+          populate: { path: 'products.product' }
+        })
+        .populate('seller', 'name email avatar')
+        .populate('user', 'name email avatar')
+        .populate('credentials.productId', 'title logo')
+        .lean();
+      isBundle = true;
+    }
 
     if (!order) return sendError(res, 'Order not found.', 404);
 
@@ -99,7 +133,10 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
     }
 
     const { Review } = await import('../models/Review');
-    const isReviewed = await Review.exists({ user: req.user._id, product: order.product?._id });
+    const query = isBundle 
+      ? { user: req.user._id, bundle: order.bundle?._id || order.bundle }
+      : { user: req.user._id, product: order.product?._id || order.product };
+    const isReviewed = await Review.exists(query);
 
     return sendSuccess(res, { ...order, isReviewed: !!isReviewed });
   } catch (error: any) {
@@ -112,7 +149,11 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { orderStatus } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    let order: any = await Order.findById(req.params.id);
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id);
+    }
     if (!order) return sendError(res, 'Order not found.', 404);
 
     // Authorization checks
@@ -139,12 +180,13 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     } catch (e) {}
 
     // Notify buyer
-    await sendPushNotification(
+    // Fire and forget push notification
+    sendPushNotification(
       order.user.toString(),
       'Order Update',
       `Your order status has been updated to: ${orderStatus}`,
       'order'
-    );
+    ).catch(console.error);
 
     return sendSuccess(res, order, 'Order status updated.');
   } catch (error: any) {
@@ -159,18 +201,31 @@ export const getSellerOrders = async (req: AuthRequest, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const [orders, total] = await Promise.all([
+    const BundleOrder = mongoose.model('BundleOrder');
+
+    const [allOrders, allBundleOrders] = await Promise.all([
       Order.find({ seller: req.user._id })
         .populate('product', 'title logo price')
         .populate('user', 'name email')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
         .lean(),
-      Order.countDocuments({ seller: req.user._id }),
+      BundleOrder.find({ seller: req.user._id })
+        .populate('bundle', 'title thumbnail')
+        .populate('user', 'name email')
+        .lean()
     ]);
 
-    return sendPaginated(res, orders, page, limit, total);
+    const mappedBundleOrders = allBundleOrders.map((b: any) => ({
+      ...b,
+      isBundle: true,
+      product: b.bundle ? { _id: b.bundle._id, title: b.bundle.title, logo: b.bundle.thumbnail, price: b.bundlePrice } : null
+    }));
+
+    const combinedOrders = [...allOrders, ...mappedBundleOrders].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const total = combinedOrders.length;
+    const paginatedOrders = combinedOrders.slice(skip, skip + limit);
+
+    return sendPaginated(res, paginatedOrders, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
   }
@@ -179,7 +234,11 @@ export const getSellerOrders = async (req: AuthRequest, res: Response) => {
 // GET /api/orders/:id/chat
 export const getOrderChat = async (req: AuthRequest, res: Response) => {
   try {
-    const order = await Order.findById(req.params.id);
+    let order: any = await Order.findById(req.params.id);
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id);
+    }
     if (!order) return sendError(res, 'Order not found.', 404);
 
     const isOwner = order.user?.toString() === req.user._id.toString();
@@ -203,7 +262,13 @@ export const getOrderChat = async (req: AuthRequest, res: Response) => {
 export const sendOrderMessage = async (req: AuthRequest, res: Response) => {
   try {
     const { content, type = 'text', metadata } = req.body;
-    const order = await Order.findById(req.params.id);
+    let order: any = await Order.findById(req.params.id);
+    let onModel: 'Order' | 'BundleOrder' = 'Order';
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id);
+      onModel = 'BundleOrder';
+    }
     if (!order) return sendError(res, 'Order not found.', 404);
 
     const isOwner = order.user?.toString() === req.user._id.toString();
@@ -212,6 +277,7 @@ export const sendOrderMessage = async (req: AuthRequest, res: Response) => {
 
     const message = await Message.create({
       orderId: order._id,
+      onModel,
       senderId: req.user._id,
       content,
       type,
@@ -244,7 +310,11 @@ export const sendOrderMessage = async (req: AuthRequest, res: Response) => {
 export const deliverOrderCredentials = async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, notes } = req.body;
-    const order = await Order.findById(req.params.id);
+    let order: any = await Order.findById(req.params.id);
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id);
+    }
     if (!order) return sendError(res, 'Order not found.', 404);
 
     if (order.seller.toString() !== req.user._id.toString()) {
@@ -274,12 +344,13 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
       io.to(`order_${order._id}`).emit('new_message', populatedMessage);
     } catch (e) {}
 
-    await sendPushNotification(
+    // Fire and forget push notification
+    sendPushNotification(
       order.user.toString(),
       'Order Delivered!',
       'Your credentials have been securely delivered. Check your order chat.',
       'order'
-    );
+    ).catch(console.error);
 
     return sendSuccess(res, order, 'Credentials delivered successfully.');
   } catch (error: any) {
@@ -290,7 +361,11 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
 // PUT /api/orders/:id/seen
 export const markMessagesSeen = async (req: AuthRequest, res: Response) => {
   try {
-    const order = await Order.findById(req.params.id);
+    let order: any = await Order.findById(req.params.id);
+    if (!order) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      order = await BundleOrder.findById(req.params.id);
+    }
     if (!order) return sendError(res, 'Order not found.', 404);
 
     await Message.updateMany(
@@ -316,19 +391,39 @@ export const getMyChats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user._id;
 
+    const BundleOrder = mongoose.model('BundleOrder');
+    
     // Fetch all paid orders where user is either buyer or seller
-    const orders = await Order.find({
-      $or: [{ user: userId }, { seller: userId }],
-      paymentStatus: 'paid'
-    })
-      .populate('user', 'name avatar')
-      .populate('seller', 'name avatar')
-      .populate('product', 'title logo')
-      .lean();
+    const [orders, bundleOrders] = await Promise.all([
+      Order.find({
+        $or: [{ user: userId }, { seller: userId }],
+        paymentStatus: 'paid'
+      })
+        .populate('user', 'name avatar')
+        .populate('seller', 'name avatar')
+        .populate('product', 'title logo')
+        .lean(),
+      BundleOrder.find({
+        $or: [{ user: userId }, { seller: userId }],
+        paymentStatus: 'paid'
+      })
+        .populate('user', 'name avatar')
+        .populate('seller', 'name avatar')
+        .populate('bundle', 'title thumbnail')
+        .lean()
+    ]);
+
+    const mappedBundleOrders = bundleOrders.map((b: any) => ({
+      ...b,
+      isBundle: true,
+      product: b.bundle ? { _id: b.bundle._id, title: b.bundle.title, logo: b.bundle.thumbnail } : null
+    }));
+
+    const allOrders = [...orders, ...mappedBundleOrders];
 
     // Fetch last message and unread count for each order concurrently
     const chats = await Promise.all(
-      orders.map(async (order) => {
+      allOrders.map(async (order) => {
         const lastMessage = await Message.findOne({ orderId: order._id })
           .sort({ createdAt: -1 })
           .populate('senderId', 'name avatar')

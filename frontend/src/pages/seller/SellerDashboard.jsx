@@ -124,11 +124,18 @@ const SellerDashboard = () => {
         <div className="lg:col-span-3 bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between p-6 border-b border-[#F1F5F9] bg-[#F8FAFC]">
             <h3 className="font-bold text-[17px] text-[#0F172A]">Recent Products</h3>
-            <Link to="/seller/products/new">
-              <Button size="sm" className="font-semibold shadow-sm">
-                <HiPlus className="w-[18px] h-[18px] mr-1.5" /> Add Product
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link to="/seller/bundles/create">
+                <Button size="sm" variant="secondary" className="font-semibold shadow-sm text-[#5B4BFF] border-[#5B4BFF]/20 bg-[#5B4BFF]/5 hover:bg-[#5B4BFF]/10">
+                  <HiPlus className="w-[18px] h-[18px] mr-1.5" /> Create Bundle
+                </Button>
+              </Link>
+              <Link to="/seller/products/new">
+                <Button size="sm" className="font-semibold shadow-sm">
+                  <HiPlus className="w-[18px] h-[18px] mr-1.5" /> Add Product
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">

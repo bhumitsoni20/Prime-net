@@ -41,8 +41,8 @@ const Wishlist = () => {
         {items.map((product) => (
           <div key={product._id} className="bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] transition-all duration-300 group flex flex-col h-full hover:border-[#CBD5E1]">
             <div className="relative aspect-video bg-[#F8FAFC] overflow-hidden border-b border-[#F1F5F9]">
-              {product.logo ? (
-                <img src={product.logo} alt={product.title} className="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105" />
+              {product.logo || product.thumbnail ? (
+                <img src={product.logo || product.thumbnail} alt={product.title} className="w-full h-full object-cover p-2 transition-transform duration-500 group-hover:scale-105" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#5B4BFF]/5 to-[#7C3AED]/5 text-[#5B4BFF] text-5xl font-extrabold">
                   {product.title?.charAt(0)}
@@ -60,10 +60,10 @@ const Wishlist = () => {
 
             <div className="p-6 flex flex-col flex-1">
               <div className="flex items-start justify-between gap-3 mb-2">
-                <Link to={`/products/${product._id}`}>
+                <Link to={product.bundlePrice ? `/bundles/${product._id}` : `/products/${product._id}`}>
                   <h3 className="font-bold text-[#0F172A] text-[17px] hover:text-[#5B4BFF] transition-colors line-clamp-1">{product.title}</h3>
                 </Link>
-                <span className="font-extrabold text-[#0F172A] shrink-0 text-[17px]">₹{product.price.toLocaleString()}</span>
+                <span className="font-extrabold text-[#0F172A] shrink-0 text-[17px]">₹{(product.price || product.bundlePrice || 0).toLocaleString()}</span>
               </div>
               
               <p className="text-[13px] text-[#64748B] line-clamp-2 mb-6">{product.description}</p>

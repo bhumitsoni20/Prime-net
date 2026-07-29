@@ -186,6 +186,8 @@ const EditProduct = () => {
 
       {imageSrc && (
         <ImageCropperModal
+          isOpen={!!imageSrc}
+          onClose={() => setImageSrc(null)}
           imageSrc={imageSrc}
           onCropComplete={handleCropComplete}
           onCancel={() => setImageSrc(null)}

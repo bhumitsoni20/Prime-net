@@ -1,10 +1,11 @@
 import { useRef } from 'react';
-import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog, HiPuzzle } from 'react-icons/hi';
+import { HiFilm, HiLightningBolt, HiShieldCheck, HiAcademicCap, HiCloud, HiMusicNote, HiCog, HiPuzzle, HiCollection } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
 
 const categories = [
+  { value: 'bundles', label: 'Bundles & Deals', subtitle: 'Combo Packs', icon: HiCollection, color: '#A855F7', bg: 'bg-[#A855F7]/10', text: 'text-[#A855F7]' },
   { value: 'ott', label: 'OTT Platforms', subtitle: '120+ Services', icon: HiFilm, color: '#5B4BFF', bg: 'bg-[#5B4BFF]/10', text: 'text-[#5B4BFF]' },
   { value: 'gaming', label: 'Games & Accounts', subtitle: '50+ Services', icon: HiPuzzle, color: '#10B981', bg: 'bg-[#10B981]/10', text: 'text-[#10B981]' },
   { value: 'ai-tools', label: 'AI & Productivity', subtitle: '80+ Services', icon: HiLightningBolt, color: '#3B82F6', bg: 'bg-[#3B82F6]/10', text: 'text-[#3B82F6]' },

@@ -2,11 +2,15 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IMessage extends Document {
   orderId: mongoose.Types.ObjectId;
+  onModel: 'Order' | 'BundleOrder';
   senderId: mongoose.Types.ObjectId;
   content: string;
-  type: 'text' | 'image' | 'file' | 'credentials' | 'system';
+  type: 'text' | 'image' | 'file' | 'credentials' | 'bundle_credentials' | 'system';
   status: 'sent' | 'delivered' | 'seen';
   metadata?: any;
+  sentAt?: Date;
+  deliveredAt?: Date;
+  seenAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,9 +19,14 @@ const messageSchema = new Schema<IMessage>(
   {
     orderId: {
       type: Schema.Types.ObjectId,
-      ref: 'Order',
+      refPath: 'onModel',
       required: true,
       index: true,
+    },
+    onModel: {
+      type: String,
+      enum: ['Order', 'BundleOrder'],
+      default: 'Order',
     },
     senderId: {
       type: Schema.Types.ObjectId,
@@ -30,7 +39,7 @@ const messageSchema = new Schema<IMessage>(
     },
     type: {
       type: String,
-      enum: ['text', 'image', 'file', 'credentials', 'system'],
+      enum: ['text', 'image', 'file', 'credentials', 'bundle_credentials', 'system'],
       default: 'text',
     },
     status: {
@@ -41,6 +50,12 @@ const messageSchema = new Schema<IMessage>(
     metadata: {
       type: Schema.Types.Mixed,
     },
+    sentAt: {
+      type: Date,
+      default: Date.now,
+    },
+    deliveredAt: Date,
+    seenAt: Date,
   },
   { timestamps: true }
 );

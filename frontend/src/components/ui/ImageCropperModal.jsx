@@ -3,11 +3,16 @@ import Cropper from 'react-easy-crop';
 import Button from './Button';
 import getCroppedImg from '../../utils/cropImage';
 
-const ImageCropperModal = ({ imageSrc, onCropComplete, onCancel }) => {
+const ImageCropperModal = ({ isOpen, onClose, imageSrc, onCropComplete, onCancel }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleClose = () => {
+    if (onClose) onClose();
+    if (onCancel) onCancel();
+  };
 
   const onCropChange = (crop) => {
     setCrop(crop);
@@ -27,18 +32,21 @@ const ImageCropperModal = ({ imageSrc, onCropComplete, onCancel }) => {
     try {
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       onCropComplete(croppedImageBlob);
+      handleClose();
     } catch (e) {
       console.error(e);
       setIsProcessing(false);
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-3xl overflow-hidden w-full max-w-lg shadow-2xl flex flex-col">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-xl font-bold text-gray-900">Adjust Photo</h3>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">✕</button>
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         
         <div className="relative h-[400px] w-full bg-gray-900">
@@ -70,7 +78,7 @@ const ImageCropperModal = ({ imageSrc, onCropComplete, onCancel }) => {
             />
           </div>
           <div className="flex justify-end gap-3 mt-2">
-            <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+            <Button variant="secondary" onClick={handleClose}>Cancel</Button>
             <Button onClick={handleSave} disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Crop & Save'}
             </Button>

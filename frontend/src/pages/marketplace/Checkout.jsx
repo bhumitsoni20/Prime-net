@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Button from '../../components/ui/Button';
 import { HiShieldCheck, HiLockClosed } from 'react-icons/hi';
 import useCart from '../../hooks/useCart';
 import useAuthStore from '../../store/authStore';
 import { createRazorpayOrder, openRazorpayCheckout, verifyRazorpayPayment } from '../../services/payment.service';
-import { apiPost } from '../../services/api';
+import api, { apiPost } from '../../services/api';
 import toast from 'react-hot-toast';
 import PaymentSuccessAnimation from '../../components/ui/PaymentSuccessAnimation';
 
@@ -16,56 +17,100 @@ const Checkout = () => {
   const { items: cartItems, total: subtotal, clearCart } = useCart();
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  
-  const platformFee = subtotal * 0.02;
-  const total = subtotal + platformFee;
+  const location = useLocation();
+  const bundleId = location.state?.bundleId;
+
+  const { data: bundle } = useQuery({
+    queryKey: ['bundle', bundleId],
+    queryFn: async () => {
+      const res = await api.get(`/bundles/${bundleId}`);
+      return res.data;
+    },
+    enabled: !!bundleId,
+  });
+
+  const cartSubtotal = bundleId && bundle ? bundle.bundlePrice : subtotal;
+  const platformFee = cartSubtotal * 0.02;
+  const total = cartSubtotal + platformFee;
 
   const handlePayment = async () => {
-    if (cartItems.length === 0) return toast.error('Your cart is empty');
+    if (!bundleId && cartItems.length === 0) return toast.error('Your cart is empty');
 
     try {
       setIsProcessing(true);
 
-      // 1. Create Razorpay order via backend (for all items)
-      const productIds = cartItems.map(item => item._id);
-      const { data: rzpOrder } = await createRazorpayOrder(productIds);
+      if (bundleId) {
+        // Handle direct Bundle Checkout
+        const { data: rzpOrder } = await createRazorpayOrder({ bundleId });
 
-      // 2. Create pending DB orders for all items
-      const orderPromises = cartItems.map(item => 
-        apiPost('/orders', {
-          productId: item._id,
+        const { data: dbOrder } = await apiPost('/bundle-orders', {
+          bundleId,
           paymentMethod: 'razorpay'
-        })
-      );
-      const dbOrdersResponses = await Promise.all(orderPromises);
-      const orderIds = dbOrdersResponses.map(res => res.data._id);
+        });
 
-      // 3. Open Razorpay Checkout Modal
-      openRazorpayCheckout(
-        rzpOrder,
-        user,
-        async (response) => {
-          try {
-            // 4. Verify payment with backend for all orders
-            await verifyRazorpayPayment({
-              ...response,
-              orderIds: orderIds
-            });
-            
-            setSuccessOrderIds(orderIds);
-            setShowSuccess(true);
-            clearCart();
-          } catch (err) {
-            toast.error(err.response?.data?.message || 'Payment verification failed');
-          } finally {
+        openRazorpayCheckout(
+          rzpOrder,
+          user,
+          async (response) => {
+            try {
+              await verifyRazorpayPayment({ ...response, orderIds: [dbOrder._id], isBundle: true });
+              setSuccessOrderIds([dbOrder._id]);
+              setShowSuccess(true);
+            } catch (err) {
+              toast.error(err.response?.data?.message || 'Payment verification failed');
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          (errorMsg) => {
+            toast.error(errorMsg);
             setIsProcessing(false);
           }
-        },
-        (errorMsg) => {
-          toast.error(errorMsg);
-          setIsProcessing(false);
-        }
-      );
+        );
+      } else {
+        // Handle Mixed Cart Checkout
+        const productItems = cartItems.filter(item => !item.bundlePrice);
+        const bundleItems = cartItems.filter(item => !!item.bundlePrice);
+
+        const productIds = productItems.map(item => item._id);
+        const bundleIds = bundleItems.map(item => item._id);
+
+        const { data: rzpOrder } = await createRazorpayOrder({ productIds, bundleIds });
+
+        const productOrderPromises = productItems.map(item => 
+          apiPost('/orders', { productId: item._id, paymentMethod: 'razorpay' })
+        );
+        const bundleOrderPromises = bundleItems.map(item => 
+          apiPost('/bundle-orders', { bundleId: item._id, paymentMethod: 'razorpay' })
+        );
+
+        const dbOrdersResponses = await Promise.all(productOrderPromises);
+        const dbBundleResponses = await Promise.all(bundleOrderPromises);
+
+        const orderIds = dbOrdersResponses.map(res => res.data._id);
+        const bundleOrderIds = dbBundleResponses.map(res => res.data._id);
+
+        openRazorpayCheckout(
+          rzpOrder,
+          user,
+          async (response) => {
+            try {
+              await verifyRazorpayPayment({ ...response, orderIds, bundleOrderIds });
+              setSuccessOrderIds([...orderIds, ...bundleOrderIds]);
+              setShowSuccess(true);
+              clearCart();
+            } catch (err) {
+              toast.error(err.response?.data?.message || 'Payment verification failed');
+            } finally {
+              setIsProcessing(false);
+            }
+          },
+          (errorMsg) => {
+            toast.error(errorMsg);
+            setIsProcessing(false);
+          }
+        );
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to initiate payment');
       setIsProcessing(false);
@@ -78,22 +123,32 @@ const Checkout = () => {
     try {
       setIsProcessing(true);
 
-      const productIds = cartItems.map(item => item._id);
+      const productItems = cartItems.filter(item => !item.bundlePrice);
+      const bundleItems = cartItems.filter(item => !!item.bundlePrice);
+
+      const productIds = productItems.map(item => item._id);
+      const bundleIds = bundleItems.map(item => item._id);
 
       // 1. Create pending DB orders for all items
-      const orderPromises = cartItems.map(item => 
-        apiPost('/orders', {
-          productId: item._id,
-          paymentMethod: 'stripe'
-        })
+      const productOrderPromises = productItems.map(item => 
+        apiPost('/orders', { productId: item._id, paymentMethod: 'stripe' })
       );
-      const dbOrdersResponses = await Promise.all(orderPromises);
+      const bundleOrderPromises = bundleItems.map(item => 
+        apiPost('/bundle-orders', { bundleId: item._id, paymentMethod: 'stripe' })
+      );
+
+      const dbOrdersResponses = await Promise.all(productOrderPromises);
+      const dbBundleResponses = await Promise.all(bundleOrderPromises);
+
       const orderIds = dbOrdersResponses.map(res => res.data._id);
+      const bundleOrderIds = dbBundleResponses.map(res => res.data._id);
 
       // 2. Create Stripe Checkout Session
       const { data } = await apiPost('/payments/stripe/create-session', {
         productIds,
-        orderIds
+        bundleIds,
+        orderIds,
+        bundleOrderIds
       });
 
       // 3. Redirect to Stripe Checkout
@@ -164,8 +219,8 @@ const Checkout = () => {
                 {cartItems.map((item) => (
                   <div key={item._id} className="flex items-center gap-4">
                     <div className="h-16 w-16 rounded-[14px] bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
-                      {item.logo ? (
-                        <img src={item.logo} alt={item.title} className="max-h-full max-w-full object-contain p-2" />
+                      {item.logo || item.thumbnail ? (
+                        <img src={item.logo || item.thumbnail} alt={item.title} className="max-h-full max-w-full object-cover p-2" />
                       ) : (
                         <span className="text-[#94A3B8] font-extrabold text-xl">{item.title?.[0]}</span>
                       )}
@@ -174,7 +229,7 @@ const Checkout = () => {
                       <p className="text-[#0F172A] font-bold text-[15px] truncate mb-0.5">{item.title}</p>
                       <p className="text-[#64748B] text-[13px] font-medium">Qty: 1</p>
                     </div>
-                    <p className="text-[#0F172A] font-extrabold text-[15px]">₹{item.price.toLocaleString()}</p>
+                    <p className="text-[#0F172A] font-extrabold text-[15px]">₹{(item.price || item.bundlePrice || 0).toLocaleString()}</p>
                   </div>
                 ))}
               </div>

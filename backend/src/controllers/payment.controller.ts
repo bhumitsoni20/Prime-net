@@ -11,27 +11,44 @@ import {
 import { sendPushNotification } from '../services/notification.service';
 import { sendSuccess, sendError } from '../utils/response';
 import { logger } from '../utils/logger';
+import mongoose from 'mongoose';
 
 // POST /api/payments/razorpay/create-order
 export const razorpayCreateOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const { productIds } = req.body;
+    const { productIds = [], bundleId, bundleIds = [] } = req.body;
 
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
-      return sendError(res, 'Product IDs are required.', 400);
+    let subtotal = 0;
+    const finalBundleIds = bundleId ? [bundleId] : (bundleIds || []);
+
+    if (productIds.length > 0) {
+      const products = await Product.find({ _id: { $in: productIds } });
+      const productMap = new Map(products.map(p => [p._id.toString(), p]));
+      
+      for (const id of productIds) {
+        const p = productMap.get(id.toString());
+        if (!p) {
+          return sendError(res, `Product not found: ${id}`, 404);
+        }
+        subtotal += p.price;
+      }
     }
 
-    const products = await Product.find({ _id: { $in: productIds } });
-    
-    const productMap = new Map(products.map(p => [p._id.toString(), p]));
-    let subtotal = 0;
-    
-    for (const id of productIds) {
-      const p = productMap.get(id.toString());
-      if (!p) {
-        return sendError(res, `Product not found: ${id}`, 404);
+    if (finalBundleIds.length > 0) {
+      const bundles = await mongoose.model('Bundle').find({ _id: { $in: finalBundleIds } });
+      const bundleMap = new Map(bundles.map((b: any) => [b._id.toString(), b]));
+      
+      for (const id of finalBundleIds) {
+        const b = bundleMap.get(id.toString());
+        if (!b) {
+          return sendError(res, `Bundle not found: ${id}`, 404);
+        }
+        subtotal += b.bundlePrice;
       }
-      subtotal += p.price;
+    }
+
+    if (productIds.length === 0 && finalBundleIds.length === 0) {
+      return sendError(res, 'Product IDs or Bundle IDs are required.', 400);
     }
 
     const platformFee = subtotal * 0.02;
@@ -43,7 +60,7 @@ export const razorpayCreateOrder = async (req: AuthRequest, res: Response) => {
       orderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      productIds: products.map(p => p._id),
+      ...(bundleId ? { bundleId } : { productIds }),
     });
   } catch (error: any) {
     logger.error('Razorpay order creation failed:', error);
@@ -54,7 +71,7 @@ export const razorpayCreateOrder = async (req: AuthRequest, res: Response) => {
 // POST /api/payments/razorpay/verify
 export const razorpayVerify = async (req: AuthRequest, res: Response) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderIds } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderIds = [], bundleOrderIds = [], isBundle } = req.body;
 
     const isValid = verifyRazorpaySignature(
       razorpay_order_id,
@@ -66,31 +83,59 @@ export const razorpayVerify = async (req: AuthRequest, res: Response) => {
       return sendError(res, 'Payment verification failed.', 400);
     }
 
-    if (!orderIds || !Array.isArray(orderIds)) {
+    const productOrders = isBundle ? [] : orderIds;
+    const bundleOrders = isBundle ? orderIds : bundleOrderIds;
+
+    if (productOrders.length === 0 && bundleOrders.length === 0) {
       return sendError(res, 'Order IDs are required.', 400);
     }
 
-    await Order.updateMany(
-      { _id: { $in: orderIds } },
-      {
-        $set: {
-          paymentStatus: 'paid',
-          paymentId: razorpay_payment_id,
+    if (bundleOrders.length > 0) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      await BundleOrder.updateMany(
+        { _id: { $in: bundleOrders } },
+        {
+          $set: {
+            paymentStatus: 'paid',
+            paymentId: razorpay_payment_id,
+          }
         }
-      }
-    );
-
-    const firstOrder = await Order.findById(orderIds[0]);
-    if (firstOrder) {
-      await sendPushNotification(
-        firstOrder.user.toString(),
-        'Payment Successful!',
-        'Your payment has been verified and order confirmed.',
-        'payment'
       );
+      
+      const firstOrder: any = await BundleOrder.findById(bundleOrders[0]);
+      if (firstOrder) {
+        await sendPushNotification(
+          firstOrder.user.toString(),
+          'Payment Successful!',
+          'Your bundle payment has been verified and order confirmed.',
+          'payment'
+        );
+      }
+    } 
+    
+    if (productOrders.length > 0) {
+      await Order.updateMany(
+        { _id: { $in: productOrders } },
+        {
+          $set: {
+            paymentStatus: 'paid',
+            paymentId: razorpay_payment_id,
+          }
+        }
+      );
+
+      const firstOrder = await Order.findById(productOrders[0]);
+      if (firstOrder) {
+        await sendPushNotification(
+          firstOrder.user.toString(),
+          'Payment Successful!',
+          'Your payment has been verified and order confirmed.',
+          'payment'
+        );
+      }
     }
 
-    return sendSuccess(res, null, 'Payment verified successfully.');
+    return sendSuccess(res, { verified: true }, 'Payment verified successfully.');
   } catch (error: any) {
     logger.error('Razorpay verification failed:', error);
     return sendError(res, 'Payment verification failed.');
@@ -100,28 +145,46 @@ export const razorpayVerify = async (req: AuthRequest, res: Response) => {
 // POST /api/payments/stripe/create-session
 export const stripeCreateSession = async (req: AuthRequest, res: Response) => {
   try {
-    const { productIds, orderIds } = req.body;
+    const { productIds = [], bundleIds = [], orderIds = [], bundleOrderIds = [] } = req.body;
 
-    if (!productIds || !Array.isArray(productIds) || !orderIds || !Array.isArray(orderIds)) {
-      return sendError(res, 'productIds and orderIds arrays are required.', 400);
+    if (productIds.length === 0 && bundleIds.length === 0) {
+      return sendError(res, 'Products or Bundles are required.', 400);
     }
 
-    const products = await Product.find({ _id: { $in: productIds } });
-    if (products.length === 0) return sendError(res, 'Products not found.', 404);
+    const lineItems: any[] = [];
+    let subtotal = 0;
 
-    const lineItems = products.map((p) => ({
-      price_data: {
-        currency: 'inr',
-        product_data: { name: p.title },
-        unit_amount: Math.round(p.price * 100),
-      },
-      quantity: 1,
-    }));
+    if (productIds.length > 0) {
+      const products = await Product.find({ _id: { $in: productIds } });
+      products.forEach(p => {
+        lineItems.push({
+          price_data: {
+            currency: 'inr',
+            product_data: { name: p.title },
+            unit_amount: Math.round(p.price * 100),
+          },
+          quantity: 1,
+        });
+        subtotal += p.price;
+      });
+    }
 
-    // Add Platform Fee as a separate line item
-    const subtotal = products.reduce((acc, p) => acc + p.price, 0);
+    if (bundleIds.length > 0) {
+      const bundles = await mongoose.model('Bundle').find({ _id: { $in: bundleIds } });
+      bundles.forEach((b: any) => {
+        lineItems.push({
+          price_data: {
+            currency: 'inr',
+            product_data: { name: b.title },
+            unit_amount: Math.round(b.bundlePrice * 100),
+          },
+          quantity: 1,
+        });
+        subtotal += b.bundlePrice;
+      });
+    }
+
     const platformFee = Math.round(subtotal * 0.02 * 100);
-
     if (platformFee > 0) {
       lineItems.push({
         price_data: {
@@ -133,13 +196,22 @@ export const stripeCreateSession = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const session = await createStripeSession(lineItems, orderIds);
+    const session = await createStripeSession(lineItems, [...orderIds, ...bundleOrderIds]);
 
-    // Update orders with session ID
-    await Order.updateMany(
-      { _id: { $in: orderIds } },
-      { $set: { sessionId: session.id } }
-    );
+    if (orderIds.length > 0) {
+      await Order.updateMany(
+        { _id: { $in: orderIds } },
+        { $set: { sessionId: session.id } }
+      );
+    }
+    
+    if (bundleOrderIds.length > 0) {
+      const BundleOrder = mongoose.model('BundleOrder');
+      await BundleOrder.updateMany(
+        { _id: { $in: bundleOrderIds } },
+        { $set: { sessionId: session.id } }
+      );
+    }
 
     return sendSuccess(res, { sessionUrl: session.url, sessionId: session.id });
   } catch (error: any) {
@@ -165,7 +237,22 @@ export const stripeWebhook = async (req: Request, res: Response) => {
       if (orderIdsStr) {
         try {
           const orderIds = JSON.parse(orderIdsStr);
+          
+          // Since Stripe metadata only holds a single orderIds array (max 500 chars),
+          // we'll try to update both Order and BundleOrder with these IDs.
+          
           await Order.updateMany(
+            { _id: { $in: orderIds } },
+            {
+              $set: {
+                paymentStatus: 'paid',
+                paymentId: session.payment_intent,
+              }
+            }
+          );
+          
+          const BundleOrder = mongoose.model('BundleOrder');
+          await BundleOrder.updateMany(
             { _id: { $in: orderIds } },
             {
               $set: {
@@ -176,9 +263,13 @@ export const stripeWebhook = async (req: Request, res: Response) => {
           );
 
           const firstOrder = await Order.findById(orderIds[0]);
-          if (firstOrder) {
+          const firstBundleOrder = await BundleOrder.findById(orderIds[0]);
+          
+          const userId = firstOrder ? firstOrder.user : (firstBundleOrder ? (firstBundleOrder as any).user : null);
+          
+          if (userId) {
             await sendPushNotification(
-              firstOrder.user.toString(),
+              userId.toString(),
               'Payment Successful!',
               'Your Stripe payment has been confirmed.',
               'payment'

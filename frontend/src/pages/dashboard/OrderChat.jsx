@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { io } from 'socket.io-client';
 import useAuthStore from '../../store/authStore';
+import { useSocket } from '../../context/SocketContext';
 import { apiGet, apiPost, apiPut } from '../../services/api';
 import toast from 'react-hot-toast';
 import { 
-  HiPaperAirplane, HiPhotograph, HiPaperClip, HiEmojiHappy, 
+  HiPaperAirplane, HiPaperClip, 
   HiChevronLeft, HiDotsVertical, HiCheckCircle, HiClock, 
-  HiShieldCheck, HiOutlineDocumentDownload, HiOutlineExclamationCircle
+  HiShieldCheck, HiOutlineDocumentDownload, HiOutlineExclamationCircle, HiExclamationCircle
 } from 'react-icons/hi';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
@@ -17,63 +17,158 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
-const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api', '');
-
 const OrderChat = ({ orderId: orderIdProp, onBack }) => {
   const params = useParams();
   const navigate = useNavigate();
   const orderId = orderIdProp || params.id || params.orderId;
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
+  const { socket, isConnected, getPresence, joinOrderRoom, leaveOrderRoom, markMessagesSeen } = useSocket();
+
   const [order, setOrder] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [credEmail, setCredEmail] = useState('');
   const [credPassword, setCredPassword] = useState('');
   const [credNotes, setCredNotes] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [isSendingCreds, setIsSendingCreds] = useState(false);
+  const [credSuccess, setCredSuccess] = useState(false);
 
-  // Review state
   const [showReviewModal, setShowReviewModal] = useState(false);
-
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
-  const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const userScrolledUpRef = useRef(false);
 
   const isSeller = order?.seller?._id === user?._id;
   const otherUser = isSeller ? order?.user : order?.seller;
+  const otherUserPresence = getPresence(otherUser?._id);
 
+  // Auto-scroll handler
+  const scrollToBottom = useCallback((force = false) => {
+    if (force || !userScrolledUpRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    // If scrolled up more than 100px from bottom, consider user as reading history
+    const isUp = scrollHeight - scrollTop - clientHeight > 100;
+    userScrolledUpRef.current = isUp;
+  };
+
+  // Initial Fetch & Room Join
   useEffect(() => {
     fetchOrderAndMessages();
-    initSocket();
+    joinOrderRoom(orderId);
+    markMessagesSeen(orderId);
+
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      leaveOrderRoom(orderId);
     };
-  }, [orderId]);
+  }, [orderId, joinOrderRoom, leaveOrderRoom, markMessagesSeen]);
+
+  // Realtime Socket Event Listeners
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (msg) => {
+      // Ensure message belongs to current chat
+      const msgOrderId = typeof msg.orderId === 'object' ? msg.orderId?._id : msg.orderId;
+      if (msgOrderId?.toString() !== orderId?.toString()) return;
+
+      setMessages((prev) => {
+        // Prevent duplicate messages
+        const exists = prev.some((m) => m._id === msg._id || (m.tempId && m.tempId === msg.tempId));
+        if (exists) {
+          return prev.map((m) => (m._id === msg._id || (m.tempId && m.tempId === msg.tempId) ? msg : m));
+        }
+        return [...prev, msg];
+      });
+
+      // Mark seen if sent by other user
+      const senderId = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
+      if (senderId !== user?._id) {
+        markMessagesSeen(orderId);
+      } else {
+        scrollToBottom(true);
+      }
+    };
+
+    const handleUserTyping = ({ orderId: typingOrderId, isTyping: typingStatus }) => {
+      if (typingOrderId === orderId) setOtherUserTyping(typingStatus);
+    };
+
+    const handleMessagesSeen = ({ orderId: seenOrderId, userId }) => {
+      if (seenOrderId === orderId && userId !== user?._id) {
+        setMessages((prev) => prev.map((m) => (m.senderId?._id === user?._id ? { ...m, status: 'seen' } : m)));
+      }
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      const uId = updatedOrder.orderId || updatedOrder._id;
+      if (uId === orderId?.toString()) {
+        setOrder((prev) => ({
+          ...prev,
+          ...updatedOrder,
+          product: prev?.product,
+          seller: prev?.seller,
+          user: prev?.user,
+        }));
+      }
+    };
+
+    const handleBundleProgressUpdated = ({ orderId: bOrderId, credentials, orderStatus }) => {
+      if (bOrderId?.toString() === orderId?.toString()) {
+        setOrder((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            orderStatus: orderStatus || prev.orderStatus,
+            credentials: credentials || prev.credentials,
+          };
+        });
+      }
+    };
+
+    socket.on('new_message', handleNewMessage);
+    socket.on('user_typing', handleUserTyping);
+    socket.on('messages_seen', handleMessagesSeen);
+    socket.on('order_updated', handleOrderUpdated);
+    socket.on('bundle_progress_updated', handleBundleProgressUpdated);
+
+    return () => {
+      socket.off('new_message', handleNewMessage);
+      socket.off('user_typing', handleUserTyping);
+      socket.off('messages_seen', handleMessagesSeen);
+      socket.off('order_updated', handleOrderUpdated);
+      socket.off('bundle_progress_updated', handleBundleProgressUpdated);
+    };
+  }, [socket, orderId, user?._id, markMessagesSeen, scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, otherUserTyping]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [messages, otherUserTyping, scrollToBottom]);
 
   const fetchOrderAndMessages = async () => {
     try {
       setIsLoading(true);
       const [orderRes, messagesRes] = await Promise.all([
         apiGet(`/orders/${orderId}`),
-        apiGet(`/orders/${orderId}/chat`)
+        apiGet(`/orders/${orderId}/chat`),
       ]);
       setOrder(orderRes.data);
-      setMessages(messagesRes.data);
-      apiPut(`/orders/${orderId}/seen`).catch(console.error); // mark seen silently
+      setMessages(messagesRes.data || []);
+      apiPut(`/orders/${orderId}/seen`).catch(console.error);
     } catch (error) {
       toast.error('Failed to load chat');
     } finally {
@@ -81,54 +176,18 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
     }
   };
 
-  const initSocket = () => {
-    const socket = io(SOCKET_URL, { auth: { token } });
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      socket.emit('join_order', orderId);
-    });
-
-    socket.on('new_message', (msg) => {
-      setMessages(prev => [...prev, msg]);
-      if (msg.senderId._id !== user._id) {
-        apiPut(`/orders/${orderId}/seen`).catch(console.error);
-      }
-    });
-
-    socket.on('user_typing', ({ userId, isTyping }) => {
-      if (userId !== user._id) setOtherUserTyping(isTyping);
-    });
-
-    socket.on('messages_seen', ({ userId }) => {
-      if (userId !== user._id) {
-        setMessages(prev => prev.map(m => m.status !== 'seen' && m.senderId._id === user._id ? { ...m, status: 'seen' } : m));
-      }
-    });
-
-    socket.on('order_updated', (updatedOrder) => {
-      setOrder(prev => ({ 
-        ...prev, 
-        ...updatedOrder,
-        product: prev?.product,
-        seller: prev?.seller,
-        user: prev?.user
-      }));
-    });
-  };
-
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
-    
-    if (socketRef.current) {
+
+    if (socket && isConnected) {
       if (!isTyping) {
         setIsTyping(true);
-        socketRef.current.emit('typing', { orderId, isTyping: true });
+        socket.emit('typing', { orderId, isTyping: true });
       }
       clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
         setIsTyping(false);
-        socketRef.current.emit('typing', { orderId, isTyping: false });
+        socket.emit('typing', { orderId, isTyping: false });
       }, 1500);
     }
   };
@@ -137,50 +196,91 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const content = newMessage;
+    const content = newMessage.trim();
     setNewMessage('');
-    if (socketRef.current) {
+
+    if (socket && isConnected) {
       setIsTyping(false);
-      socketRef.current.emit('typing', { orderId, isTyping: false });
+      socket.emit('typing', { orderId, isTyping: false });
     }
 
+    // Optimistic UI Message
+    const tempId = 'temp_' + Date.now();
+    const optimisticMessage = {
+      _id: tempId,
+      tempId,
+      orderId,
+      senderId: { _id: user._id, name: user.name, avatar: user.avatar },
+      content,
+      type: 'text',
+      status: 'sending',
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+    scrollToBottom(true);
+
     try {
-      await apiPost(`/orders/${orderId}/chat`, { content, type: 'text' });
+      const res = await apiPost(`/orders/${orderId}/chat`, { content, type: 'text' });
+      if (res.data) {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === res.data._id)) {
+            return prev.filter((m) => m.tempId !== tempId);
+          }
+          return prev.map((m) =>
+            m.tempId === tempId ? { ...res.data, status: res.data.status || 'sent' } : m
+          );
+        });
+      }
     } catch (err) {
       toast.error('Failed to send message');
+      setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
     }
   };
 
   const deliverCredentials = async (e) => {
     e.preventDefault();
+    if (isSendingCreds) return;
     try {
-      await apiPut(`/orders/${orderId}/deliver`, {
-        email: credEmail,
-        password: credPassword,
-        notes: credNotes
-      });
+      setIsSendingCreds(true);
+      if (order.bundle) {
+        if (!selectedProductId) return toast.error('Select a product to deliver');
+        await apiPut(`/bundle-orders/${orderId}/deliver/${selectedProductId}`, {
+          email: credEmail,
+          password: credPassword,
+          notes: credNotes,
+        });
+      } else {
+        await apiPut(`/orders/${orderId}/deliver`, {
+          email: credEmail,
+          password: credPassword,
+          notes: credNotes,
+        });
+      }
+
+      setCredSuccess(true);
       toast.success('Credentials delivered!');
-      setCredNotes('');
       setShowCredentialsModal(false);
+      setCredSuccess(false);
+      setCredEmail('');
+      setCredPassword('');
+      setCredNotes('');
+      setSelectedProductId('');
+      fetchOrderAndMessages();
     } catch (err) {
       toast.error('Failed to deliver credentials');
+    } finally {
+      setIsSendingCreds(false);
     }
   };
 
   const handleCompleteOrder = async () => {
     try {
-      const res = await apiPut(`/orders/${orderId}/status`, { orderStatus: 'completed' });
-      setOrder(prev => ({ 
-        ...prev, 
-        ...res.data,
-        product: prev?.product,
-        seller: prev?.seller,
-        user: prev?.user
-      }));
+      await apiPut(`/orders/${orderId}/status`, { orderStatus: 'completed' });
       toast.success('Order completed successfully!');
-      
-      // Only show review modal if product still exists
-      if (order.product?._id || typeof order.product === 'string') {
+      await fetchOrderAndMessages();
+
+      if (order.product?._id || typeof order.product === 'string' || order.bundle) {
         setShowReviewModal(true);
       }
     } catch (err) {
@@ -188,120 +288,228 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
     }
   };
 
-  const submitReview = async ({ rating, comment }) => {
+  const submitReview = async ({ rating, comment, productId, productRatings }) => {
     if (!rating) return toast.error('Please select a rating');
 
     try {
-      const productId = typeof order.product === 'object' ? order.product?._id : order.product;
-      if (!productId) return toast.error('Product no longer exists');
+      let targetProductId = productId;
+      let isBundle = false;
+      let targetBundleId = null;
+
+      if (!targetProductId) {
+        if (order.bundle) {
+          isBundle = true;
+          targetBundleId = typeof order.bundle === 'object' ? order.bundle?._id : order.bundle;
+        } else {
+          targetProductId = typeof order.product === 'object' ? order.product?._id : order.product;
+        }
+      }
+
+      if (!targetProductId && !isBundle) return toast.error('Product/Bundle no longer exists');
+
       await apiPost('/reviews', {
-        productId,
+        productId: targetProductId,
+        bundleId: targetBundleId,
         rating,
         comment,
+        productRatings,
       });
       toast.success('Review submitted successfully!');
       setShowReviewModal(false);
     } catch (err) {
-      toast.error('Failed to submit review');
+      toast.error(err.response?.data?.message || 'Failed to submit review');
     }
   };
 
+
+
   const handleDownloadInvoice = () => {
+    const itemTitle = order?.bundle?.title || order?.product?.title || 'Digital Product';
     const invoiceHtml = `
+      <!DOCTYPE html>
       <html>
         <head>
-          <title>Invoice - ${order._id}</title>
+          <title>Invoice - StreamKart #${order._id}</title>
           <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; max-width: 800px; margin: 0 auto; line-height: 1.5; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #0f172a; max-width: 750px; margin: 0 auto; line-height: 1.6; }
             .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; }
-            .brand { font-size: 28px; font-weight: 800; color: #5B4BFF; }
-            .invoice-details { text-align: right; font-size: 14px; color: #64748b; }
-            .section { margin-bottom: 30px; }
-            .section-title { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
-            .flex-row { display: flex; justify-content: space-between; font-size: 15px; }
-            .item-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .item-table th, .item-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 15px; }
-            .item-table th { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-            .item-table td.amount { text-align: right; font-weight: 600; }
-            .item-table th.amount { text-align: right; }
-            .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0; }
-            .footer { margin-top: 60px; font-size: 13px; color: #94a3b8; text-align: center; }
+            .logo { font-size: 26px; font-weight: 800; color: #5B4BFF; tracking: -0.02em; }
+            .title { font-size: 14px; text-transform: uppercase; color: #64748b; font-weight: 700; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+            .info-box { background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .info-box h4 { margin: 0 0 6px 0; font-size: 12px; text-transform: uppercase; color: #64748b; }
+            .info-box p { margin: 0; font-weight: 600; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { text-align: left; background: #f1f5f9; padding: 12px 16px; font-size: 12px; text-transform: uppercase; color: #475569; }
+            td { padding: 16px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 600; }
+            .total-row td { border-bottom: none; font-size: 18px; font-weight: 800; color: #5B4BFF; }
+            .footer { text-align: center; margin-top: 40px; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
           </style>
         </head>
         <body>
           <div class="header">
-             <div class="brand" style="margin-left: -10px;"><img src="${window.location.origin}/streamkart-logo-nav.png" alt="StreamKart" style="height: 120px; width: auto; object-fit: contain; transform: scale(1.2); transform-origin: left center;" /></div>
-             <div class="invoice-details">
-               <div><strong style="color:#0f172a; font-size:16px;">INVOICE</strong></div>
-               <div>Date: ${new Date(order.createdAt).toLocaleDateString()}</div>
-               <div>Order ID: ${order._id.substring(order._id.length - 8).toUpperCase()}</div>
-             </div>
-          </div>
-          
-          <div class="flex-row section">
+            <div class="logo">
+              <img src="${window.location.origin}/streamkart-logo-nav.png" alt="StreamKart" style="height: 150px; margin-top:10px; object-fit: contain;" />
+            </div>
             <div>
-              <div class="section-title">Billed To</div>
-              <strong>${order.user?.name || 'Customer'}</strong><br/>
-              ${order.user?.email || 'N/A'}
-            </div>
-            <div style="text-align: right;">
-              <div class="section-title">Seller</div>
-              <strong>${order.seller?.name || 'Seller'}</strong><br/>
-              ${order.seller?.email || 'N/A'}
+              <div class="title">INVOICE</div>
+              <div style="font-weight: 700;">#${order._id.toUpperCase()}</div>
             </div>
           </div>
-
-          <div class="section">
-            <div class="section-title">Payment Details</div>
-            <div>Transaction ID: <strong>${order.paymentId || 'N/A'}</strong></div>
-            <div>Method: <strong style="text-transform: capitalize;">${order.paymentMethod}</strong></div>
-            <div>Status: <strong style="color: #10b981; text-transform: uppercase;">${order.paymentStatus}</strong></div>
-          </div>
-
-          <div class="section">
-            <table class="item-table">
-              <thead>
-                <tr>
-                  <th>Item Description</th>
-                  <th class="amount">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <strong>${order.product?.title || 'Digital Subscription'}</strong><br/>
-                    <span style="font-size: 13px; color: #64748b;">Digital access delivery</span>
-                  </td>
-                  <td class="amount">₹${order.amount.toLocaleString()}</td>
-                </tr>
-              </tbody>
-            </table>
-            
-            <div class="total-row">
-              <div>Total Paid</div>
-              <div style="color: #5B4BFF;">₹${order.amount.toLocaleString()}</div>
+          <div class="info-grid">
+            <div class="info-box">
+              <h4>Billed To</h4>
+              <p>${user?.name || 'Customer'}</p>
+              <p style="font-weight:400; color:#64748b; font-size:12px;">${user?.email || ''}</p>
+            </div>
+            <div class="info-box">
+              <h4>Order Details</h4>
+              <p>Date: ${dayjs(order.createdAt).format('MMM D, YYYY')}</p>
+              <p>Payment: ${order.paymentMethod?.toUpperCase()}</p>
             </div>
           </div>
-
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Type</th>
+                <th style="text-align:right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${itemTitle}</td>
+                <td>${order.bundle ? 'Bundle Package' : 'Subscription Product'}</td>
+                <td style="text-align:right;">₹${order.amount}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="2">Total Paid</td>
+                <td style="text-align:right;">₹${order.amount}</td>
+              </tr>
+            </tbody>
+          </table>
           <div class="footer">
-            Thank you for your purchase. If you have any questions, please contact support@streamkart.com.
+            Thank you for purchasing via StreamKart! For support inquiries, visit streamkart.com
           </div>
+          <script>window.onload = function() { window.print(); }</script>
         </body>
       </html>
     `;
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(invoiceHtml);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 250);
-    } else {
-      toast.error('Popup blocked! Please allow popups to view the invoice.');
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(invoiceHtml);
+      win.document.close();
     }
   };
 
-  if (isLoading) return <div className="flex-1 flex items-center justify-center"><Spinner size="lg" /></div>;
-  if (!order) return <div className="p-8 text-center flex-1 flex items-center justify-center text-[#94A3B8] font-medium">Order not found</div>;
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#F8FAFC]">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#F8FAFC] p-6 text-center">
+        <p className="text-[#64748B] mb-4">Order not found</p>
+        <Button onClick={onBack || (() => navigate('/dashboard/orders'))}>Back to Orders</Button>
+      </div>
+    );
+  }
+
+  // Compute Bundle Progress
+  const isBundle = !!order.bundle;
+  const bundleCredentials = Array.isArray(order.credentials) ? order.credentials : [];
+  const totalBundleItems = bundleCredentials.length;
+  const deliveredBundleItems = bundleCredentials.filter((c) => c.deliveryStatus === 'delivered').length;
+
+  const renderSidebarContent = () => (
+    <>
+      <div className="mb-8">
+        <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-4 pl-1">Conversation With</h3>
+        <div className="flex items-center gap-4 p-4 rounded-[16px] bg-[#F8FAFC] border border-[#F1F5F9] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+          <div className="relative">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#5B4BFF]/10 to-[#7C3AED]/10 rounded-[14px] flex items-center justify-center text-[#5B4BFF] font-extrabold text-xl shadow-sm">
+              {otherUser?.name?.[0] || 'U'}
+            </div>
+            <span className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${otherUserPresence.status === 'online' ? 'bg-[#10B981]' : 'bg-[#CBD5E1]'}`} />
+          </div>
+          <div>
+            <div className="font-bold text-[#0F172A] text-[15px]">{otherUser?.name || 'User'}</div>
+            <div className="text-[12px] text-[#64748B] font-medium mt-0.5">{isSeller ? 'Buyer' : 'Seller'}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bundle Progress Counter */}
+      {order.bundle && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3 pl-1">
+            <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em]">Bundle Progress</h3>
+            <span className="text-[12px] font-extrabold text-[#5B4BFF] bg-[#EEF2FF] px-2.5 py-0.5 rounded-full">
+              {deliveredBundleItems} / {totalBundleItems}
+            </span>
+          </div>
+          <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden mb-4">
+            <motion.div
+              className="bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED] h-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${totalBundleItems > 0 ? (deliveredBundleItems / totalBundleItems) * 100 : 0}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            {bundleCredentials.map((cred) => (
+              <div key={cred.productId?._id || cred._id} className="flex items-center justify-between p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-white border border-[#F1F5F9] rounded-lg flex items-center justify-center shadow-sm text-[10px] font-bold text-[#5B4BFF]">
+                    {cred.productId?.logo ? <img src={cred.productId.logo} className="w-5 h-5 object-contain" alt="" /> : (cred.productId?.title?.[0] || '?')}
+                  </div>
+                  <span className="font-semibold text-[#0F172A] text-[13px]">{cred.productId?.title || 'Product'}</span>
+                </div>
+                <div>
+                  {cred.deliveryStatus === 'delivered' ? (
+                    <HiCheckCircle className="w-5 h-5 text-[#10B981]" />
+                  ) : (
+                    <span className="w-5 h-5 rounded-full border-2 border-[#CBD5E1] block"></span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-auto space-y-3 pt-6 border-t border-[#F1F5F9]">
+        {isSeller && order.orderStatus !== 'delivered' && order.orderStatus !== 'completed' && (
+          <Button size="lg" className="w-full shadow-[0_4px_14px_rgba(91,75,255,0.3)] bg-[#5B4BFF] hover:bg-[#4F3FE8]" onClick={() => { setShowMobileSidebar(false); setShowCredentialsModal(true); }}>
+            <HiShieldCheck className="w-[20px] h-[20px] mr-2" /> Secure Deliver Credentials
+          </Button>
+        )}
+        {!isSeller && order.orderStatus === 'delivered' && (
+          <Button size="lg" onClick={() => { setShowMobileSidebar(false); handleCompleteOrder(); }} className="w-full bg-[#16A34A] hover:bg-[#15803D] text-white shadow-[0_4px_14px_rgba(22,163,74,0.3)] border-none">
+            Confirm & Complete
+          </Button>
+        )}
+        {!isSeller && order.orderStatus === 'completed' && !order.isReviewed && (
+          <Button size="lg" onClick={() => { setShowMobileSidebar(false); setShowReviewModal(true); }} className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white shadow-[0_4px_14px_rgba(245,158,11,0.3)] border-none">
+            ★ Rate & Review Experience
+          </Button>
+        )}
+
+        <Button variant="secondary" size="lg" onClick={handleDownloadInvoice} className="w-full flex items-center justify-center gap-2 border border-[#E2E8F0] text-[#334155] hover:bg-[#F8FAFC]">
+          <HiOutlineDocumentDownload className="w-5 h-5 text-[#5B4BFF]" /> Download Invoice
+        </Button>
+
+        <Button variant="secondary" size="lg" onClick={() => { setShowMobileSidebar(false); navigate('/contact'); }} className="w-full flex items-center justify-center gap-2 border border-[#FEE2E2] text-[#EF4444] hover:bg-[#FEF2F2]">
+          <HiOutlineExclamationCircle className="w-5 h-5 text-[#EF4444]" /> Report Issue
+        </Button>
+      </div>
+    </>
+  );
 
   return (
     <div className="flex-1 flex flex-col bg-[#F8FAFC] overflow-hidden font-sans h-full">
@@ -318,15 +526,32 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
           )}
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] bg-[#F8FAFC] border border-[#F1F5F9] flex items-center justify-center overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] shrink-0">
-              {order.product?.logo ? <img src={order.product.logo} className="w-full h-full object-contain p-1.5"/> : <span className="font-extrabold text-[#5B4BFF]">{order.product?.title?.[0] || '?'}</span>}
+              {(order.bundle?.thumbnail || order.product?.logo) ? (
+                <img src={order.bundle?.thumbnail || order.product?.logo} className="w-full h-full object-contain p-1.5" alt="Logo" />
+              ) : (
+                <span className="font-extrabold text-[#5B4BFF]">{(order.bundle?.title?.[0] || order.product?.title?.[0]) || '?'}</span>
+              )}
             </div>
             <div className="min-w-0">
-              <h1 className="font-bold text-[#0F172A] leading-tight truncate text-[15px] sm:text-[17px]">{order.product?.title || 'Unknown Product'}</h1>
-              <div className="text-[11px] sm:text-[12px] text-[#94A3B8] font-semibold tracking-wide mt-0.5 truncate">ORDER #{order._id.substring(order._id.length - 8).toUpperCase()}</div>
+              <h1 className="font-bold text-[#0F172A] leading-tight truncate text-[15px] sm:text-[17px]">
+                {order.bundle?.title || order.product?.title || 'Order Chat'}
+              </h1>
+              <div className="flex items-center gap-2 text-[11px] sm:text-[12px] text-[#94A3B8] font-semibold tracking-wide truncate">
+                <span>ORDER #{order._id.substring(order._id.length - 8).toUpperCase()}</span>
+                {otherUserPresence.status === 'online' && (
+                  <>
+                    <span>•</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                      <span className="text-[#10B981] font-bold">Online</span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1 sm:gap-4 shrink-0">
           <div className={`px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${
             order.orderStatus === 'delivered' ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' : 
@@ -335,106 +560,124 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
           }`}>
             {order.orderStatus}
           </div>
-          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-1 sm:p-2 hover:bg-[#F1F5F9] rounded-full lg:hidden transition-colors shrink-0">
+          <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="p-1 sm:p-2 hover:bg-[#F1F5F9] rounded-full xl:hidden transition-colors shrink-0">
             <HiDotsVertical className="w-5 h-5 text-[#64748B]"/>
           </button>
         </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Sidebar - Context (Hidden on small screens) */}
-        <aside className="w-80 bg-white border-r border-[#E2E8F0] flex-shrink-0 hidden lg:flex flex-col p-6 overflow-y-auto z-10 shadow-sm">
-          <div className="mb-8">
-            <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-4 pl-1">Conversation With</h3>
-            <div className="flex items-center gap-4 p-4 rounded-[16px] bg-[#F8FAFC] border border-[#F1F5F9] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#5B4BFF]/10 to-[#7C3AED]/10 rounded-[14px] flex items-center justify-center text-[#5B4BFF] font-extrabold text-xl shadow-sm">
-                {otherUser?.name?.[0] || 'U'}
-              </div>
-              <div>
-                <div className="font-bold text-[#0F172A] text-[15px]">{otherUser?.name}</div>
-                <div className="text-[12px] text-[#64748B] font-medium mt-0.5">{isSeller ? 'Buyer' : 'Seller'}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-4 pl-1">Delivery Timer</h3>
-            <div className="p-6 rounded-[20px] bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] text-white shadow-[0_8px_24px_rgba(91,75,255,0.35)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-white/20 rounded-full blur-[24px]"></div>
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-3 text-white/90 text-[13px] font-medium tracking-wide">
-                  <HiClock className="w-5 h-5 opacity-90" /> Estimated Delivery
-                </div>
-                <div className="text-[26px] font-extrabold tracking-[-0.02em] leading-none">
-                  {order.orderStatus === 'delivered' || order.orderStatus === 'completed' ? 'Delivered' : 'In Progress'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] mb-4 pl-1">Order Details</h3>
-            <div className="space-y-4 text-[14px]">
-              <div className="flex justify-between border-b border-[#F1F5F9] pb-3"><span className="text-[#64748B]">Amount</span><span className="font-bold text-[#0F172A]">₹{order.amount.toLocaleString()}</span></div>
-              <div className="flex justify-between border-b border-[#F1F5F9] pb-3"><span className="text-[#64748B]">Date</span><span className="font-semibold text-[#0F172A]">{dayjs(order.createdAt).format('MMM D, YYYY')}</span></div>
-              <div className="flex justify-between"><span className="text-[#64748B]">Payment</span><span className="font-semibold text-[#0F172A] capitalize">{order.paymentMethod}</span></div>
-            </div>
-          </div>
+        {/* Left Sidebar - Order & Bundle Context (Desktop xl+) */}
+        <aside className="w-80 bg-white border-r border-[#E2E8F0] flex-shrink-0 hidden xl:flex flex-col p-6 overflow-y-auto z-10 shadow-sm">
+          {renderSidebarContent()}
         </aside>
+
+        {/* Slide-over Drawer (< xl) */}
+        <AnimatePresence>
+          {showMobileSidebar && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-[#0F172A]/40 backdrop-blur-sm flex justify-end xl:hidden"
+              onClick={() => setShowMobileSidebar(false)}
+            >
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+                className="w-80 max-w-[85vw] bg-white h-full p-6 overflow-y-auto flex flex-col shadow-2xl relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setShowMobileSidebar(false)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                {renderSidebarContent()}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Center - Chat Area */}
         <main className="flex-1 flex flex-col relative bg-[#F8FAFC]">
-          <div className="absolute inset-0 bg-grid-slate-100/[0.04] bg-[bottom_1px_center] [mask-image:linear-gradient(to_bottom,transparent,black)] pointer-events-none" />
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 relative z-10 custom-scrollbar">
-            {messages.map((msg, idx) => {
-              const isMine = msg.senderId._id === user._id;
-              
+          <div 
+            ref={chatContainerRef} 
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 relative z-10 custom-scrollbar"
+          >
+            {messages.map((msg) => {
+              const msgSenderId = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId;
+              const isMine = msgSenderId === user?._id;
+
               if (msg.type === 'system') {
                 return (
-                  <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} key={msg._id} className="flex justify-center my-8">
-                    <div className="bg-[#E2E8F0]/60 backdrop-blur-md text-[#475569] text-[11px] py-2 px-5 rounded-full font-bold tracking-wide shadow-sm border border-[#CBD5E1]/50">
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg._id || msg.tempId} className="flex justify-center my-6">
+                    <div className="bg-[#E2E8F0]/80 backdrop-blur-md text-[#475569] text-[11px] py-1.5 px-5 rounded-full font-bold tracking-wide shadow-sm border border-[#CBD5E1]/50">
                       {msg.content}
                     </div>
                   </motion.div>
-                )
+                );
               }
 
-              if (msg.type === 'credentials') {
+              if (msg.type === 'credentials' || msg.type === 'bundle_credentials') {
+                const credData = msg.type === 'bundle_credentials'
+                  ? (msg.metadata?.email ? msg.metadata : order.credentials?.find((c) => c.productId?._id === msg.metadata?.productId || c.productId === msg.metadata?.productId))
+                  : order.credentials;
+
                 return (
-                  <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} max-w-full`}>
-                    <div className="w-full max-w-[280px] sm:max-w-sm bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-[24px] p-4 sm:p-7 text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] border border-[#334155]">
-                      <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5 border-b border-[#334155] pb-4 sm:pb-5">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-[#22C55E]/10 rounded-[14px] border border-[#22C55E]/20 flex items-center justify-center backdrop-blur-sm shadow-inner"><HiShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-[#4ADE80]"/></div>
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} key={msg._id || msg.tempId} className={`flex ${isMine ? 'justify-end' : 'justify-start'} max-w-full`}>
+                    <div className="w-full max-w-[280px] sm:max-w-sm bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-[24px] p-4 sm:p-6 text-white shadow-[0_12px_30px_rgba(0,0,0,0.15)] border border-[#334155]">
+                      <div className="flex items-center gap-3 sm:gap-4 mb-4 border-b border-[#334155] pb-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-[#22C55E]/10 rounded-[14px] border border-[#22C55E]/20 flex items-center justify-center backdrop-blur-sm shadow-inner">
+                          <HiShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-[#4ADE80]" />
+                        </div>
                         <div className="min-w-0">
                           <h4 className="font-bold text-[15px] sm:text-[17px] mb-0.5 tracking-tight truncate">Secure Delivery</h4>
-                          <p className="text-[11px] sm:text-[12px] text-[#94A3B8] font-medium leading-tight truncate">Credentials delivered</p>
+                          <p className="text-[11px] sm:text-[12px] text-[#94A3B8] font-medium leading-tight truncate">
+                            Credentials delivered {credData?.productId?.title ? `for ${credData.productId.title}` : ''}
+                          </p>
                         </div>
                       </div>
-                      
-                      {!isMine && order.credentials && (
-                        <div className="space-y-4 bg-black/40 p-4 sm:p-5 rounded-[16px] font-mono text-[12px] sm:text-[13px] border border-[#334155]/50 shadow-inner break-all">
-                          <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Email / Username</span><span className="text-white select-all">{order.credentials.email}</span></div>
-                          <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Password</span><span className="text-white select-all">{order.credentials.password}</span></div>
-                          {order.credentials.notes && <div><span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Notes</span><span className="text-white whitespace-pre-wrap">{order.credentials.notes}</span></div>}
+
+                      {!isMine && credData && (
+                        <div className="space-y-3 bg-black/40 p-4 rounded-[16px] font-mono text-[12px] sm:text-[13px] border border-[#334155]/50 shadow-inner break-all">
+                          <div>
+                            <span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Email / Username</span>
+                            <span className="text-white select-all font-bold">{credData.email}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Password</span>
+                            <span className="text-white select-all font-bold">{credData.password}</span>
+                          </div>
+                          {credData.notes && (
+                            <div>
+                              <span className="text-[#64748B] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.08em] block mb-1">Notes</span>
+                              <span className="text-white whitespace-pre-wrap">{credData.notes}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {isMine && (
-                        <div className="text-center text-[13px] text-[#94A3B8] italic mt-3 bg-[#0F172A] py-3 rounded-[12px] border border-[#1E293B]">You have sent the credentials securely.</div>
+                        <div className="text-center text-[13px] text-[#94A3B8] italic mt-3 bg-[#0F172A] py-3 rounded-[12px] border border-[#1E293B]">
+                          You have sent the credentials securely.
+                        </div>
                       )}
                     </div>
                   </motion.div>
-                )
+                );
               }
 
               return (
-                <motion.div 
-                  initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} 
-                  key={msg._id} 
-                  className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`flex max-w-[75%] ${isMine ? 'flex-row-reverse' : 'flex-row'} gap-3`}>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={msg._id || msg.tempId} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex max-w-[78%] ${isMine ? 'flex-row-reverse' : 'flex-row'} gap-3`}>
                     <div className="w-9 h-9 rounded-full bg-white border border-[#E2E8F0] shadow-sm flex-shrink-0 flex items-center justify-center text-[13px] font-extrabold text-[#64748B]">
-                      {msg.senderId.name[0]}
+                      {typeof msg.senderId === 'object' ? msg.senderId?.name?.[0] || 'U' : 'U'}
                     </div>
                     <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                       <div className={`px-5 py-3.5 rounded-[20px] ${isMine ? 'bg-[#5B4BFF] text-white rounded-tr-[4px] shadow-[0_4px_14px_rgba(91,75,255,0.25)]' : 'bg-white text-[#0F172A] rounded-tl-[4px] border border-[#E2E8F0] shadow-sm'}`}>
@@ -444,7 +687,13 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
                         {dayjs(msg.createdAt).format('h:mm A')}
                         {isMine && (
                           <span className="ml-0.5">
-                            {msg.status === 'seen' ? <HiCheckCircle className="w-[14px] h-[14px] text-[#5B4BFF]"/> : <HiCheckCircle className="w-[14px] h-[14px] text-[#CBD5E1]"/>}
+                            {msg.status === 'sending' ? (
+                              <HiClock className="w-[14px] h-[14px] text-[#94A3B8] animate-spin" />
+                            ) : msg.status === 'seen' ? (
+                              <HiCheckCircle className="w-[14px] h-[14px] text-[#5B4BFF]" />
+                            ) : (
+                              <HiCheckCircle className="w-[14px] h-[14px] text-[#CBD5E1]" />
+                            )}
                           </span>
                         )}
                       </div>
@@ -453,21 +702,23 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
                 </motion.div>
               );
             })}
-            
+
             {otherUserTyping && (
-              <motion.div initial={{opacity:0}} animate={{opacity:1}} className="flex gap-3 items-center text-[#94A3B8] text-sm font-medium">
-                <div className="w-9 h-9 rounded-full bg-white border border-[#E2E8F0] shadow-sm flex-shrink-0 flex items-center justify-center text-[13px] font-extrabold text-[#64748B]">{otherUser?.name?.[0]}</div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 items-center text-[#94A3B8] text-sm font-medium">
+                <div className="w-9 h-9 rounded-full bg-white border border-[#E2E8F0] shadow-sm flex-shrink-0 flex items-center justify-center text-[13px] font-extrabold text-[#64748B]">
+                  {otherUser?.name?.[0] || 'U'}
+                </div>
                 <div className="bg-white px-5 py-3.5 rounded-[20px] rounded-tl-[4px] border border-[#E2E8F0] shadow-sm flex gap-1.5 items-center h-[46px]">
                   <span className="w-2 h-2 bg-[#94A3B8] rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-[#94A3B8] rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                  <span className="w-2 h-2 bg-[#94A3B8] rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+                  <span className="w-2 h-2 bg-[#94A3B8] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                  <span className="w-2 h-2 bg-[#94A3B8] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
                 </div>
               </motion.div>
             )}
             <div ref={messagesEndRef} className="h-4" />
           </div>
 
-          {/* Chat Input */}
+          {/* Chat Input Bar */}
           <div className="p-3 sm:p-5 bg-white border-t border-[#E2E8F0] z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
             <form onSubmit={sendMessage} className="flex items-center gap-2 sm:gap-3">
               <button type="button" className="p-2 sm:p-3 text-[#94A3B8] hover:text-[#5B4BFF] hover:bg-[#EEF2FF] rounded-full transition-colors hidden sm:block shrink-0">
@@ -481,124 +732,116 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
                   placeholder="Type a message..."
                   className="w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:bg-white focus:border-[#5B4BFF] focus:ring-[3px] focus:ring-[#5B4BFF]/10 rounded-full pl-4 sm:pl-6 pr-10 sm:pr-12 py-3 sm:py-3.5 text-[14px] sm:text-[15px] text-[#0F172A] placeholder-[#94A3B8] transition-all shadow-sm outline-none"
                 />
-                <button type="button" className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 text-[#94A3B8] hover:text-[#5B4BFF] transition-colors shrink-0">
-                  <HiEmojiHappy className="w-[20px] h-[20px] sm:w-[22px] sm:h-[22px]" />
-                </button>
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={!newMessage.trim()}
-                className="w-[44px] h-[44px] sm:w-[52px] sm:h-[52px] shrink-0 bg-[#5B4BFF] hover:bg-[#4F3FE8] disabled:bg-[#E2E8F0] disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(91,75,255,0.4)] transition-all active:scale-95 disabled:shadow-none disabled:text-[#94A3B8]"
+                className="w-11 h-11 sm:w-12 sm:h-12 bg-[#5B4BFF] hover:bg-[#4F3FE8] disabled:opacity-50 disabled:hover:bg-[#5B4BFF] text-white rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(91,75,255,0.3)] transition-all shrink-0 hover:scale-105 active:scale-95"
               >
-                <HiPaperAirplane className="w-5 h-5 sm:w-6 sm:h-6 transform rotate-90 ml-1" />
+                <HiPaperAirplane className="w-5 h-5 rotate-90" />
               </button>
             </form>
           </div>
         </main>
-
-        {/* Right Sidebar - Actions */}
-        <div className={`fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-20 transition-opacity lg:hidden ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowMobileSidebar(false)}></div>
-        <aside className={`absolute right-0 top-0 bottom-0 z-30 w-80 bg-white border-l border-[#E2E8F0] flex-shrink-0 flex flex-col p-6 overflow-y-auto transform transition-transform duration-300 lg:relative ${showMobileSidebar ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'}`}>
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em]">Order Timeline</h3>
-              <button onClick={() => setShowMobileSidebar(false)} className="lg:hidden p-2 bg-[#F1F5F9] rounded-full text-[#64748B] hover:text-[#0F172A] transition-colors">✕</button>
-            </div>
-            <div className="space-y-6">
-              {['placed', 'preparing', 'delivered', 'completed'].map((step, idx) => {
-                const stepIndex = ['placed', 'preparing', 'delivered', 'completed'].indexOf(order.orderStatus);
-                const isPassed = idx <= stepIndex;
-                const isCurrent = idx === stepIndex;
-                return (
-                  <div key={step} className="flex gap-4 relative">
-                    {idx < 3 && <div className={`absolute left-3.5 top-8 bottom-[-24px] w-0.5 ${isPassed && !isCurrent ? 'bg-[#5B4BFF]' : 'bg-[#E2E8F0]'}`}></div>}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${isPassed ? 'bg-[#5B4BFF] text-white shadow-[0_2px_8px_rgba(91,75,255,0.4)]' : 'bg-white text-[#94A3B8] border-2 border-[#E2E8F0]'}`}>
-                      {isPassed ? <HiCheckCircle className="w-[18px] h-[18px]"/> : <div className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1]"></div>}
-                    </div>
-                    <div className={`flex-1 ${isPassed ? 'opacity-100' : 'opacity-50'}`}>
-                      <p className={`text-[14px] font-bold capitalize ${isPassed ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>{step}</p>
-                      {isCurrent && <p className="text-[12px] text-[#5B4BFF] font-bold tracking-wide mt-0.5">CURRENT PHASE</p>}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="mt-auto space-y-3 pt-6 border-t border-[#F1F5F9]">
-            {isSeller && order.orderStatus !== 'delivered' && order.orderStatus !== 'completed' && (
-              <Button size="lg" className="w-full shadow-[0_4px_14px_rgba(91,75,255,0.3)] bg-[#5B4BFF] hover:bg-[#4F3FE8] mb-4" onClick={() => setShowCredentialsModal(true)}>
-                <HiShieldCheck className="w-[20px] h-[20px] mr-2" /> Secure Deliver Order
-              </Button>
-            )}
-            {!isSeller && order.orderStatus === 'delivered' && (
-              <Button size="lg" onClick={handleCompleteOrder} className="w-full bg-[#16A34A] hover:bg-[#15803D] text-white shadow-[0_4px_14px_rgba(22,163,74,0.3)] mb-4 border-none">
-                Confirm & Complete
-              </Button>
-            )}
-            {!isSeller && order.orderStatus === 'completed' && !order.isReviewed && order.product && (
-              <Button size="lg" onClick={() => setShowReviewModal(true)} className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-[0_4px_14px_rgba(245,158,11,0.3)] mb-4 border-none">
-                <span className="mr-2">🌟</span> Leave a Review
-              </Button>
-            )}
-            <Button variant="secondary" onClick={handleDownloadInvoice} className="w-full bg-white hover:bg-[#F8FAFC] border-[#E2E8F0] shadow-sm">
-              <HiOutlineDocumentDownload className="w-[18px] h-[18px] mr-2 text-[#64748B]" /> <span className="text-[#334155]">Download Invoice</span>
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/contact')} className="w-full text-[#EF4444] border-[#EF4444]/20 hover:bg-[#FEF2F2] hover:border-[#EF4444]/40">
-              <HiOutlineExclamationCircle className="w-[18px] h-[18px] mr-2" /> Report Issue
-            </Button>
-          </div>
-        </aside>
       </div>
 
       {/* Credentials Modal */}
       <AnimatePresence>
         {showCredentialsModal && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-[#0F172A]/40 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={(e) => { if (e.target === e.currentTarget && !isSendingCreds) setShowCredentialsModal(false); }}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-[24px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)] p-8 w-full max-w-md border border-[#E2E8F0] relative overflow-hidden"
+              className="bg-white rounded-[20px] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.15)] p-6 w-full max-w-sm border border-[#E2E8F0] relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED]" />
-              <div className="w-20 h-20 bg-gradient-to-br from-[#5B4BFF]/10 to-[#7C3AED]/10 text-[#5B4BFF] rounded-[20px] flex items-center justify-center mb-6 mx-auto shadow-sm">
-                <HiShieldCheck className="w-10 h-10" />
-              </div>
-              <h2 className="text-[24px] font-extrabold text-center text-[#0F172A] mb-2 tracking-tight">Deliver Credentials</h2>
-              <p className="text-center text-[#64748B] text-[14px] mb-8 leading-relaxed px-4">Enter the secure delivery details below. These will be encrypted and sent to the buyer.</p>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED]" />
               
-              <form onSubmit={deliverCredentials} className="space-y-5">
-                <div>
-                  <label className="block text-[12px] font-bold text-[#64748B] mb-2 uppercase tracking-[0.08em]">Email / Username</label>
-                  <input type="text" required value={credEmail} onChange={e=>setCredEmail(e.target.value)} className="w-full px-5 py-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all text-[#0F172A] font-mono"/>
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-[#64748B] mb-2 uppercase tracking-[0.08em]">Password</label>
-                  <input type="text" required value={credPassword} onChange={e=>setCredPassword(e.target.value)} className="w-full px-5 py-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all text-[#0F172A] font-mono"/>
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-[#64748B] mb-2 uppercase tracking-[0.08em]">Additional Notes (Optional)</label>
-                  <textarea rows="3" value={credNotes} onChange={e=>setCredNotes(e.target.value)} className="w-full px-5 py-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all resize-none text-[#0F172A]"></textarea>
-                </div>
-                <div className="flex gap-4 pt-6">
-                  <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowCredentialsModal(false)}>Cancel</Button>
-                  <Button type="submit" className="flex-1 shadow-[0_4px_14px_rgba(91,75,255,0.3)]">Send Securely</Button>
-                </div>
-              </form>
+              <button
+                type="button"
+                onClick={() => !isSendingCreds && setShowCredentialsModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#F1F5F9] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors z-10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#64748B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+
+              {credSuccess ? (
+                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center justify-center py-10">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }} className="w-20 h-20 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center mb-5 shadow-lg shadow-[#10B981]/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <motion.path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.4, delay: 0.2 }} />
+                    </svg>
+                  </motion.div>
+                  <h3 className="text-[20px] font-bold text-[#0F172A] mb-1">Sent Successfully!</h3>
+                  <p className="text-[#64748B] text-[13px]">Credentials delivered securely.</p>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="w-14 h-14 bg-gradient-to-br from-[#5B4BFF]/10 to-[#7C3AED]/10 text-[#5B4BFF] rounded-[14px] flex items-center justify-center mb-4 mx-auto">
+                    <HiShieldCheck className="w-7 h-7" />
+                  </div>
+                  <h2 className="text-[20px] font-extrabold text-center text-[#0F172A] mb-1 tracking-tight">Deliver Credentials</h2>
+                  <p className="text-center text-[#64748B] text-[13px] mb-6 leading-relaxed">Enter the secure delivery details below.</p>
+
+                  <form onSubmit={deliverCredentials} className="space-y-4">
+                    {order.bundle && (
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-[0.08em]">Select Product</label>
+                        <select required value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className="w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all text-[#0F172A] text-[14px] appearance-none">
+                          <option value="">-- Choose product --</option>
+                          {order.credentials?.map((cred) => (
+                            <option key={cred.productId?._id || cred._id} value={cred.productId?._id || cred._id} disabled={cred.deliveryStatus === 'delivered'}>
+                              {cred.productId?.title || 'Product'} {cred.deliveryStatus === 'delivered' ? '(Delivered ✓)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-[0.08em]">Email / Username</label>
+                      <input type="text" required value={credEmail} onChange={(e) => setCredEmail(e.target.value)} className="w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all text-[#0F172A] font-mono text-[14px]" />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-[0.08em]">Password</label>
+                      <input type="text" required value={credPassword} onChange={(e) => setCredPassword(e.target.value)} className="w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all text-[#0F172A] font-mono text-[14px]" />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 uppercase tracking-[0.08em]">Additional Notes (Optional)</label>
+                      <textarea rows="2" value={credNotes} onChange={(e) => setCredNotes(e.target.value)} className="w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] outline-none transition-all resize-none text-[#0F172A] text-[14px]"></textarea>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <Button type="button" variant="secondary" className="flex-1" onClick={() => setShowCredentialsModal(false)}>Cancel</Button>
+                      <Button type="submit" disabled={isSendingCreds} className="flex-1 shadow-[0_4px_14px_rgba(91,75,255,0.3)]">
+                        {isSendingCreds ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            Sending...
+                          </span>
+                        ) : (
+                          'Send Securely'
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Review Modal */}
-      <ReviewModal 
+      <ReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         onSubmit={submitReview}
         otherUserName={otherUser?.name}
+        bundleProducts={order?.bundle?.products || []}
       />
+
+
     </div>
   );
 };

@@ -8,15 +8,13 @@ import Avatar from '../../components/ui/Avatar';
 import Spinner from '../../components/ui/Spinner';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { io } from 'socket.io-client';
-dayjs.extend(relativeTime);
-
-const SOCKET_URL = import.meta.env.VITE_API_URL.replace('/api', '');
+import { useSocket } from '../../context/SocketContext';
 
 const Chats = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
+  const { socket, getPresence } = useSocket();
   
   const [chats, setChats] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,28 +27,26 @@ const Chats = () => {
   }, []);
 
   useEffect(() => {
-    const socket = io(SOCKET_URL, { auth: { token } });
+    if (!socket) return;
     
-    // We can join all order rooms or just listen for a global user channel for new messages
-    // Since we don't have a global user channel, we can at least fetch chats periodically or 
-    // rely on the user opening a chat to mark it seen.
-    
-    socket.on('new_message', (msg) => {
-      // Re-fetch or update chat list unread counts if we receive a global notification
-      // Note: currently socket joins order rooms only when OrderChat opens.
-      // To get live updates in the chat list, we would need to join all order rooms here.
+    const handleNewMessage = () => {
       fetchChats();
-    });
+    };
 
-    // To get live updates for all chats in the list, join their rooms:
+    socket.on('new_message', handleNewMessage);
+    socket.on('messages_seen', handleNewMessage);
+
     if (chats.length > 0) {
-      chats.forEach(chat => {
+      chats.forEach((chat) => {
         socket.emit('join_order', chat.order._id);
       });
     }
 
-    return () => socket.disconnect();
-  }, [chats.length, token]);
+    return () => {
+      socket.off('new_message', handleNewMessage);
+      socket.off('messages_seen', handleNewMessage);
+    };
+  }, [chats.length, socket]);
 
   const fetchChats = async () => {
     try {
@@ -83,7 +79,7 @@ const Chats = () => {
       
       {/* Left Pane - Chat List */}
       <div 
-        className={`w-full md:w-96 flex-shrink-0 border-r border-[#E2E8F0] bg-white flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`w-full md:w-80 lg:w-72 xl:w-80 flex-shrink-0 border-r border-[#E2E8F0] bg-white flex flex-col transition-transform duration-300 ease-in-out ${
           isMobileChatOpen ? 'hidden md:flex' : 'flex'
         }`}
       >
@@ -106,6 +102,7 @@ const Chats = () => {
               const isSeller = order.seller?._id === user?._id;
               const otherUser = isSeller ? order.user : order.seller;
               const isActive = selectedOrderId === order._id;
+              const presence = getPresence(otherUser?._id);
               
               return (
                 <div 
@@ -117,6 +114,7 @@ const Chats = () => {
                 >
                   <div className="relative shrink-0">
                     <Avatar src={otherUser?.avatar} name={otherUser?.name || 'User'} size="md" className="ring-2 ring-white shadow-sm" />
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${presence.status === 'online' ? 'bg-[#10B981]' : 'bg-[#CBD5E1]'}`} />
                     {unreadCount > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 bg-[#EF4444] text-white text-[10px] font-extrabold h-[22px] w-[22px] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
                         {unreadCount > 9 ? '9+' : unreadCount}

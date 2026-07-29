@@ -18,6 +18,7 @@ const VerifyEmail = lazy(() => import('../pages/auth/VerifyEmail'));
 const Home = lazy(() => import('../pages/marketplace/Home'));
 const ProductList = lazy(() => import('../pages/marketplace/ProductList'));
 const ProductDetail = lazy(() => import('../pages/marketplace/ProductDetail'));
+const BundleDetail = lazy(() => import('../pages/marketplace/BundleDetail'));
 const Search = lazy(() => import('../pages/marketplace/Search'));
 const Checkout = lazy(() => import('../pages/marketplace/Checkout'));
 const PaymentSuccess = lazy(() => import('../pages/marketplace/PaymentSuccess'));
@@ -45,10 +46,12 @@ const MyRequests = lazy(() => import('../pages/dashboard/MyRequests'));
 // Seller Pages (Lazy Loaded)
 const SellerDashboard = lazy(() => import('../pages/seller/SellerDashboard'));
 const AddProduct = lazy(() => import('../pages/seller/AddProduct'));
+const CreateBundle = lazy(() => import('../pages/seller/CreateBundle'));
 const EditProduct = lazy(() => import('../pages/seller/EditProduct'));
 const SellerProducts = lazy(() => import('../pages/seller/SellerProducts'));
 const SellerOrders = lazy(() => import('../pages/seller/SellerOrders'));
 const SellerProductRequests = lazy(() => import('../pages/seller/SellerProductRequests'));
+const SellerBundles = lazy(() => import('../pages/seller/SellerBundles'));
 
 // Admin Pages (Lazy Loaded)
 const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard'));
@@ -57,6 +60,7 @@ const ManageProducts = lazy(() => import('../pages/admin/ManageProducts'));
 const ManageOrders = lazy(() => import('../pages/admin/ManageOrders'));
 const ManageApplications = lazy(() => import('../pages/admin/ManageApplications'));
 const AdminProductRequests = lazy(() => import('../pages/admin/AdminProductRequests'));
+const AdminBundles = lazy(() => import('../pages/admin/AdminBundles'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -73,6 +77,7 @@ const router = createBrowserRouter([
       { index: true, element: withSuspense(Home) },
       { path: 'products', element: withSuspense(ProductList) },
       { path: 'products/:id', element: withSuspense(ProductDetail) },
+      { path: 'bundles/:id', element: withSuspense(BundleDetail) },
       { path: 'cart', element: withSuspense(Cart) },
       { path: 'wishlist', element: withSuspense(Wishlist) },
       { path: 'notifications', element: <ProtectedRoute>{withSuspense(Notifications)}</ProtectedRoute> },
@@ -129,7 +134,9 @@ const router = createBrowserRouter([
       { index: true, element: withSuspense(SellerDashboard) },
       { path: 'products', element: withSuspense(SellerProducts) },
       { path: 'products/new', element: withSuspense(AddProduct) },
+      { path: 'bundles/create', element: withSuspense(CreateBundle) },
       { path: 'products/:id/edit', element: withSuspense(EditProduct) },
+      { path: 'bundles', element: withSuspense(SellerBundles) },
       { path: 'orders', element: withSuspense(SellerOrders) },
       { path: 'product-requests', element: withSuspense(SellerProductRequests) },
     ],
@@ -145,6 +152,7 @@ const router = createBrowserRouter([
       { index: true, element: withSuspense(AdminDashboard) },
       { path: 'users', element: withSuspense(ManageUsers) },
       { path: 'products', element: withSuspense(ManageProducts) },
+      { path: 'bundles', element: withSuspense(AdminBundles) },
       { path: 'orders', element: withSuspense(ManageOrders) },
       { path: 'applications', element: withSuspense(ManageApplications) },
       { path: 'product-requests', element: withSuspense(AdminProductRequests) },

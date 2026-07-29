@@ -37,15 +37,15 @@ const Cart = () => {
           {items.map((item) => (
             <div key={item._id} className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center gap-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow">
               <div className="h-28 w-28 bg-[#F8FAFC] border border-[#F1F5F9] rounded-[20px] flex items-center justify-center flex-shrink-0 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
-                {item.logo ? (
-                  <img src={item.logo} alt={item.title} className="w-full h-full object-contain p-2" />
+                {item.logo || item.thumbnail ? (
+                  <img src={item.logo || item.thumbnail} alt={item.title} className="w-full h-full object-cover p-2" />
                 ) : (
                   <span className="text-[#5B4BFF] text-3xl font-extrabold">{item.title?.charAt(0)}</span>
                 )}
               </div>
               
               <div className="flex-1 min-w-0 w-full">
-                <Link to={`/products/${item._id}`} className="text-xl font-bold text-[#0F172A] hover:text-[#5B4BFF] transition-colors line-clamp-1 mb-1">
+                <Link to={item.bundlePrice ? `/bundles/${item._id}` : `/products/${item._id}`} className="text-xl font-bold text-[#0F172A] hover:text-[#5B4BFF] transition-colors line-clamp-1 mb-1">
                   {item.title}
                 </Link>
                 <p className="text-[13px] font-medium text-[#94A3B8] capitalize mb-5">{item.category?.replace('-', ' ')}</p>
@@ -81,9 +81,9 @@ const Cart = () => {
               </div>
 
               <div className="text-left sm:text-right sm:w-36 pt-4 sm:pt-0 border-t border-[#F1F5F9] sm:border-0 w-full sm:w-auto">
-                <p className="text-[22px] font-extrabold text-[#0F172A] tracking-[-0.02em]">₹{(item.price * item.quantity).toLocaleString()}</p>
+                <p className="text-[22px] font-extrabold text-[#0F172A] tracking-[-0.02em]">₹{((item.price || item.bundlePrice || 0) * item.quantity).toLocaleString()}</p>
                 {item.quantity > 1 && (
-                  <p className="text-[13px] text-[#94A3B8] font-medium mt-1">₹{item.price.toLocaleString()} each</p>
+                  <p className="text-[13px] text-[#94A3B8] font-medium mt-1">₹{(item.price || item.bundlePrice || 0).toLocaleString()} each</p>
                 )}
               </div>
             </div>

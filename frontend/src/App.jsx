@@ -18,23 +18,27 @@ function AuthProvider({ children }) {
   return children;
 }
 
+import { SocketProvider } from './context/SocketContext';
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppRouter />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: {
-              background: '#ffffff',
-              color: '#1a1a2e',
-              border: '1px solid #e5e7eb',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            },
-          }}
-        />
+        <SocketProvider>
+          <AppRouter />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#ffffff',
+                color: '#1a1a2e',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              },
+            }}
+          />
+        </SocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -544,3 +544,69 @@ export const sendSellerSuspensionEmail = async (email: string, name: string) => 
     return false;
   }
 };
+
+export const sendBundlePurchaseConfirmation = async (email: string, name: string, bundleTitle: string) => {
+  try {
+    if (!env.SMTP_USER || !env.SMTP_PASS) return false;
+    await transporter.sendMail({
+      from: '"Streamkart" <noreply@streamkart.com>',
+      to: email,
+      subject: `Order Confirmed: ${bundleTitle}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2>Hi ${name}, your bundle purchase is confirmed!</h2>
+          <p>You have successfully purchased <strong>${bundleTitle}</strong>.</p>
+          <p>The seller has been notified and will begin delivering the credentials for each product in your bundle separately. You can track the progress in your dashboard chat.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (error) {
+    logger.error(`Error sending bundle purchase email: ${error}`);
+    return false;
+  }
+};
+
+export const sendPartialBundleDelivery = async (email: string, name: string, bundleTitle: string, productName: string) => {
+  try {
+    if (!env.SMTP_USER || !env.SMTP_PASS) return false;
+    await transporter.sendMail({
+      from: '"Streamkart" <noreply@streamkart.com>',
+      to: email,
+      subject: `Credentials Delivered for ${productName} (Bundle: ${bundleTitle})`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2>Hi ${name},</h2>
+          <p>Your credentials for <strong>${productName}</strong> have been delivered securely in your chat.</p>
+          <p>Log in to your dashboard to view them.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (error) {
+    logger.error(`Error sending partial bundle delivery email: ${error}`);
+    return false;
+  }
+};
+
+export const sendBundleCompleteDelivery = async (email: string, name: string, bundleTitle: string) => {
+  try {
+    if (!env.SMTP_USER || !env.SMTP_PASS) return false;
+    await transporter.sendMail({
+      from: '"Streamkart" <noreply@streamkart.com>',
+      to: email,
+      subject: `Complete Bundle Delivered: ${bundleTitle}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2>Hi ${name},</h2>
+          <p>Great news! All products in your <strong>${bundleTitle}</strong> bundle have been fully delivered.</p>
+          <p>You can now log in to your dashboard to access all your credentials.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (error) {
+    logger.error(`Error sending bundle complete delivery email: ${error}`);
+    return false;
+  }
+};

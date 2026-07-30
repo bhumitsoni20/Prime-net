@@ -56,7 +56,12 @@ const BundleCard = ({ bundle }) => {
 
         <div className="flex items-center justify-between mt-auto pt-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-[18px] font-extrabold text-[#0F172A]">₹{bundle.bundlePrice}</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-[18px] font-extrabold text-[#0F172A]">₹{bundle.bundlePrice}</span>
+              <span className="text-[12px] text-[#94A3B8] font-bold uppercase tracking-wider">
+                /{bundle.duration ? bundle.duration.replace(/^1 /i, '') : 'mo'}
+              </span>
+            </div>
             {bundle.originalPrice > bundle.bundlePrice && (
               <span className="text-[13px] text-[#94A3B8] font-semibold line-through">₹{bundle.originalPrice}</span>
             )}

@@ -25,9 +25,11 @@ const allCategories = [
 const ProductList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
+  const duration = searchParams.get('duration') || '';
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [selectedCats, setSelectedCats] = useState(category ? category.split(',') : []);
+  const [selectedDurations, setSelectedDurations] = useState(duration ? duration.split(',') : []);
   const [priceRange, setPriceRange] = useState([0, parseInt(searchParams.get('maxPrice')) || 2000]);
   const [ratingFilter, setRatingFilter] = useState(parseInt(searchParams.get('minRating')) || 0);
 
@@ -35,6 +37,7 @@ const ProductList = () => {
   params.set('page', page.toString());
   params.set('limit', '20');
   if (selectedCats.length > 0) params.set('category', selectedCats.join(','));
+  if (selectedDurations.length > 0) params.set('duration', selectedDurations.join(','));
   if (search) params.set('search', search);
   if (priceRange[1] < 2000) params.set('maxPrice', priceRange[1].toString());
   if (ratingFilter > 0) params.set('minRating', ratingFilter.toString());
@@ -87,6 +90,16 @@ const ProductList = () => {
     updateURLParams({ category: newCats.length > 0 ? newCats.join(',') : null, page: 1 });
   };
 
+  const toggleDuration = (dur) => {
+    const newDurations = selectedDurations.includes(dur) 
+      ? selectedDurations.filter(d => d !== dur) 
+      : [...selectedDurations, dur];
+      
+    setSelectedDurations(newDurations);
+    setPage(1);
+    updateURLParams({ duration: newDurations.length > 0 ? newDurations.join(',') : null, page: 1 });
+  };
+
   const handleSearchChange = (val) => {
     setSearch(val);
     setPage(1);
@@ -111,6 +124,7 @@ const ProductList = () => {
 
   const clearFilters = () => {
     setSelectedCats([]);
+    setSelectedDurations([]);
     setPriceRange([0, 2000]);
     setRatingFilter(0);
     setSearch('');
@@ -188,6 +202,29 @@ const ProductList = () => {
                       {r === 5 ? '5.0' : `${r}.0 & up`}
                     </span>
                   </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div className="mb-6 bg-white p-5 rounded-[16px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <h4 className="text-[14px] font-bold text-[#0F172A] mb-4">Duration</h4>
+              <div className="space-y-2 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+                {['1 month', '2 month', '3 month', '6 month', '1 year'].map((dur) => (
+                  <label key={dur} className="flex items-center gap-3 cursor-pointer group">
+                    <div className={`w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors ${selectedDurations.includes(dur) ? 'bg-[#5B4BFF] border-[#5B4BFF]' : 'border-[#CBD5E1] bg-white group-hover:border-[#94A3B8]'}`}>
+                      {selectedDurations.includes(dur) && <HiCheck className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      className="hidden" 
+                      checked={selectedDurations.includes(dur)}
+                      onChange={() => toggleDuration(dur)}
+                    />
+                    <span className={`text-[13px] font-medium capitalize ${selectedDurations.includes(dur) ? 'text-[#0F172A] font-semibold' : 'text-[#475569] group-hover:text-[#0F172A]'}`}>
+                      {dur}
+                    </span>
+                  </label>
                 ))}
               </div>
             </div>

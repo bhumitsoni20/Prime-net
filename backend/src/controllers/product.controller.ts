@@ -17,6 +17,13 @@ export const getProducts = async (req: Request, res: Response) => {
       const categories = (req.query.category as string).split(',');
       filter.category = { $in: categories };
     }
+    if (req.query.duration) {
+      const durations = (req.query.duration as string).split(',').map(d => {
+        const base = d.trim().replace(/s$/, ''); // remove trailing 's' if any
+        return new RegExp(`^${base}s?$`, 'i');
+      });
+      filter.duration = { $in: durations };
+    }
     if (req.query.search) {
       filter.$text = { $search: req.query.search as string };
     }

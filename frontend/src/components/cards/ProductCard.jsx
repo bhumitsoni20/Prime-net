@@ -54,7 +54,9 @@ const ProductCard = ({ product }) => {
         <div className="flex items-center justify-between mt-auto pt-1">
           <div className="flex items-baseline gap-1">
             <span className="text-[18px] font-extrabold text-[#0F172A]">₹{product.price}</span>
-            <span className="text-[12px] text-[#94A3B8] font-bold uppercase tracking-wider">/mo</span>
+            <span className="text-[12px] text-[#94A3B8] font-bold uppercase tracking-wider">
+              /{product.duration ? product.duration.replace(/^1 /i, '') : 'mo'}
+            </span>
           </div>
           
           <button 

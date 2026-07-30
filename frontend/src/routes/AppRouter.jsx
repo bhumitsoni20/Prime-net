@@ -48,6 +48,7 @@ const SellerDashboard = lazy(() => import('../pages/seller/SellerDashboard'));
 const AddProduct = lazy(() => import('../pages/seller/AddProduct'));
 const CreateBundle = lazy(() => import('../pages/seller/CreateBundle'));
 const EditProduct = lazy(() => import('../pages/seller/EditProduct'));
+const EditBundle = lazy(() => import('../pages/seller/EditBundle'));
 const SellerProducts = lazy(() => import('../pages/seller/SellerProducts'));
 const SellerOrders = lazy(() => import('../pages/seller/SellerOrders'));
 const SellerProductRequests = lazy(() => import('../pages/seller/SellerProductRequests'));
@@ -137,6 +138,7 @@ const router = createBrowserRouter([
       { path: 'bundles/create', element: withSuspense(CreateBundle) },
       { path: 'products/:id/edit', element: withSuspense(EditProduct) },
       { path: 'bundles', element: withSuspense(SellerBundles) },
+      { path: 'bundles/:id/edit', element: withSuspense(EditBundle) },
       { path: 'orders', element: withSuspense(SellerOrders) },
       { path: 'product-requests', element: withSuspense(SellerProductRequests) },
     ],

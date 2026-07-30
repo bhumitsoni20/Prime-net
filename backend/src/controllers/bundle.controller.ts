@@ -143,7 +143,7 @@ export const getBundle = async (req: Request, res: Response) => {
 // POST /api/bundles
 export const createBundle = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, category, thumbnail, bannerImage, tags, visibility, products, bundlePrice, originalPrice } = req.body;
+    const { title, description, category, thumbnail, bannerImage, tags, visibility, products, bundlePrice, originalPrice, duration } = req.body;
 
     if (!products || products.length < 2) {
       return sendError(res, 'A bundle must contain at least 2 products', 400);
@@ -160,6 +160,7 @@ export const createBundle = async (req: AuthRequest, res: Response) => {
       products,
       bundlePrice,
       originalPrice,
+      duration,
       seller: req.user._id,
       status: 'active', // Automatically approve for now
     });

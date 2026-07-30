@@ -24,7 +24,7 @@ const EditProduct = () => {
   const { data: productData, isLoading } = useProduct(id);
   const updateMutation = useUpdateProduct();
   
-  const [form, setForm] = useState({ title: '', logo: '', description: '', price: '', category: 'ai-tools', features: '', deliveryType: 'instant' });
+  const [form, setForm] = useState({ title: '', logo: '', description: '', price: '', category: 'ai-tools', features: '', duration: '1 month', deliveryType: 'instant' });
 
   // Image Upload States
   const fileInputRef = useRef(null);
@@ -42,6 +42,7 @@ const EditProduct = () => {
         price: p.price?.toString() || '',
         category: p.category || 'ai-tools',
         features: p.features ? p.features.join(', ') : '',
+        duration: p.duration || '1 month',
       });
       setPreviewUrl(p.logo || null);
     }
@@ -173,6 +174,8 @@ const EditProduct = () => {
                 </div>
               </div>
             </div>
+            
+            <Input label="Duration" placeholder="e.g. 1 month, 3 months, Lifetime" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
             
             <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
           </div>

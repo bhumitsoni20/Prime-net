@@ -144,7 +144,7 @@ const ProductDetail = () => {
             
             <div className="flex items-end gap-1.5 mb-10">
               <span className="text-5xl md:text-[64px] font-extrabold text-[#0F172A] tracking-[-0.04em] leading-none">₹{product.price}</span>
-              <span className="text-[#94A3B8] font-semibold text-lg mb-2">/ month</span>
+              <span className="text-[#94A3B8] font-semibold text-lg mb-2 capitalize">/ {product.duration || '1 month'}</span>
             </div>
 
             {/* Benefits */}

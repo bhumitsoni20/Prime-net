@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, Reorder } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -7,13 +7,13 @@ import { HiPlus, HiTrash, HiCurrencyRupee } from 'react-icons/hi';
 
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import Spinner from '../../components/ui/Spinner';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import ImageCropperModal from '../../components/ui/ImageCropperModal';
 
-
-
-const CreateBundle = () => {
+const EditBundle = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
@@ -44,6 +44,44 @@ const CreateBundle = () => {
     },
     enabled: !!user?._id,
   });
+
+  const { data: bundleData, isLoading: isLoadingBundle } = useQuery({
+    queryKey: ['bundle', id],
+    queryFn: async () => {
+      const res = await api.get(`/bundles/${id}`);
+      return res;
+    },
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (bundleData?.data) {
+      const b = bundleData.data;
+      setForm({
+        title: b.title || '',
+        description: b.description || '',
+        bundlePrice: b.bundlePrice?.toString() || '',
+        category: b.category || 'bundles',
+        tags: b.tags ? b.tags.join(', ') : '',
+        duration: b.duration || '1 month',
+      });
+      setPreviewUrl(b.thumbnail || null);
+      if (b.products) {
+        setSelectedProducts(b.products.map(p => ({
+          id: Math.random().toString(36).substr(2, 9),
+          product: p.product._id || p.product, // depending on if it's populated
+          title: p.product.title || 'Product',
+          price: p.price,
+          duration: p.duration,
+          accountType: p.accountType,
+          screens: p.screens,
+          warranty: p.warranty,
+          deliveryTime: p.deliveryTime,
+          notes: p.notes
+        })));
+      }
+    }
+  }, [bundleData]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -100,20 +138,20 @@ const CreateBundle = () => {
     ? Math.round((discountAmount / originalPrice) * 100) 
     : 0;
 
-  const createBundleMutation = useMutation({
+  const updateBundleMutation = useMutation({
     mutationFn: async (payload) => {
-      const res = await api.post('/bundles', payload);
+      const res = await api.put(`/bundles/${id}`, payload);
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Bundle created successfully!');
+      toast.success('Bundle updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['sellerBundles'] });
       queryClient.invalidateQueries({ queryKey: ['publicBundles'] });
       queryClient.invalidateQueries({ queryKey: ['adminBundles'] });
-      navigate('/seller'); // Redirect to seller dashboard
+      navigate('/seller/bundles'); // Redirect to seller bundles
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to create bundle');
+      toast.error(err.response?.data?.message || 'Failed to update bundle');
     }
   });
 
@@ -125,17 +163,12 @@ const CreateBundle = () => {
       return;
     }
 
-    if (!croppedBlob) {
-      toast.error('Please upload a bundle thumbnail');
-      return;
-    }
-
     if (!form.bundlePrice || form.bundlePrice <= 0) {
       toast.error('Please enter a valid bundle price');
       return;
     }
 
-    let base64Logo = '';
+    let base64Logo = previewUrl; // Use existing previewUrl if no new crop
     if (croppedBlob) {
       base64Logo = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -166,14 +199,16 @@ const CreateBundle = () => {
       }))
     };
 
-    createBundleMutation.mutate(payload);
+    updateBundleMutation.mutate(payload);
   };
+
+  if (isLoadingBundle) return <div className="flex justify-center py-16"><Spinner size="lg" /></div>;
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight mb-2">Create Bundle Listing</h1>
-        <p className="text-[#64748B]">Combine multiple products into a single discounted package.</p>
+        <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight mb-2">Edit Bundle Listing</h1>
+        <p className="text-[#64748B]">Update your bundle package details.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -370,8 +405,8 @@ const CreateBundle = () => {
 
         {/* Action */}
         <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/seller/dashboard')}>Cancel</Button>
-          <Button type="submit" isLoading={createBundleMutation.isLoading} className="px-8 shadow-xl shadow-[#5B4BFF]/20">
+          <Button type="button" variant="outline" onClick={() => navigate('/seller/bundles')}>Cancel</Button>
+          <Button type="submit" isLoading={updateBundleMutation.isPending || updateBundleMutation.isLoading} className="px-8 shadow-xl shadow-[#5B4BFF]/20">
             Publish Bundle
           </Button>
         </div>
@@ -388,4 +423,4 @@ const CreateBundle = () => {
   );
 };
 
-export default CreateBundle;
+export default EditBundle;

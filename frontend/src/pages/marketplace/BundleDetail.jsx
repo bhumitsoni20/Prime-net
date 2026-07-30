@@ -152,6 +152,7 @@ const BundleDetail = () => {
                 <p className="text-[#64748B] text-sm font-medium line-through mb-1">Original: ₹{bundle.originalPrice}</p>
                 <div className="flex items-end gap-2">
                   <h2 className="text-4xl font-black text-[#5B4BFF]">₹{bundle.bundlePrice}</h2>
+                  <span className="text-[#94A3B8] font-semibold text-lg mb-1 capitalize">/ {bundle.duration || '1 month'}</span>
                 </div>
               </div>
             </div>

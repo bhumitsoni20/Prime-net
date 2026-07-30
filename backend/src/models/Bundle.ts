@@ -25,6 +25,7 @@ export interface IBundle extends Document {
   products: IBundleProduct[];
   bundlePrice: number;
   originalPrice: number;
+  duration: string;
   ratings: number;
   totalReviews: number;
   totalSales: number;
@@ -117,6 +118,10 @@ const bundleSchema = new Schema<IBundle>(
       type: Number,
       required: true,
       min: 0,
+    },
+    duration: {
+      type: String,
+      default: '1 month',
     },
     ratings: {
       type: Number,

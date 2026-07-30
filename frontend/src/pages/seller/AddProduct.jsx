@@ -20,7 +20,7 @@ const categories = [
 const AddProduct = () => {
   const navigate = useNavigate();
   const createMutation = useCreateProduct();
-  const [form, setForm] = useState({ title: '', description: '', price: '', category: 'ai-tools', features: '', deliveryType: 'instant' });
+  const [form, setForm] = useState({ title: '', description: '', price: '', category: 'ai-tools', features: '', duration: '1 month', deliveryType: 'instant' });
   
   // Image Upload States
   const fileInputRef = useRef(null);
@@ -149,6 +149,8 @@ const AddProduct = () => {
                 </div>
               </div>
             </div>
+            
+            <Input label="Duration" placeholder="e.g. 1 month, 3 months, Lifetime" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
             
             <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
           </div>

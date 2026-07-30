@@ -11,6 +11,11 @@ const transporter = nodemailer.createTransport({
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
   },
+  tls: {
+    // Bypasses OpenSSL 3.0 DECODER routines::unsupported errors 
+    // often caused by Windows Antivirus (like Kaspersky/ESET) intercepting local TLS traffic
+    rejectUnauthorized: false,
+  },
 });
 
 export const sendSupportTicketEmail = async (topic: string, subject: string, description: string, customerEmail: string) => {

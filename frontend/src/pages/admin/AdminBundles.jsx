@@ -114,20 +114,20 @@ const AdminBundles = () => {
                     </span>
                   </td>
                   <td className="p-5 pr-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2">
                       {bundle.status !== 'active' && (
-                        <Button variant="outline" size="sm" className="h-8 w-8 !p-0 shadow-sm hover:border-emerald-200 hover:bg-emerald-50" onClick={() => updateStatusMutation.mutate({ id: bundle._id, status: 'active' })}>
-                          <HiCheckCircle className="w-4 h-4 text-emerald-500" />
-                        </Button>
+                        <button onClick={() => updateStatusMutation.mutate({ id: bundle._id, status: 'active' })} className="p-2.5 text-[#64748B] hover:text-[#10B981] hover:bg-[#ECFDF5] rounded-[10px] transition-colors">
+                          <HiCheckCircle className="w-[18px] h-[18px]" />
+                        </button>
                       )}
                       {bundle.status === 'active' && (
-                        <Button variant="outline" size="sm" className="h-8 w-8 !p-0 shadow-sm hover:border-amber-200 hover:bg-amber-50" onClick={() => updateStatusMutation.mutate({ id: bundle._id, status: 'inactive' })}>
-                          <HiXCircle className="w-4 h-4 text-amber-500" />
-                        </Button>
+                        <button onClick={() => updateStatusMutation.mutate({ id: bundle._id, status: 'inactive' })} className="p-2.5 text-[#64748B] hover:text-[#F59E0B] hover:bg-[#FFFBEB] rounded-[10px] transition-colors">
+                          <HiXCircle className="w-[18px] h-[18px]" />
+                        </button>
                       )}
-                      <Button variant="outline" size="sm" className="h-8 w-8 !p-0 shadow-sm hover:border-red-200 hover:bg-red-50" onClick={() => setBundleToDelete(bundle)}>
-                        <HiTrash className="w-4 h-4 text-red-500" />
-                      </Button>
+                      <button onClick={() => setBundleToDelete(bundle)} className="p-2.5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#FEF2F2] rounded-[10px] transition-colors">
+                        <HiTrash className="w-[18px] h-[18px]" />
+                      </button>
                     </div>
                   </td>
                 </tr>

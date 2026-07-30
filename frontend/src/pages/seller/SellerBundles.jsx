@@ -105,15 +105,13 @@ const SellerBundles = () => {
                     </span>
                   </td>
                   <td className="p-5 pr-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Link to={`/seller/bundles/${bundle._id}/edit`}>
-                        <Button variant="outline" size="sm" className="h-8 w-8 !p-0 shadow-sm hover:border-[#5B4BFF]/30 hover:bg-[#5B4BFF]/5">
-                          <HiPencil className="w-4 h-4 text-[#5B4BFF]" />
-                        </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Link to={`/seller/bundles/${bundle._id}/edit`} className="inline-flex p-2.5 text-[#64748B] hover:text-[#5B4BFF] hover:bg-[#EEF2FF] rounded-[10px] transition-colors">
+                        <HiPencil className="w-[18px] h-[18px]" />
                       </Link>
-                      <Button variant="outline" size="sm" className="h-8 w-8 !p-0 shadow-sm hover:border-red-200 hover:bg-red-50" onClick={() => setBundleToDelete(bundle)}>
-                        <HiTrash className="w-4 h-4 text-red-500" />
-                      </Button>
+                      <button onClick={() => setBundleToDelete(bundle)} className="p-2.5 text-[#64748B] hover:text-[#EF4444] hover:bg-[#FEF2F2] rounded-[10px] transition-colors">
+                        <HiTrash className="w-[18px] h-[18px]" />
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -24,8 +24,8 @@
     <a href="#-about-streamkart">About</a> • 
     <a href="#-key-features">Features</a> • 
     <a href="#-tech-stack">Tech Stack</a> • 
-    <a href="#-getting-started">Getting Started</a> • 
-    <a href="#-architecture">Architecture</a>
+    <a href="#-architecture">Architecture</a> • 
+    <a href="#-getting-started">Getting Started</a>
   </p>
 </div>
 
@@ -33,40 +33,83 @@
 
 ## 🌟 About StreamKart
 
-StreamKart provides a seamless, high-performance ecosystem for managing, distributing, and purchasing digital access tiers and subscriptions. Designed with a stunning, modern glassmorphic UI, it bridges the gap between digital merchants and buyers, offering integrated payment solutions, real-time communications, and instant digital delivery.
+**StreamKart** is a cutting-edge platform designed to revolutionize the way digital subscriptions and access tiers are traded. It provides a seamless, high-performance ecosystem bridging the gap between digital merchants and buyers. Built with a stunning, modern glassmorphic UI, StreamKart offers integrated payment solutions, real-time communications, and instant digital delivery.
 
 ---
 
 ## ⚡ Key Features
 
-- 🎨 **Premium UI/UX**: State-of-the-art design system featuring responsive glassmorphism, fluid typography, and micro-animations powered by Framer Motion.
-- 🔐 **Robust Authentication**: Secure, multi-provider login (Google, Phone OTP, Email) powered by Firebase Auth, with role-based access control (Admin, Seller, User).
-- 🛒 **Seller Dashboard**: Comprehensive analytics, real-time sales tracking, financial reporting, and streamlined inventory management.
-- 💳 **Secure Payments**: Frictionless checkout using integrated payment gateways (Stripe & Razorpay) with automated invoice generation.
-- 💬 **Live Order Chat**: Real-time Socket.IO communication between buyers and sellers to securely coordinate digital delivery and resolve issues.
-- 🚀 **Performance Optimized**: Built on Vite with intelligent code-splitting, lazy loading, and optimized global state management using Zustand.
+<table>
+  <tr>
+    <td>🎨 <strong>Premium UI/UX</strong></td>
+    <td>State-of-the-art design system featuring responsive glassmorphism, fluid typography, and micro-animations powered by Framer Motion.</td>
+  </tr>
+  <tr>
+    <td>🔐 <strong>Robust Authentication</strong></td>
+    <td>Secure, multi-provider login (Google, Phone OTP, Email) powered by Firebase Auth, with strict role-based access control (Admin, Seller, User).</td>
+  </tr>
+  <tr>
+    <td>🛒 <strong>Seller Dashboard</strong></td>
+    <td>Comprehensive analytics, real-time sales tracking, financial reporting, and streamlined inventory management.</td>
+  </tr>
+  <tr>
+    <td>💳 <strong>Secure Payments</strong></td>
+    <td>Frictionless checkout using integrated payment gateways (Stripe & Razorpay) with automated invoice generation.</td>
+  </tr>
+  <tr>
+    <td>💬 <strong>Live Order Chat</strong></td>
+    <td>Real-time Socket.IO communication between buyers and sellers to securely coordinate digital delivery and resolve issues.</td>
+  </tr>
+  <tr>
+    <td>🚀 <strong>Performance Optimized</strong></td>
+    <td>Built on Vite with intelligent code-splitting, lazy loading, and optimized global state management using Zustand.</td>
+  </tr>
+</table>
 
 ---
 
 ## 🛠 Tech Stack
 
-### Frontend Architecture
+<details>
+<summary><strong>🖥 Frontend Architecture</strong></summary>
+
 - **Framework**: [React 18](https://reactjs.org/) (Vite)
 - **Styling**: [Tailwind CSS v3](https://tailwindcss.com/)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) & [TanStack Query](https://tanstack.com/query)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Routing**: React Router v6
+</details>
 
-### Backend Infrastructure
+<details>
+<summary><strong>⚙️ Backend Infrastructure</strong></summary>
+
 - **Server Environment**: Node.js & Express.js
 - **Language**: TypeScript
 - **Database**: MongoDB Atlas with Mongoose ORM
 - **Real-time WebSockets**: Socket.IO
+</details>
 
-### Third-Party Services
+<details>
+<summary><strong>🔌 Third-Party Services</strong></summary>
+
 - **Authentication**: Firebase Auth
 - **Payment Processing**: Stripe, Razorpay
 - **Cloud Storage**: Firebase Cloud Storage
+</details>
+
+---
+
+## 📂 Architecture
+
+```mermaid
+graph TD;
+    Client[Client App] -->|REST API| Server[Node/Express API];
+    Client -->|WebSockets| SocketIO[Socket.IO Server];
+    Server -->|Mongoose| Database[(MongoDB Atlas)];
+    Server -->|SDK| Firebase[Firebase Auth & Storage];
+    Server -->|SDK| Stripe[Stripe API];
+    Server -->|SDK| Razorpay[Razorpay API];
+```
 
 ---
 
@@ -119,7 +162,9 @@ npm run dev
 
 ## 🔒 Environment Variables
 
-To run this project securely, add the following environment variables to your respective `.env` files. Reference the provided `.env.example` files in the repository.
+To run this project securely, add the following environment variables to your respective `.env` files. 
+
+> **Warning:** Never commit your `.env` files to version control. Reference the provided `.env.example` files in the repository.
 
 ### Backend (`backend/.env`)
 | Variable | Description |
@@ -138,30 +183,6 @@ To run this project securely, add the following environment variables to your re
 | `VITE_STRIPE_PUBLIC_KEY`| Stripe Publishable Key |
 
 ---
-
-## 📂 Architecture
-
-```text
-StreamKart/
-├── backend/                  # API Server (Node/Express/TS)
-│   ├── src/
-│   │   ├── controllers/      # Route logic and request handlers
-│   │   ├── middlewares/      # Auth, Error, and Validation guards
-│   │   ├── models/           # Mongoose database schemas
-│   │   ├── routes/           # RESTful API endpoints
-│   │   ├── services/         # Core business logic and integrations
-│   │   └── server.ts         # Server entry point
-│   └── package.json
-└── frontend/                 # Client App (React/Vite)
-    ├── src/
-    │   ├── components/       # Reusable, atomic UI elements
-    │   ├── layouts/          # Page wrappers (Auth, Dashboard, Public)
-    │   ├── pages/            # View components
-    │   ├── services/         # API integration methods (Axios)
-    │   ├── store/            # Zustand global state slices
-    │   └── main.jsx          # Client entry point
-    └── package.json
-```
 
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=5B4BFF&height=100&section=footer" width="100%" alt="Footer Wave" />

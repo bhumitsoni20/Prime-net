@@ -139,25 +139,29 @@ const ProductDetail = () => {
 
             <div className="flex items-center justify-between mb-6">
               <Badge variant="primary" className="px-3 py-1 bg-[#5B4BFF]/10 text-[#5B4BFF] border-[#5B4BFF]/20">BEST SELLER</Badge>
-              <span className="text-[#22C55E] text-sm font-bold bg-[#22C55E]/10 px-3 py-1 rounded-full">Save 20%</span>
             </div>
             
-            <div className="flex items-end gap-1.5 mb-10">
+            <div className="flex items-end gap-1.5 mb-10 flex-1">
               <span className="text-5xl md:text-[64px] font-extrabold text-[#0F172A] tracking-[-0.04em] leading-none">₹{product.price}</span>
               <span className="text-[#94A3B8] font-semibold text-lg mb-2 capitalize">/ {product.duration || '1 month'}</span>
             </div>
 
-            {/* Benefits */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12 flex-1">
-              {['Unlimited Data Retention', '24/7 Priority Support', 'Custom SSO Integration', '99.9% Uptime Guarantee'].map((f) => (
-                <div key={f} className="flex items-center gap-3.5 text-[#334155]">
-                  <div className="h-[34px] w-[34px] rounded-full bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-center flex-shrink-0">
-                    <HiCheckCircle className="w-5 h-5 text-[#15803D]" />
-                  </div>
-                  <span className="text-[15px] font-semibold">{f}</span>
+            {/* Key Features */}
+            {product.features && product.features.length > 0 && (
+              <div className="mb-12 flex-1">
+                <h3 className="text-[17px] font-bold text-[#0F172A] mb-5">Key Features</h3>
+                <div className="flex flex-col gap-4">
+                  {product.features.map((f, i) => (
+                    <div key={i} className="flex items-center gap-4 text-[#475569]">
+                      <div className="h-8 w-8 rounded-full bg-[#5B4BFF]/10 flex items-center justify-center flex-shrink-0">
+                        <HiShieldCheck className="w-[18px] h-[18px] text-[#5B4BFF]" />
+                      </div>
+                      <span className="text-[15px] font-medium uppercase tracking-wide">{f}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 mb-8">

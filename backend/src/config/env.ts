@@ -1,6 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Bypass OpenSSL 3.0 DECODER routines::unsupported errors 
+// caused by local Antivirus (Kaspersky/ESET) TLS interception on Windows.
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 interface EnvConfig {
   PORT: number;
   NODE_ENV: string;

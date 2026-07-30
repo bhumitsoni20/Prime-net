@@ -25,8 +25,7 @@ const Home = () => {
     <div className="bg-[#F8FAFC]">
       <HeroSection onSearch={handleSearch} />
 
-      {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-20">
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em]">Explore Top Categories</h2>
           <Link to="/products" className="text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1">

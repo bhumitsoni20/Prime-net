@@ -47,7 +47,7 @@ const HeroSection = ({ onSearch }) => {
     : '4+'; // Matching design exactly "Trusted by 4+ users worldwide"
 
   return (
-    <section className="relative overflow-hidden bg-[#FAFBFF] pt-4 pb-12 lg:pt-8 lg:pb-16">
+    <section className="relative overflow-hidden bg-[#FAFBFF] pt-4 pb-0 lg:pt-8 lg:pb-0">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#5B4BFF]/[0.05] blur-[100px]" />

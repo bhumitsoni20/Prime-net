@@ -115,14 +115,10 @@ export const sendVerificationEmail = async (req: AuthRequest, res: Response) => 
       return sendError(res, 'Email already verified.', 400);
     }
 
-    const success = await sendCustomVerificationEmail(user.email, user.name);
-    if (success) {
-      return sendSuccess(res, null, 'Verification email sent.');
-    } else {
-      return sendError(res, 'Failed to send verification email.', 500);
-    }
+    await sendCustomVerificationEmail(user.email, user.name);
+    return sendSuccess(res, null, 'Verification email sent.');
   } catch (error: any) {
-    return sendError(res, error.message);
+    return sendError(res, error.message || 'Failed to send verification email.', 500);
   }
 };
 

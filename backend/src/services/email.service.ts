@@ -154,8 +154,7 @@ export const sendSupportTicketEmail = async (topic: string, subject: string, des
 export const sendCustomVerificationEmail = async (email: string, displayName: string) => {
   try {
     if (!env.SMTP_USER || !env.SMTP_PASS) {
-      logger.warn('SMTP credentials not configured. Skipping verification email.');
-      return false;
+      throw new Error('SMTP credentials not configured in environment variables.');
     }
 
     const actionCodeSettings = {
@@ -273,9 +272,9 @@ export const sendCustomVerificationEmail = async (email: string, displayName: st
     
     logger.info(`Verification email sent to ${email}`);
     return true;
-  } catch (error) {
-    logger.error(`Error sending verification email: ${error}`);
-    return false;
+  } catch (error: any) {
+    logger.error(`Error sending verification email: ${error.message || error}`);
+    throw new Error(error.message || 'Failed to send verification email');
   }
 };
 

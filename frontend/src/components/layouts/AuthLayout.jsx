@@ -38,7 +38,7 @@ import { FaDiscord, FaFigma, FaTwitch, FaSpotify } from 'react-icons/fa';const A
         <div className="relative z-10 flex flex-col h-full w-full p-10">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-            <img src="/streamkart-logo.png" alt="StreamKart" className="h-14 w-auto object-contain drop-shadow-md" />
+            <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-28 w-auto object-contain drop-shadow-md" />
           </Link>
 
           {/* Headline */}

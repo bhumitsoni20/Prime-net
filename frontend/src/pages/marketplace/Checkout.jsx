@@ -117,51 +117,7 @@ const Checkout = () => {
     }
   };
 
-  const handleStripePayment = async () => {
-    if (cartItems.length === 0) return toast.error('Your cart is empty');
 
-    try {
-      setIsProcessing(true);
-
-      const productItems = cartItems.filter(item => !item.bundlePrice);
-      const bundleItems = cartItems.filter(item => !!item.bundlePrice);
-
-      const productIds = productItems.map(item => item._id);
-      const bundleIds = bundleItems.map(item => item._id);
-
-      // 1. Create pending DB orders for all items
-      const productOrderPromises = productItems.map(item => 
-        apiPost('/orders', { productId: item._id, paymentMethod: 'stripe' })
-      );
-      const bundleOrderPromises = bundleItems.map(item => 
-        apiPost('/bundle-orders', { bundleId: item._id, paymentMethod: 'stripe' })
-      );
-
-      const dbOrdersResponses = await Promise.all(productOrderPromises);
-      const dbBundleResponses = await Promise.all(bundleOrderPromises);
-
-      const orderIds = dbOrdersResponses.map(res => res.data._id);
-      const bundleOrderIds = dbBundleResponses.map(res => res.data._id);
-
-      // 2. Create Stripe Checkout Session
-      const { data } = await apiPost('/payments/stripe/create-session', {
-        productIds,
-        bundleIds,
-        orderIds,
-        bundleOrderIds
-      });
-
-      // 3. Redirect to Stripe Checkout
-      if (data && data.sessionUrl) {
-        window.location.href = data.sessionUrl;
-      } else {
-        throw new Error('Failed to get session URL');
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Failed to initiate Stripe payment');
-      setIsProcessing(false);
-    }
-  };
 
   const handleSuccessComplete = () => {
     if (successOrderIds.length === 1) {
@@ -258,15 +214,7 @@ const Checkout = () => {
               >
                 {isProcessing ? 'Processing securely...' : 'Pay securely with Razorpay'}
               </Button>
-              
-              <Button 
-                size="lg" 
-                className="w-full py-4 text-[17px] bg-[#635BFF] hover:bg-[#5249E5] text-white shadow-[0_4px_14px_rgba(99,91,255,0.4)] transition-all" 
-                onClick={handleStripePayment} 
-                disabled={isProcessing || cartItems.length === 0}
-              >
-                {isProcessing ? 'Processing securely...' : 'Pay securely with Stripe'}
-              </Button>
+
             </div>
             
             <p className="text-[12px] text-[#94A3B8] text-center leading-relaxed">

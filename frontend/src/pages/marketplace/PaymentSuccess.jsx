@@ -10,8 +10,8 @@ const PaymentSuccess = () => {
   const orderIds = searchParams.get('orders')?.split(',') || [];
 
   useEffect(() => {
-    // We assume Stripe succeeded if we landed here, so clear the cart.
-    // The actual payment verification happens via Stripe webhooks.
+    // If the user landed here, payment is considered successful from frontend's perspective.
+    // The actual payment verification happens on backend webhooks or callbacks.
     clearCart();
   }, [clearCart]);
 

@@ -5,7 +5,7 @@ export interface IOrder extends Document {
   product: mongoose.Types.ObjectId;
   seller: mongoose.Types.ObjectId;
   amount: number;
-  paymentMethod: 'razorpay' | 'stripe';
+  paymentMethod: 'razorpay';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   orderStatus: 'placed' | 'preparing' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
@@ -47,7 +47,7 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['razorpay', 'stripe'],
+      enum: ['razorpay'],
       required: true,
     },
     paymentStatus: {

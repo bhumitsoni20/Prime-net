@@ -30,7 +30,4 @@ export const openRazorpayCheckout = (order, user, onSuccess, onError) => {
   razorpay.open();
 };
 
-// ─── Stripe ─────────────────────────────────────────────
 
-export const createStripeSession = (productId, orderId) =>
-  apiPost('/payments/stripe/create-session', { productId, orderId });

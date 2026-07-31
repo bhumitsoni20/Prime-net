@@ -50,7 +50,7 @@ const About = () => (
             {[
               { icon: HiShieldCheck, text: "Verified sellers and authentic subscriptions", color: "text-emerald-500", bg: "bg-emerald-50" },
               { icon: HiCurrencyRupee, text: "Competitive pricing with exclusive deals", color: "text-amber-500", bg: "bg-amber-50" },
-              { icon: HiCheckCircle, text: "Secure payments via Razorpay & Stripe", color: "text-blue-500", bg: "bg-blue-50" },
+              { icon: HiCheckCircle, text: "Secure payments via Razorpay", color: "text-blue-500", bg: "bg-blue-50" },
               { icon: HiSupport, text: "24/7 dedicated customer support", color: "text-purple-500", bg: "bg-purple-50" },
               { icon: HiLightningBolt, text: "Lightning-fast, easy-to-use interface", color: "text-rose-500", bg: "bg-rose-50" },
             ].map((feature, idx) => (

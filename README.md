@@ -54,7 +54,7 @@
   </tr>
   <tr>
     <td>💳 <strong>Secure Payments</strong></td>
-    <td>Frictionless checkout using integrated payment gateways (Stripe & Razorpay) with automated invoice generation.</td>
+    <td>Frictionless checkout using integrated payment gateways (Razorpay) with automated invoice generation.</td>
   </tr>
   <tr>
     <td>💬 <strong>Live Order Chat</strong></td>
@@ -93,7 +93,7 @@
 <summary><strong>🔌 Third-Party Services</strong></summary>
 
 - **Authentication**: Firebase Auth
-- **Payment Processing**: Stripe, Razorpay
+- **Payment Processing**: Razorpay
 - **Cloud Storage**: Firebase Cloud Storage
 </details>
 
@@ -107,7 +107,6 @@ graph TD;
     Client -->|WebSockets| SocketIO[Socket.IO Server];
     Server -->|Mongoose| Database[(MongoDB Atlas)];
     Server -->|SDK| Firebase[Firebase Auth & Storage];
-    Server -->|SDK| Stripe[Stripe API];
     Server -->|SDK| Razorpay[Razorpay API];
 ```
 
@@ -124,7 +123,7 @@ Ensure your local environment meets the following requirements:
 - npm or yarn package manager
 - A MongoDB Atlas Cluster (or Local MongoDB instance)
 - A Firebase Project (with Auth and Storage enabled)
-- Stripe / Razorpay Developer Accounts
+- Razorpay Developer Account
 
 ### 1. Backend Setup
 
@@ -172,7 +171,7 @@ To run this project securely, add the following environment variables to your re
 | `PORT` | API Server port (e.g., 5000) |
 | `MONGO_URI` | MongoDB Connection String |
 | `JWT_SECRET` | Secret key for signing JWTs |
-| `STRIPE_SECRET_KEY` | Stripe API Secret Key |
+
 | `RAZORPAY_KEY_SECRET`| Razorpay API Secret |
 
 ### Frontend (`frontend/.env`)
@@ -180,7 +179,7 @@ To run this project securely, add the following environment variables to your re
 |----------|-------------|
 | `VITE_API_URL` | Backend API URL |
 | `VITE_FIREBASE_API_KEY` | Firebase Client API Key |
-| `VITE_STRIPE_PUBLIC_KEY`| Stripe Publishable Key |
+
 
 ---
 

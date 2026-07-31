@@ -16,7 +16,7 @@ export interface IBundleOrder extends Document {
   bundle: mongoose.Types.ObjectId;
   seller: mongoose.Types.ObjectId;
   amount: number;
-  paymentMethod: 'razorpay' | 'stripe';
+  paymentMethod: 'razorpay';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   orderStatus: 'placed' | 'preparing' | 'partial' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
@@ -73,7 +73,7 @@ const bundleOrderSchema = new Schema<IBundleOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['razorpay', 'stripe'],
+      enum: ['razorpay'],
       required: true,
     },
     paymentStatus: {

@@ -14,8 +14,6 @@ interface EnvConfig {
   FIREBASE_PRIVATE_KEY: string;
   RAZORPAY_KEY_ID: string;
   RAZORPAY_KEY_SECRET: string;
-  STRIPE_SECRET_KEY: string;
-  STRIPE_WEBHOOK_SECRET: string;
   CLIENT_URL: string;
   ADMIN_EMAIL: string;
   SMTP_USER: string;
@@ -42,8 +40,6 @@ export const env: EnvConfig = {
   FIREBASE_PRIVATE_KEY: getEnv('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
   RAZORPAY_KEY_ID: getEnv('RAZORPAY_KEY_ID', ''),
   RAZORPAY_KEY_SECRET: getEnv('RAZORPAY_KEY_SECRET', ''),
-  STRIPE_SECRET_KEY: getEnv('STRIPE_SECRET_KEY', ''),
-  STRIPE_WEBHOOK_SECRET: getEnv('STRIPE_WEBHOOK_SECRET', ''),
   CLIENT_URL: getEnv('CLIENT_URL', 'http://localhost:5173'),
   ADMIN_EMAIL: getEnv('ADMIN_EMAIL', ''),
   SMTP_USER: getEnv('SMTP_USER', ''),

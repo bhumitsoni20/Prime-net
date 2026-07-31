@@ -17,7 +17,6 @@ export const CATEGORIES = [
 
 export const PAYMENT_METHODS = {
   RAZORPAY: 'razorpay',
-  STRIPE: 'stripe',
 } as const;
 
 export const PAYMENT_STATUS = {

@@ -7,7 +7,7 @@ const Footer = () => {
     { title: 'Marketplace', links: [{ label: 'All Categories', to: '/products' }, { label: 'Features', to: '/about' }, { label: 'Pricing', to: '/products' }, { label: 'How it Works', to: '/about' }] },
     { title: 'Company', links: [{ label: 'About Us', to: '/about' }, { label: 'Careers', to: '/about' }, { label: 'Contact Us', to: '/contact' }] },
     { title: 'Resources', links: [{ label: 'Help Center', to: '/contact' }] },
-    { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }] },
+    { title: 'Legal', links: [{ label: 'Privacy Policy', to: '/privacy' }, { label: 'Terms of Service', to: '/terms' }, { label: 'Refund Policy', to: '/refund' }, { label: 'Seller Policy', to: '/seller-policy' }, { label: 'Seller Verification Policy', to: '/seller-verification-policy' }] },
   ];
 
   const socialLinks = [

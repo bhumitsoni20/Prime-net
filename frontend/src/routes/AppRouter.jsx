@@ -29,6 +29,9 @@ const About = lazy(() => import('../pages/public/About'));
 const Contact = lazy(() => import('../pages/public/Contact'));
 const Privacy = lazy(() => import('../pages/public/Privacy'));
 const Terms = lazy(() => import('../pages/public/Terms'));
+const RefundPolicy = lazy(() => import('../pages/public/RefundPolicy'));
+const SellerPolicy = lazy(() => import('../pages/public/SellerPolicy'));
+const SellerVerificationPolicy = lazy(() => import('../pages/public/SellerVerificationPolicy'));
 const NotFound = lazy(() => import('../pages/public/NotFound'));
 const RequestProduct = lazy(() => import('../pages/public/RequestProduct'));
 
@@ -90,6 +93,9 @@ const router = createBrowserRouter([
       { path: 'contact', element: withSuspense(Contact) },
       { path: 'privacy', element: withSuspense(Privacy) },
       { path: 'terms', element: withSuspense(Terms) },
+      { path: 'refund', element: withSuspense(RefundPolicy) },
+      { path: 'seller-policy', element: withSuspense(SellerPolicy) },
+      { path: 'seller-verification-policy', element: withSuspense(SellerVerificationPolicy) },
       { path: 'request-product', element: withSuspense(RequestProduct) },
     ],
   },

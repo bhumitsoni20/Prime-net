@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import SearchBar from '../ui/SearchBar';
 import { HiShieldCheck, HiSparkles } from 'react-icons/hi';
-import { SiCanva } from 'react-icons/si';
+import { FiShield, FiPackage, FiShoppingBag, FiMessageSquare, FiZap, FiCheckCircle } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
 import { motion } from 'framer-motion';
@@ -152,28 +152,38 @@ const HeroSection = ({ onSearch }) => {
 
               {/* Floating App Icons */}
               <FloatingIcon delay={0} xOffset={-140} yOffset={-120} size={70} icon={
-                <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" alt="Spotify" className="w-10 h-10 object-contain" />
+                <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+                  <FiShield className="w-6 h-6 text-indigo-600" />
+                </div>
               } />
               
               <FloatingIcon delay={1} xOffset={100} yOffset={-150} size={80} icon={
-                <img src="https://assets.nflxext.com/us/ffe/siteui/common/icons/nficon2016.png" alt="Netflix" className="w-10 h-10 object-contain rounded-md" />
+                <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
+                  <FiCheckCircle className="w-7 h-7 text-emerald-600" />
+                </div>
               } />
 
               <FloatingIcon delay={2} xOffset={120} yOffset={40} size={65} icon={
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" className="w-10 h-10 object-contain" />
+                <div className="w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center">
+                  <FiZap className="w-5 h-5 text-amber-500" />
+                </div>
               } />
 
               <FloatingIcon delay={1.5} xOffset={-150} yOffset={80} size={85} icon={
-                <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg" alt="Prime Video" className="w-16 h-16 object-contain" />
+                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                  <FiPackage className="w-8 h-8 text-blue-500" />
+                </div>
               } />
 
               <FloatingIcon delay={2.5} xOffset={0} yOffset={-170} size={75} icon={
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT" className="w-10 h-10 object-contain" />
+                <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center">
+                  <FiShoppingBag className="w-6 h-6 text-rose-500" />
+                </div>
               } />
 
               <FloatingIcon delay={1.2} xOffset={80} yOffset={140} size={70} icon={
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00C4CC] to-[#7D2AE8] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]">
-                  <SiCanva className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center">
+                  <FiMessageSquare className="w-6 h-6 text-purple-600" />
                 </div>
               } />
 

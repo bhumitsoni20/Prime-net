@@ -21,7 +21,7 @@ const ProductDetail = lazy(() => import('../pages/marketplace/ProductDetail'));
 const BundleDetail = lazy(() => import('../pages/marketplace/BundleDetail'));
 const Search = lazy(() => import('../pages/marketplace/Search'));
 const Checkout = lazy(() => import('../pages/marketplace/Checkout'));
-const PaymentSuccess = lazy(() => import('../pages/marketplace/PaymentSuccess'));
+const PaymentVerificationPending = lazy(() => import('../pages/marketplace/PaymentVerificationPending'));
 const PaymentCancel = lazy(() => import('../pages/marketplace/PaymentCancel'));
 const Cart = lazy(() => import('../pages/marketplace/Cart'));
 const Wishlist = lazy(() => import('../pages/marketplace/Wishlist'));
@@ -66,6 +66,8 @@ const ManageApplications = lazy(() => import('../pages/admin/ManageApplications'
 const AdminProductRequests = lazy(() => import('../pages/admin/AdminProductRequests'));
 const AdminBundles = lazy(() => import('../pages/admin/AdminBundles'));
 const ProductCatalog = lazy(() => import('../pages/admin/ProductCatalog'));
+const ManagePayments = lazy(() => import('../pages/admin/ManagePayments'));
+const PaymentSettings = lazy(() => import('../pages/admin/PaymentSettings'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -86,9 +88,9 @@ const router = createBrowserRouter([
       { path: 'cart', element: withSuspense(Cart) },
       { path: 'wishlist', element: withSuspense(Wishlist) },
       { path: 'notifications', element: <ProtectedRoute>{withSuspense(Notifications)}</ProtectedRoute> },
+      { path: 'payment-pending', element: <ProtectedRoute>{withSuspense(PaymentVerificationPending)}</ProtectedRoute> },
       { path: 'search', element: withSuspense(Search) },
       { path: 'checkout', element: withSuspense(Checkout) },
-      { path: 'payment/success', element: withSuspense(PaymentSuccess) },
       { path: 'payment/cancel', element: withSuspense(PaymentCancel) },
       { path: 'about', element: withSuspense(About) },
       { path: 'contact', element: withSuspense(Contact) },
@@ -166,6 +168,8 @@ const router = createBrowserRouter([
       { path: 'orders', element: withSuspense(ManageOrders) },
       { path: 'applications', element: withSuspense(ManageApplications) },
       { path: 'product-requests', element: withSuspense(AdminProductRequests) },
+      { path: 'payments', element: withSuspense(ManagePayments) },
+      { path: 'payment-settings', element: withSuspense(PaymentSettings) },
     ],
   },
   { path: '*', element: withSuspense(NotFound) },

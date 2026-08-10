@@ -107,13 +107,71 @@
 ## 📂 Architecture
 
 ```mermaid
-graph TD;
-    Client[Client App] -->|REST API| Server[Node/Express API];
-    Client -->|WebSockets| SocketIO[Socket.IO Server];
-    Server -->|Mongoose| Database[(MongoDB Atlas)];
-    Server -->|SDK| Firebase[Firebase Auth & Storage];
-    Admin[Admin Panel] -->|Verify/Reject Proof| Server;
-    Server -->|Socket Redirect/Pop-up| Client;
+flowchart TB
+    subgraph Frontend["🖥️ Frontend Application (React 18 + Vite)"]
+        subgraph Portals["User Interfaces"]
+            BuyerUI["Buyer Marketplace & Checkout"]
+            SellerUI["Seller Dashboard & Bundles"]
+            AdminUI["Admin Payment Portal (ManagePayments)"]
+            ChatUI["Unified Buyer-Seller Chat (/dashboard/chats)"]
+        end
+
+        subgraph ClientState["Client Infrastructure"]
+            Zustand["Zustand Auth Store"]
+            Query["TanStack Query (Polling & Caching)"]
+            SocketClient["Socket.IO Client"]
+            ApprovalHandler["Global Payment & Rejection Handler"]
+        end
+    end
+
+    subgraph Backend["⚙️ Backend Server (Node.js + Express + TypeScript)"]
+        subgraph AuthMiddleware["Auth & RBAC Middleware"]
+            FirebaseAuth["Firebase Auth Verification"]
+            RBAC["Role Control (Admin / Seller / User)"]
+        end
+
+        subgraph Controllers["API Controllers"]
+            OrderCtrl["Order & Bundle Controller"]
+            PaymentCtrl["Manual UPI & Verification Controller"]
+            ChatCtrl["Messaging & Chat Controller"]
+            ProdCtrl["Product & Review Controller"]
+        end
+
+        subgraph Sockets["Real-Time Event Engine (Socket.IO)"]
+            UserRooms["User Personal Rooms (user_id)"]
+            OrderRooms["Order Chat Rooms (order_id)"]
+            Events["Events: payment_verified_redirect | payment_rejected_popup | new_message"]
+        end
+    end
+
+    subgraph External["🔌 Third-Party & Cloud Services"]
+        FBCloud["Firebase Auth & Cloud Storage"]
+        WebPush["Web Push & FCM Notification Service"]
+    end
+
+    subgraph Database["Database Layer (MongoDB Atlas)"]
+        Mongo[("MongoDB Collections
+        • Users & Products
+        • Bundles & Orders
+        • PaymentVerifications
+        • Messages & Reviews")]
+    end
+
+    %% Flow Interactions
+    BuyerUI -->|1. Submit UPI Proof| PaymentCtrl
+    AdminUI -->|2. Approve / Reject Verification| PaymentCtrl
+    PaymentCtrl -->|3. Update Status & Timeline| Mongo
+    PaymentCtrl -->|4. Emit Redirect / Rejection Event| Sockets
+    Sockets -->|5. Socket Push| SocketClient
+    SocketClient -->|6. Real-time Modal & Redirect| ApprovalHandler
+
+    ChatUI <-->|REST API & WebSockets| ChatCtrl
+    ChatCtrl <-->|Persist & Query Messages| Mongo
+    ChatCtrl -->|Emit Live Messages| Sockets
+
+    AuthMiddleware -->|Verify Tokens| FBCloud
+    PaymentCtrl -->|Send Push Notifications| WebPush
+    Controllers <-->|Mongoose ORM| Mongo
 ```
 
 ---

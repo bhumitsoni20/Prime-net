@@ -19,8 +19,10 @@ const Orders = () => {
     },
   });
 
-  // Filter out abandoned checkouts
-  const orders = rawOrders.filter((o) => o.paymentStatus === 'paid');
+  // Include all non-failed/non-rejected active orders
+  const orders = rawOrders.filter((o) => 
+    o.paymentStatus && !['failed', 'payment_rejected', 'pending'].includes(o.paymentStatus)
+  );
 
   const submitReview = async ({ rating, comment }) => {
     if (!rating) return toast.error('Please select a rating');

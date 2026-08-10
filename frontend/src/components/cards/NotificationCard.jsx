@@ -1,10 +1,20 @@
+import { useNavigate } from 'react-router-dom';
+
 const typeIcons = { order: '📦', payment: '💳', system: '🔐', promotion: '⭐', application: '📄' };
 const typeColors = { order: 'bg-[#F3E8FF]', payment: 'bg-[#DCFCE7]', system: 'bg-[#DBEAFE]', promotion: 'bg-[#FEF3C7]', application: 'bg-[#EEF2FF]' };
 
 const NotificationCard = ({ notification, onMarkRead }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onMarkRead) {
+      onMarkRead();
+    }
+  };
+
   return (
     <div
-      onClick={() => !notification.isRead && onMarkRead?.(notification._id)}
+      onClick={handleClick}
       className={`flex items-start gap-3.5 p-4 rounded-[14px] border cursor-pointer transition-all duration-200 ${
         notification.isRead ? 'bg-white border-[#F1F5F9] opacity-55' : 'bg-white border-[#E2E8F0] hover:border-[#5B4BFF]/20 hover:shadow-[0_2px_8px_-2px_rgba(91,75,255,0.08)]'
       }`}

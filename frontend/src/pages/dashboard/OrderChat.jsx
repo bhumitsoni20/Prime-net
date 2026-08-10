@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
-const OrderChat = ({ orderId: orderIdProp, onBack }) => {
+const OrderChat = ({ orderId: orderIdProp, onBack, onMessageSent }) => {
   const params = useParams();
   const navigate = useNavigate();
   const orderId = orderIdProp || params.id || params.orderId;
@@ -231,6 +231,7 @@ const OrderChat = ({ orderId: orderIdProp, onBack }) => {
             m.tempId === tempId ? { ...res.data, status: res.data.status || 'sent' } : m
           );
         });
+        if (onMessageSent) onMessageSent();
       }
     } catch (err) {
       toast.error('Failed to send message');

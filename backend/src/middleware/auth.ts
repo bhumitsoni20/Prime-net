@@ -43,7 +43,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
     if (!user) {
       // Auto-create user on first login
-      const isAdmin = env.ADMIN_EMAIL && decodedToken.email === env.ADMIN_EMAIL;
+      const isAdmin = !!(env.ADMIN_EMAIL && decodedToken.email && decodedToken.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase());
       user = await User.create({
         name: decodedToken.name || decodedToken.email?.split('@')[0] || 'User',
         email: decodedToken.email || '',
@@ -53,10 +53,6 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
         isVerified: decodedToken.email_verified || false,
         role: isAdmin ? 'admin' : 'user',
       });
-    } else if (env.ADMIN_EMAIL && decodedToken.email === env.ADMIN_EMAIL && user.role !== 'admin') {
-      // Auto-upgrade if they already exist but aren't an admin
-      user.role = 'admin';
-      await user.save();
     }
 
     // Check for active suspension

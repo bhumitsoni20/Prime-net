@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../common/Navbar';
 import Sidebar from '../common/Sidebar';
 
+import PaymentApprovalHandler from '../../components/PaymentApprovalHandler';
+
 const DashboardLayout = () => {
   const location = useLocation();
   const outlet = useOutlet();
@@ -12,6 +14,7 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
+      <PaymentApprovalHandler />
       {!isChatsPage && <Sidebar />}
       <main className={`pt-16 min-h-screen overflow-x-hidden ${isChatsPage ? '' : 'lg:pl-[240px]'}`}>
         <div className="p-4 sm:p-5 lg:p-8">

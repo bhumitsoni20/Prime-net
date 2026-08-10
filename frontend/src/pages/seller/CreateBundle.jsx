@@ -9,9 +9,6 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import api from '../../services/api';
 import useAuthStore from '../../store/authStore';
-import ImageCropperModal from '../../components/ui/ImageCropperModal';
-
-
 
 const CreateBundle = () => {
   const navigate = useNavigate();
@@ -29,11 +26,7 @@ const CreateBundle = () => {
 
   const [selectedProducts, setSelectedProducts] = useState([]);
   
-  // Image Upload States
-  const fileInputRef = useRef(null);
-  const [imageSrc, setImageSrc] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [croppedBlob, setCroppedBlob] = useState(null);
+
 
   // Fetch Master Products
   const { data: productsRes, isLoading: isLoadingProducts } = useQuery({
@@ -47,21 +40,7 @@ const CreateBundle = () => {
   
   const products = productsRes?.data || [];
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.addEventListener('load', () => setImageSrc(reader.result?.toString() || ''));
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
-  };
 
-  const handleCropComplete = (blob) => {
-    setImageSrc(null);
-    setCroppedBlob(blob);
-    setPreviewUrl(URL.createObjectURL(blob));
-  };
 
   const handleAddProduct = (productId) => {
     const product = products.find(p => p._id === productId);
@@ -127,25 +106,7 @@ const CreateBundle = () => {
       return;
     }
 
-    if (!croppedBlob) {
-      toast.error('Please upload a bundle thumbnail');
-      return;
-    }
 
-    if (!form.bundlePrice || form.bundlePrice <= 0) {
-      toast.error('Please enter a valid bundle price');
-      return;
-    }
-
-    let base64Logo = '';
-    if (croppedBlob) {
-      base64Logo = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(croppedBlob);
-      });
-    }
 
     const payload = {
       title: form.title,
@@ -154,7 +115,6 @@ const CreateBundle = () => {
       bundlePrice: Number(form.bundlePrice),
       originalPrice,
       duration: form.duration,
-      thumbnail: base64Logo,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       products: selectedProducts.map(p => ({
         masterProduct: p.masterProduct,
@@ -218,43 +178,6 @@ const CreateBundle = () => {
               />
             </div>
             
-            {/* Thumbnail Upload */}
-            <div>
-              <label className="block text-[14px] font-bold text-[#1E293B] mb-2">Bundle Thumbnail</label>
-              <div className="flex items-start gap-6">
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-[120px] h-[120px] rounded-[24px] border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFC] flex flex-col items-center justify-center cursor-pointer hover:border-[#5B4BFF] hover:bg-[#5B4BFF]/5 transition-all overflow-hidden relative group"
-                >
-                  {previewUrl ? (
-                    <>
-                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-sm font-medium">Change</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-2xl mb-2">📸</span>
-                      <span className="text-[#64748B] text-xs font-medium">Upload Image</span>
-                    </>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[#64748B] mb-4">Upload a high-quality square image (recommended 512x512) for your bundle listing. This will be shown on the marketplace.</p>
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    Choose Image
-                  </Button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -378,14 +301,6 @@ const CreateBundle = () => {
           </Button>
         </div>
       </form>
-
-      {/* Image Cropper Modal */}
-      <ImageCropperModal
-        isOpen={!!imageSrc}
-        onClose={() => setImageSrc(null)}
-        imageSrc={imageSrc}
-        onCropComplete={handleCropComplete}
-      />
     </div>
   );
 };

@@ -8,7 +8,6 @@ const requiredEnvVars = [
   'VITE_FIREBASE_APP_ID',
   'VITE_FIREBASE_MEASUREMENT_ID',
   'VITE_FIREBASE_VAPID_KEY',
-  'VITE_RAZORPAY_KEY_ID',
 ];
 
 export const validateEnv = () => {

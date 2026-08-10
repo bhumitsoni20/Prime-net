@@ -7,11 +7,12 @@ export const sendPushNotification = async (
   userId: string,
   title: string,
   message: string,
-  type: 'order' | 'payment' | 'system' | 'promotion' = 'system'
+  type: 'order' | 'payment' | 'system' | 'promotion' = 'system',
+  actionUrl?: string
 ) => {
   try {
     // Save to database
-    await Notification.create({ user: userId, title, message, type });
+    await Notification.create({ user: userId, title, message, type, actionUrl });
 
     // Send FCM push notification
     const user = await User.findById(userId);
@@ -19,7 +20,7 @@ export const sendPushNotification = async (
       await firebaseMessaging.send({
         token: user.fcmToken,
         notification: { title, body: message },
-        data: { type, userId },
+        data: { type, userId, ...(actionUrl && { actionUrl }) },
       });
     }
 

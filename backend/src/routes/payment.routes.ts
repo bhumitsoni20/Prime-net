@@ -1,17 +1,13 @@
 import { Router } from 'express';
-import express from 'express';
-import {
-  razorpayCreateOrder,
-  razorpayVerify,
-} from '../controllers/payment.controller';
 import { authenticate } from '../middleware/auth';
+import { getPaymentSettings, submitPaymentProof } from '../controllers/payment.controller';
 
 const router = Router();
 
-// Razorpay
-router.post('/razorpay/create-order', authenticate, razorpayCreateOrder);
-router.post('/razorpay/verify', authenticate, razorpayVerify);
+// Public configuration for manual payment
+router.get('/settings', getPaymentSettings);
 
-
+// Submit manual payment proof
+router.post('/submit-proof', authenticate, submitPaymentProof);
 
 export default router;

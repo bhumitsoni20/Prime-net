@@ -24,7 +24,16 @@ const Chats = () => {
 
   useEffect(() => {
     fetchChats();
-  }, []);
+
+    const handleFocus = () => {
+      fetchChats();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [orderId]);
 
   useEffect(() => {
     if (!socket) return;
@@ -35,6 +44,8 @@ const Chats = () => {
 
     socket.on('new_message', handleNewMessage);
     socket.on('messages_seen', handleNewMessage);
+    socket.on('order_updated', handleNewMessage);
+    socket.on('payment_verified_redirect', handleNewMessage);
 
     if (chats.length > 0) {
       chats.forEach((chat) => {
@@ -45,6 +56,8 @@ const Chats = () => {
     return () => {
       socket.off('new_message', handleNewMessage);
       socket.off('messages_seen', handleNewMessage);
+      socket.off('order_updated', handleNewMessage);
+      socket.off('payment_verified_redirect', handleNewMessage);
     };
   }, [chats.length, socket]);
 
@@ -99,10 +112,13 @@ const Chats = () => {
           ) : (
             chats.map((item) => {
               const { order, lastMessage, unreadCount, lastActivity } = item;
-              const isSeller = order.seller?._id === user?._id;
+              const sellerIdStr = (order.seller?._id || order.seller)?.toString();
+              const userIdStr = user?._id?.toString();
+              const isSeller = sellerIdStr && userIdStr && sellerIdStr === userIdStr;
               const otherUser = isSeller ? order.user : order.seller;
-              const isActive = selectedOrderId === order._id;
+              const isActive = selectedOrderId && order._id && selectedOrderId.toString() === order._id.toString();
               const presence = getPresence(otherUser?._id);
+              const productTitle = order.product?.title || order.bundle?.title || (order.isBundle ? 'Bundle Order' : 'Product');
               
               return (
                 <div 
@@ -131,11 +147,11 @@ const Chats = () => {
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <p className={`text-[13px] truncate ${unreadCount > 0 ? 'text-[#0F172A] font-semibold' : 'text-[#64748B]'}`}>
-                        {lastMessage ? lastMessage.content : `Order: ${order.product?.title || 'Unknown Product'}`}
+                        {lastMessage ? lastMessage.content : `Order: ${productTitle}`}
                       </p>
                     </div>
                     <div className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mt-1.5 truncate">
-                      {order.product?.title || 'Unknown Product'}
+                      {productTitle}
                     </div>
                   </div>
                 </div>
@@ -161,7 +177,7 @@ const Chats = () => {
               transition={{ duration: 0.2 }}
               className="absolute inset-0 flex flex-col bg-white"
             >
-              <OrderChat orderId={selectedOrderId} onBack={handleBack} />
+              <OrderChat orderId={selectedOrderId} onBack={handleBack} onMessageSent={fetchChats} />
             </motion.div>
           ) : (
             <motion.div

@@ -4,6 +4,8 @@ import Navbar from '../common/Navbar';
 import Footer from '../common/Footer';
 import GlobalLoginPrompt from '../common/GlobalLoginPrompt';
 
+import PaymentApprovalHandler from '../../components/PaymentApprovalHandler';
+
 const MainLayout = () => {
   const location = useLocation();
   const outlet = useOutlet();
@@ -11,6 +13,7 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
       <Navbar />
+      <PaymentApprovalHandler />
       <main className="flex-1 pt-16 overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div

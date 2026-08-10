@@ -151,15 +151,15 @@ export const checkEligibility = async (req: AuthRequest, res: Response) => {
     const order = await Order.findOne({
       user: req.user._id,
       product: productId,
-      paymentStatus: 'paid'
+      paymentStatus: { $in: ['paid', 'payment_verified'] }
     });
 
     if (!order) {
       const { BundleOrder } = await import('../models/BundleOrder');
       const bundleOrder = await BundleOrder.findOne({
         user: req.user._id,
-        bundle: productId,
-        paymentStatus: 'paid'
+        'credentials.masterProductId': productId,
+        paymentStatus: { $in: ['paid', 'payment_verified'] }
       });
       if (!bundleOrder) {
         return sendSuccess(res, { canReview: false, reason: 'purchase_required' });

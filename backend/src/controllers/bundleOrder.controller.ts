@@ -45,7 +45,7 @@ export const createBundleOrder = async (req: AuthRequest, res: Response) => {
     await Message.create({
       orderId: order._id,
       onModel: 'BundleOrder',
-      senderId: req.user._id,
+      senderId: bundle.seller,
       type: 'system',
       content: `Bundle Order placed successfully. Order ID: ${order._id}`,
     });
@@ -210,10 +210,19 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
         });
       }
 
-      io.to(`order_${order._id}`).emit('order_updated', order);
-      io.to(`order_${order._id}`).emit('new_message', populatedMessage);
+      const orderIdStr = order._id?.toString();
+      const buyerIdStr = order.user?.toString();
+      const sellerIdStr = order.seller?.toString();
+
+      io.to(`order_${orderIdStr}`).emit('order_updated', order);
+      io.to(`order_${orderIdStr}`).emit('new_message', populatedMessage);
+      if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', populatedMessage);
+      if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', populatedMessage);
+
       if (popSysMsg) {
-        io.to(`order_${order._id}`).emit('new_message', popSysMsg);
+        io.to(`order_${orderIdStr}`).emit('new_message', popSysMsg);
+        if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', popSysMsg);
+        if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', popSysMsg);
       }
     } catch (e) {
       console.error('Socket emit failed:', e);

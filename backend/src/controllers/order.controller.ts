@@ -54,14 +54,21 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
+    const userIdStr = req.user._id?.toString();
+    const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
+
     const BundleOrder = mongoose.model('BundleOrder');
 
+    const userConditions: any[] = [];
+    if (userObjId) userConditions.push({ user: userObjId });
+    if (userIdStr) userConditions.push({ user: userIdStr });
+
     const [allOrders, allBundleOrders] = await Promise.all([
-      Order.find({ user: req.user._id })
+      Order.find({ $or: userConditions })
         .populate('product', 'title logo price category')
         .populate('seller', 'name')
         .lean(),
-      BundleOrder.find({ user: req.user._id })
+      BundleOrder.find({ $or: userConditions })
         .populate('bundle', 'title thumbnail category')
         .populate('seller', 'name')
         .lean()
@@ -288,7 +295,14 @@ export const sendOrderMessage = async (req: AuthRequest, res: Response) => {
     const populatedMessage = await message.populate('senderId', 'name avatar');
 
     try {
-      getIO().to(`order_${order._id}`).emit('new_message', populatedMessage);
+      const io = getIO();
+      const orderIdStr = order._id?.toString();
+      const buyerIdStr = order.user?.toString();
+      const sellerIdStr = order.seller?.toString();
+
+      io.to(`order_${orderIdStr}`).emit('new_message', populatedMessage);
+      if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', populatedMessage);
+      if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', populatedMessage);
     } catch (e) {}
 
     // Send push notification to the other party
@@ -340,8 +354,14 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
 
     try {
       const io = getIO();
-      io.to(`order_${order._id}`).emit('order_updated', order);
-      io.to(`order_${order._id}`).emit('new_message', populatedMessage);
+      const orderIdStr = order._id?.toString();
+      const buyerIdStr = order.user?.toString();
+      const sellerIdStr = order.seller?.toString();
+
+      io.to(`order_${orderIdStr}`).emit('order_updated', order);
+      io.to(`order_${orderIdStr}`).emit('new_message', populatedMessage);
+      if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', populatedMessage);
+      if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', populatedMessage);
     } catch (e) {}
 
     // Fire and forget push notification
@@ -389,23 +409,28 @@ export const markMessagesSeen = async (req: AuthRequest, res: Response) => {
 // GET /api/orders/chats
 export const getMyChats = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user._id;
+    const userIdStr = req.user._id?.toString();
+    const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
 
     const BundleOrder = mongoose.model('BundleOrder');
+
+    const userConditions: any[] = [];
+    if (userObjId) userConditions.push({ user: userObjId }, { seller: userObjId });
+    if (userIdStr) userConditions.push({ user: userIdStr }, { seller: userIdStr });
     
-    // Fetch all paid orders where user is either buyer or seller
+    // Fetch all active orders where user is either buyer or seller (excluding failed/rejected)
     const [orders, bundleOrders] = await Promise.all([
       Order.find({
-        $or: [{ user: userId }, { seller: userId }],
-        paymentStatus: 'paid'
+        $or: userConditions,
+        paymentStatus: { $nin: ['failed', 'payment_rejected'] }
       })
         .populate('user', 'name avatar')
         .populate('seller', 'name avatar')
         .populate('product', 'title logo')
         .lean(),
       BundleOrder.find({
-        $or: [{ user: userId }, { seller: userId }],
-        paymentStatus: 'paid'
+        $or: userConditions,
+        paymentStatus: { $nin: ['failed', 'payment_rejected'] }
       })
         .populate('user', 'name avatar')
         .populate('seller', 'name avatar')
@@ -424,19 +449,32 @@ export const getMyChats = async (req: AuthRequest, res: Response) => {
     // Fetch last message and unread count for each order concurrently
     const chats = await Promise.all(
       allOrders.map(async (order) => {
-        const lastMessage = await Message.findOne({ orderId: order._id })
+        const orderIdStr = order._id?.toString();
+        const orderObjId = mongoose.Types.ObjectId.isValid(orderIdStr) ? new mongoose.Types.ObjectId(orderIdStr) : null;
+
+        const orderConditions: any[] = [];
+        if (orderObjId) orderConditions.push({ orderId: orderObjId });
+        if (orderIdStr) orderConditions.push({ orderId: orderIdStr });
+
+        const lastMessage = await Message.findOne({ $or: orderConditions })
           .sort({ createdAt: -1 })
           .populate('senderId', 'name avatar')
           .lean();
 
+        const unreadConditions: any[] = [];
+        if (userObjId) unreadConditions.push({ senderId: { $ne: userObjId } });
+        if (userIdStr) unreadConditions.push({ senderId: { $ne: userIdStr } });
+
         const unreadCount = await Message.countDocuments({
-          orderId: order._id,
-          senderId: { $ne: userId },
+          $or: orderConditions,
+          $and: unreadConditions,
           status: { $ne: 'seen' }
         });
 
-        // Use last message date, or fallback to order creation date
-        const lastActivity = lastMessage ? lastMessage.createdAt : order.createdAt;
+        // Use last message date, or fallback to order update/creation date
+        const lastActivity = lastMessage 
+          ? lastMessage.createdAt 
+          : (order.updatedAt || order.createdAt);
 
         return {
           order,

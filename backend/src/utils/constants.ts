@@ -16,7 +16,7 @@ export const CATEGORIES = [
 ] as const;
 
 export const PAYMENT_METHODS = {
-  RAZORPAY: 'razorpay',
+  UPI: 'upi',
 } as const;
 
 export const PAYMENT_STATUS = {

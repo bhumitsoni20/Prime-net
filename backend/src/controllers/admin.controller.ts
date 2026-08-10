@@ -9,7 +9,7 @@ import { firebaseAuth } from '../config/firebase';
 // GET /api/admin/stats
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    const latestOrder = await Order.findOne({ paymentStatus: 'paid' }).sort({ createdAt: -1 });
+    const latestOrder = await Order.findOne({ paymentStatus: { $in: ['paid', 'payment_verified'] } }).sort({ createdAt: -1 });
     const anchorDate = latestOrder ? latestOrder.createdAt : new Date();
     
     const sixMonthsAgo = new Date(anchorDate);
@@ -22,11 +22,11 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       Product.countDocuments(),
       Order.countDocuments(),
       Order.aggregate([
-        { $match: { paymentStatus: 'paid' } },
+        { $match: { paymentStatus: { $in: ['paid', 'payment_verified'] } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Order.aggregate([
-        { $match: { paymentStatus: 'paid', createdAt: { $gte: sixMonthsAgo } } },
+        { $match: { paymentStatus: { $in: ['paid', 'payment_verified'] }, createdAt: { $gte: sixMonthsAgo } } },
         { 
           $group: { 
             _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },

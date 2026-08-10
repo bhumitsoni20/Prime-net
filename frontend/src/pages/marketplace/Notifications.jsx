@@ -82,8 +82,7 @@ const Notifications = () => {
           {notifications.map((notification) => (
             <div 
               key={notification._id} 
-              onClick={() => handleNotificationClick(notification)}
-              className={`cursor-pointer transition-all duration-300 ${!notification.isRead ? 'ring-2 ring-[#5B4BFF]/20 rounded-[14px] shadow-[0_4px_12px_rgba(91,75,255,0.08)]' : ''}`}
+              className={`transition-all duration-300 ${!notification.isRead ? 'ring-2 ring-[#5B4BFF]/20 rounded-[14px] shadow-[0_4px_12px_rgba(91,75,255,0.08)]' : ''}`}
             >
               <NotificationCard 
                 notification={notification} 

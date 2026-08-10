@@ -12,8 +12,7 @@ interface EnvConfig {
   FIREBASE_PROJECT_ID: string;
   FIREBASE_CLIENT_EMAIL: string;
   FIREBASE_PRIVATE_KEY: string;
-  RAZORPAY_KEY_ID: string;
-  RAZORPAY_KEY_SECRET: string;
+  JWT_EXPIRES_IN: string;
   CLIENT_URL: string;
   ADMIN_EMAIL: string;
   SMTP_USER: string;
@@ -38,8 +37,7 @@ export const env: EnvConfig = {
   FIREBASE_PROJECT_ID: getEnv('FIREBASE_PROJECT_ID'),
   FIREBASE_CLIENT_EMAIL: getEnv('FIREBASE_CLIENT_EMAIL'),
   FIREBASE_PRIVATE_KEY: getEnv('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
-  RAZORPAY_KEY_ID: getEnv('RAZORPAY_KEY_ID', ''),
-  RAZORPAY_KEY_SECRET: getEnv('RAZORPAY_KEY_SECRET', ''),
+  JWT_EXPIRES_IN: getEnv('JWT_EXPIRES_IN', '30d'),
   CLIENT_URL: getEnv('CLIENT_URL', 'http://localhost:5173'),
   ADMIN_EMAIL: getEnv('ADMIN_EMAIL', ''),
   SMTP_USER: getEnv('SMTP_USER', ''),

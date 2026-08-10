@@ -117,14 +117,14 @@ const BundleDetail = () => {
               {bundle.products.map((p, idx) => (
                 <div key={idx} className="flex items-start gap-4 p-5 bg-[#F8FAFC] rounded-[16px] border border-[#E2E8F0] hover:border-[#5B4BFF]/30 transition-colors">
                   <div className="w-14 h-14 rounded-[12px] bg-white border border-[#E2E8F0] flex items-center justify-center overflow-hidden shrink-0">
-                    {p.product.logo ? (
-                      <img src={p.product.logo} alt={p.product.title} className="w-10 h-10 object-contain" />
+                    {p.masterProduct?.imageUrl ? (
+                      <img src={p.masterProduct.imageUrl} alt={p.masterProduct.name} className="w-10 h-10 object-contain" />
                     ) : (
-                      <div className="text-xl font-bold text-[#5B4BFF]">{p.product.title[0]}</div>
+                      <div className="text-xl font-bold text-[#5B4BFF]">{p.masterProduct?.name?.[0]}</div>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-[#0F172A] mb-1">{p.product.title}</h3>
+                    <h3 className="font-bold text-[#0F172A] mb-1">{p.masterProduct?.name}</h3>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-[#64748B]">
                       <span className="flex items-center gap-1"><HiClock /> {p.duration}</span>
                       <span className="flex items-center gap-1"><HiShieldCheck /> {p.warranty} Warranty</span>

@@ -72,6 +72,9 @@ export const initSocket = (httpServer: HttpServer) => {
         status: 'online',
         lastSeen: new Date(),
       });
+      
+      // Join personal room for user-specific events
+      socket.join(`user_${userId}`);
     }
 
     // Join Order Room with authorization check

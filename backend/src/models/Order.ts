@@ -5,8 +5,8 @@ export interface IOrder extends Document {
   product: mongoose.Types.ObjectId;
   seller: mongoose.Types.ObjectId;
   amount: number;
-  paymentMethod: 'razorpay';
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod: 'upi' | 'razorpay';
+  paymentStatus: 'pending' | 'pending_verification' | 'payment_verified' | 'paid' | 'payment_rejected' | 'failed' | 'refunded';
   orderStatus: 'placed' | 'preparing' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
   sessionId?: string;
@@ -47,12 +47,13 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['razorpay'],
+      enum: ['upi', 'razorpay'],
       required: true,
+      default: 'upi'
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'failed', 'refunded'],
+      enum: ['pending', 'pending_verification', 'payment_verified', 'paid', 'payment_rejected', 'failed', 'refunded'],
       default: 'pending',
     },
     orderStatus: {

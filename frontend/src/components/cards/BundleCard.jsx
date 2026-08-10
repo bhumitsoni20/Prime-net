@@ -9,21 +9,27 @@ const BundleCard = ({ bundle }) => {
   const { toggleItem, isInWishlist } = useWishlistStore();
   const liked = isInWishlist(bundle._id);
 
-  const productLogos = bundle.products?.map(p => p.product?.logo).filter(Boolean) || [];
+  const productLogos = bundle.products?.map(p => p.masterProduct?.imageUrl).filter(Boolean) || [];
 
   return (
     <div className="group bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden transition-all duration-300 hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.1)] hover:border-[#CBD5E1] flex flex-col p-4 relative">
       <Link to={`/bundles/${bundle._id}`} className="block">
-        <div className="relative h-44 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center overflow-hidden mb-5">
-          {bundle.thumbnail ? (
-            <img src={bundle.thumbnail} alt={bundle.title} loading="lazy" decoding="async" className="w-32 h-32 object-contain group-hover:scale-110 transition-transform duration-500 ease-out drop-shadow-sm rounded-[16px]" />
-          ) : (
-            <div className="flex gap-2">
-              {productLogos.slice(0, 3).map((logo, idx) => (
-                <img key={idx} src={logo} className="w-12 h-12 rounded-[10px] shadow-sm" />
-              ))}
-            </div>
-          )}
+        <div className="relative h-[180px] bg-[#F8FAFC] rounded-[16px] flex items-center justify-center overflow-hidden mb-5 group-hover:bg-[#EEF2FF] transition-colors duration-300">
+          <div className="flex items-center gap-4">
+            {productLogos[0] && (
+              <div className="w-[85px] h-[85px] bg-white rounded-[20px] shadow-sm flex items-center justify-center p-2.5 border border-[#E2E8F0] group-hover:scale-105 transition-transform duration-300">
+                <img src={productLogos[0]} className="w-full h-full object-contain drop-shadow-sm" />
+              </div>
+            )}
+            {productLogos.length > 1 && (
+              <span className="text-[#94A3B8] font-extrabold text-[28px] opacity-80">+</span>
+            )}
+            {productLogos[1] && (
+              <div className="w-[85px] h-[85px] bg-white rounded-[20px] shadow-sm flex items-center justify-center p-2.5 border border-[#E2E8F0] group-hover:scale-105 transition-transform duration-300">
+                <img src={productLogos[1]} className="w-full h-full object-contain drop-shadow-sm" />
+              </div>
+            )}
+          </div>
         </div>
       </Link>
 

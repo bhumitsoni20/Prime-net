@@ -35,8 +35,10 @@ const Sidebar = () => {
     { to: '/admin/products/catalog', icon: HiTemplate, label: 'Product Catalog' },
     { to: '/admin/products', icon: HiCube, label: 'Integrations', end: true },
     { to: '/admin/bundles', icon: HiShoppingBag, label: 'Bundles' },
-    { to: '/admin/orders', icon: HiCog, label: 'Settings' },
+    { to: '/admin/orders', icon: HiCog, label: 'Orders' },
     { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },
+    { to: '/admin/payments', icon: HiClipboardList, label: 'Payment Verifications' },
+    { to: '/admin/payment-settings', icon: HiCog, label: 'Payment Settings' },
   ];
 
   const renderSection = (title, links) => (

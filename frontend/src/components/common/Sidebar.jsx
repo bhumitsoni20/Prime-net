@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiSupport, HiChat, HiSparkles } from 'react-icons/hi';
+import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiSupport, HiChat, HiSparkles, HiTemplate } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useUiStore from '../../store/uiStore';
 import Button from '../ui/Button';
@@ -32,7 +32,8 @@ const Sidebar = () => {
     { to: '/admin', icon: HiChartBar, label: 'Dashboard', end: true },
     { to: '/admin/users', icon: HiUsers, label: 'Subscribers' },
     { to: '/admin/applications', icon: HiClipboardList, label: 'Applications' },
-    { to: '/admin/products', icon: HiCube, label: 'Integrations' },
+    { to: '/admin/products/catalog', icon: HiTemplate, label: 'Product Catalog' },
+    { to: '/admin/products', icon: HiCube, label: 'Integrations', end: true },
     { to: '/admin/bundles', icon: HiShoppingBag, label: 'Bundles' },
     { to: '/admin/orders', icon: HiCog, label: 'Settings' },
     { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },

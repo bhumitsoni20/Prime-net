@@ -35,15 +35,17 @@ const EditBundle = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [croppedBlob, setCroppedBlob] = useState(null);
 
-  // Fetch Seller Products
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
-    queryKey: ['sellerProducts', user?._id],
+  // Fetch Master Products
+  const { data: productsRes, isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['masterProducts'],
     queryFn: async () => {
-      const res = await api.get('/products/seller/me');
-      return res.data;
+      const res = await api.get('/master-products');
+      return res;
     },
     enabled: !!user?._id,
   });
+
+  const products = productsRes?.data || [];
 
   const { data: bundleData, isLoading: isLoadingBundle } = useQuery({
     queryKey: ['bundle', id],
@@ -67,11 +69,13 @@ const EditBundle = () => {
       });
       setPreviewUrl(b.thumbnail || null);
       if (b.products) {
-        setSelectedProducts(b.products.map(p => ({
-          id: Math.random().toString(36).substr(2, 9),
-          product: p.product._id || p.product, // depending on if it's populated
-          title: p.product.title || 'Product',
-          price: p.price,
+        setSelectedProducts(b.products.map(p => {
+          const masterProductObj = p.masterProduct || {};
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            masterProduct: masterProductObj._id || masterProductObj, // depending on if it's populated
+            title: masterProductObj.name || 'Product',
+            price: p.price,
           duration: p.duration,
           accountType: p.accountType,
           screens: p.screens,
@@ -103,16 +107,16 @@ const EditBundle = () => {
     const product = products.find(p => p._id === productId);
     if (!product) return;
     
-    if (selectedProducts.find(p => p.product === productId)) {
+    if (selectedProducts.find(p => p.masterProduct === productId)) {
       toast.error('Product is already in the bundle');
       return;
     }
 
     setSelectedProducts([...selectedProducts, {
       id: Math.random().toString(36).substr(2, 9), // UI id for Reorder
-      product: product._id,
-      title: product.title,
-      price: product.price,
+      masterProduct: product._id,
+      title: product.name,
+      price: 0,
       duration: '1 month',
       accountType: 'Shared',
       screens: '1 Screen',
@@ -188,7 +192,7 @@ const EditBundle = () => {
       thumbnail: base64Logo,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       products: selectedProducts.map(p => ({
-        product: p.product,
+        masterProduct: p.masterProduct,
         price: Number(p.price),
         duration: p.duration,
         accountType: p.accountType,

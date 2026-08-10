@@ -65,6 +65,7 @@ const ManageOrders = lazy(() => import('../pages/admin/ManageOrders'));
 const ManageApplications = lazy(() => import('../pages/admin/ManageApplications'));
 const AdminProductRequests = lazy(() => import('../pages/admin/AdminProductRequests'));
 const AdminBundles = lazy(() => import('../pages/admin/AdminBundles'));
+const ProductCatalog = lazy(() => import('../pages/admin/ProductCatalog'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -159,6 +160,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: withSuspense(AdminDashboard) },
       { path: 'users', element: withSuspense(ManageUsers) },
+      { path: 'products/catalog', element: withSuspense(ProductCatalog) },
       { path: 'products', element: withSuspense(ManageProducts) },
       { path: 'bundles', element: withSuspense(AdminBundles) },
       { path: 'orders', element: withSuspense(ManageOrders) },

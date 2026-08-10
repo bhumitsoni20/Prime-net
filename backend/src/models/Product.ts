@@ -8,6 +8,7 @@ export interface IProduct extends Document {
   price: number;
   originalPrice?: number;
   seller: mongoose.Types.ObjectId;
+  masterProduct?: mongoose.Types.ObjectId;
   status: 'active' | 'inactive' | 'pending';
   features: string[];
   duration: string;
@@ -63,6 +64,10 @@ const productSchema = new Schema<IProduct>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    masterProduct: {
+      type: Schema.Types.ObjectId,
+      ref: 'MasterProduct',
     },
     status: {
       type: String,

@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBundleCredential {
-  productId: mongoose.Types.ObjectId;
+  masterProductId: mongoose.Types.ObjectId;
   email?: string;
   password?: string;
   pin?: string;
@@ -31,9 +31,9 @@ export interface IBundleOrder extends Document {
 }
 
 const bundleCredentialSchema = new Schema<IBundleCredential>({
-  productId: {
+  masterProductId: {
     type: Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'MasterProduct',
     required: true,
   },
   email: String,

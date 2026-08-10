@@ -112,11 +112,11 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
       order = await BundleOrder.findById(req.params.id)
         .populate({
           path: 'bundle',
-          populate: { path: 'products.product' }
+          populate: { path: 'products.masterProduct' }
         })
         .populate('seller', 'name email avatar')
         .populate('user', 'name email avatar')
-        .populate('credentials.productId', 'title logo')
+        .populate('credentials.masterProductId', 'name imageUrl')
         .lean();
       isBundle = true;
     }

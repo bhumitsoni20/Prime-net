@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBundleProduct {
-  product: mongoose.Types.ObjectId;
+  masterProduct: mongoose.Types.ObjectId;
   price: number;
   duration: string;
   accountType: string;
@@ -34,9 +34,9 @@ export interface IBundle extends Document {
 }
 
 const bundleProductSchema = new Schema<IBundleProduct>({
-  product: {
+  masterProduct: {
     type: Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'MasterProduct',
     required: true,
   },
   price: { type: Number, required: true, min: 0 },

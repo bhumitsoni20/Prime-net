@@ -23,7 +23,7 @@ export const getSellerBundles = async (req: AuthRequest, res: Response) => {
 
     const [bundles, total] = await Promise.all([
       Bundle.find(filter)
-        .populate('products.product', 'title logo')
+        .populate('products.masterProduct', 'name imageUrl')
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -59,7 +59,7 @@ export const getAdminBundles = async (req: AuthRequest, res: Response) => {
     const [bundles, total] = await Promise.all([
       Bundle.find(filter)
         .populate('seller', 'name email avatar')
-        .populate('products.product', 'title')
+        .populate('products.masterProduct', 'name imageUrl')
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -117,7 +117,7 @@ export const getBundles = async (req: Request, res: Response) => {
     const [bundles, total] = await Promise.all([
       Bundle.find(filter)
         .populate('seller', 'name avatar')
-        .populate('products.product', 'title logo')
+        .populate('products.masterProduct', 'name imageUrl')
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -136,7 +136,7 @@ export const getBundle = async (req: Request, res: Response) => {
   try {
     const bundle = await Bundle.findById(req.params.id)
       .populate('seller', 'name avatar email')
-      .populate('products.product', 'title logo category features ratings')
+      .populate('products.masterProduct', 'name imageUrl')
       .lean();
       
     if (!bundle) return sendError(res, 'Bundle not found.', 404);

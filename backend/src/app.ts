@@ -1,5 +1,5 @@
 import express from 'express';
-// Trigger restart
+// Trigger restart 2
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -11,6 +11,7 @@ import { Cache } from './utils/cache';
 // Route imports
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
+import masterProductRoutes from './routes/masterProduct.routes';
 import orderRoutes from './routes/order.routes';
 import cartRoutes from './routes/cart.routes';
 import paymentRoutes from './routes/payment.routes';
@@ -71,6 +72,7 @@ app.get('/api/health', (_req, res) => {
 
 // ─── API Routes ─────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.use('/api/master-products', masterProductRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);

@@ -24,7 +24,7 @@ export const createBundleOrder = async (req: AuthRequest, res: Response) => {
 
     // Initial credentials tracking state
     const credentials = bundle.products.map(p => ({
-      productId: p.product,
+      masterProductId: p.masterProduct,
       deliveryStatus: 'pending' as const,
     }));
 
@@ -81,7 +81,7 @@ export const getBundleOrder = async (req: AuthRequest, res: Response) => {
       .populate('bundle')
       .populate('user', 'name email avatar')
       .populate('seller', 'name email avatar')
-      .populate('credentials.productId', 'title logo');
+      .populate('credentials.masterProductId', 'name imageUrl');
 
     if (!order) return sendError(res, 'Bundle Order not found.', 404);
 
@@ -97,11 +97,11 @@ export const getBundleOrder = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// PUT /api/bundle-orders/:id/deliver/:productId
+// PUT /api/bundle-orders/:id/deliver/:masterProductId
 export const deliverBundleCredential = async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, pin, recoveryEmail, notes } = req.body;
-    const { id, productId } = req.params;
+    const { id, masterProductId } = req.params;
 
     const order = await BundleOrder.findById(id).populate('bundle');
     if (!order) return sendError(res, 'Order not found.', 404);
@@ -111,7 +111,7 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
     }
 
     // Find the specific credential slot
-    const credIndex = order.credentials.findIndex(c => c.productId.toString() === productId);
+    const credIndex = order.credentials.findIndex(c => c.masterProductId.toString() === masterProductId);
     if (credIndex === -1) return sendError(res, 'Product not found in this bundle.', 404);
 
     const cred = order.credentials[credIndex];
@@ -140,9 +140,9 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
       onModel: 'BundleOrder',
       senderId: req.user._id,
       type: 'bundle_credentials',
-      content: `Credentials delivered for product ID: ${productId}`,
+      content: `Credentials delivered for product ID: ${masterProductId}`,
       metadata: {
-        productId,
+        masterProductId,
         email,
         password,
         pin,
@@ -191,7 +191,7 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
       // Granular Bundle Socket Events
       io.to(`order_${order._id}`).emit('bundle_credential_delivered', {
         orderId: order._id,
-        productId,
+        masterProductId,
         cred,
       });
 

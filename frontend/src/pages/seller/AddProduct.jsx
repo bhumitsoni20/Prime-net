@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import api from '../../services/api';
 import { useCreateProduct } from '../../hooks/useProducts';
-import ImageCropperModal from '../../components/ui/ImageCropperModal';
 
 const categories = [
   { value: 'ott', label: 'OTT Platforms' },
@@ -22,49 +23,30 @@ const AddProduct = () => {
   const createMutation = useCreateProduct();
   const [form, setForm] = useState({ title: '', description: '', price: '', category: 'ai-tools', features: '', duration: '1 month', deliveryType: 'instant' });
   
-  // Image Upload States
-  const fileInputRef = useRef(null);
-  const [imageSrc, setImageSrc] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [croppedBlob, setCroppedBlob] = useState(null);
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.addEventListener('load', () => setImageSrc(reader.result?.toString() || ''));
-      reader.readAsDataURL(file);
-      e.target.value = '';
+  const { data: masterProductsRes, isLoading: isLoadingMasters } = useQuery({
+    queryKey: ['masterProducts'],
+    queryFn: async () => {
+      const res = await api.get('/master-products');
+      return res;
     }
-  };
+  });
 
-  const handleCropComplete = (blob) => {
-    setImageSrc(null);
-    setCroppedBlob(blob);
-    // Create preview URL
-    const url = URL.createObjectURL(blob);
-    setPreviewUrl(url);
-  };
+  const masterProducts = masterProductsRes?.data || [];
+  const selectedMasterProduct = masterProducts.find(p => p._id === form.masterProductId);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!form.masterProductId) {
+      return toast.error('Please select a master product');
+    }
+
     // Process features into an array
     const featuresArray = form.features ? form.features.split(',').map(f => f.trim()).filter(f => f) : [];
     
-    let base64Logo = '';
-    if (croppedBlob) {
-      base64Logo = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(croppedBlob);
-      });
-    }
-    
     createMutation.mutate({
       ...form,
-      logo: base64Logo,
+      title: selectedMasterProduct?.name || 'Unknown',
       price: Number(form.price),
       features: featuresArray
     }, {
@@ -87,45 +69,37 @@ const AddProduct = () => {
           
           {/* Left Column */}
           <div className="space-y-6">
-            <Input label="Product Title" placeholder="e.g. ChatGPT Plus" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className="bg-[#F8FAFC] border-transparent focus:bg-white" />
-            
             <div>
-              <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">App Logo</label>
-              <div className="flex items-center gap-5">
-                {previewUrl ? (
-                  <div className="relative group">
-                    <div className="w-20 h-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-2 overflow-hidden">
-                      <img src={previewUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
-                    </div>
-                    <div className="absolute inset-0 bg-black/40 rounded-[16px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                      <button type="button" onClick={() => fileInputRef.current?.click()} className="text-white text-[11px] font-bold uppercase tracking-wider">Change</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 rounded-[16px] bg-[#F8FAFC] border-2 border-dashed border-[#CBD5E1] flex flex-col items-center justify-center text-[#94A3B8] text-[11px] font-bold uppercase tracking-wide gap-1 hover:border-[#5B4BFF] hover:bg-[#EEF2FF] hover:text-[#5B4BFF] transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                    <span className="text-2xl">+</span>
-                    <span>Upload</span>
-                  </div>
-                )}
-                
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                />
-                
-                <div className="flex flex-col gap-2">
-                  <Button type="button" variant="outline" size="sm" className="font-semibold" onClick={() => fileInputRef.current?.click()}>
-                    {previewUrl ? 'Change Logo' : 'Choose File'}
-                  </Button>
-                  {previewUrl && (
-                    <button type="button" className="text-[12px] text-[#EF4444] hover:text-[#DC2626] font-semibold text-left transition-colors" onClick={() => { setPreviewUrl(null); setCroppedBlob(null); }}>Remove logo</button>
-                  )}
+              <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Select Product</label>
+              <div className="relative">
+                <select 
+                  value={form.masterProductId || ''} 
+                  onChange={(e) => setForm({ ...form, masterProductId: e.target.value })} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium"
+                  required
+                >
+                  <option value="" disabled>Search or select a product...</option>
+                  {masterProducts.map((p) => (
+                    <option key={p._id} value={p._id}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
                 </div>
               </div>
             </div>
+            
+            {selectedMasterProduct && (
+              <div className="flex items-center gap-4 bg-[#F8FAFC] p-4 rounded-[16px] border border-[#E2E8F0]">
+                <div className="w-16 h-16 rounded-[12px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-1.5 overflow-hidden">
+                  <img src={selectedMasterProduct.imageUrl} alt={selectedMasterProduct.name} className="max-w-full max-h-full object-contain" />
+                </div>
+                <div>
+                  <div className="text-[12px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Product Identity</div>
+                  <div className="text-[16px] font-extrabold text-[#0F172A]">{selectedMasterProduct.name}</div>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
@@ -162,15 +136,6 @@ const AddProduct = () => {
         </div>
       </form>
 
-      {imageSrc && (
-        <ImageCropperModal
-          isOpen={!!imageSrc}
-          onClose={() => setImageSrc(null)}
-          imageSrc={imageSrc}
-          onCropComplete={handleCropComplete}
-          onCancel={() => setImageSrc(null)}
-        />
-      )}
     </div>
   );
 };

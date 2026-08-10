@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Product } from '../models/Product';
+import { MasterProduct } from '../models/MasterProduct';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { Cache } from '../utils/cache';
 
@@ -90,7 +91,18 @@ export const getProduct = async (req: Request, res: Response) => {
 // POST /api/products
 export const createProduct = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, category, logo, price, originalPrice, features, duration } = req.body;
+    const { category, price, originalPrice, features, duration, masterProductId } = req.body;
+    let { title, description, logo } = req.body;
+
+    if (masterProductId) {
+      const masterProduct = await MasterProduct.findById(masterProductId);
+      if (masterProduct && masterProduct.status === 'active') {
+        title = masterProduct.name;
+        logo = masterProduct.imageUrl;
+      } else {
+        return sendError(res, 'Invalid or inactive Master Product.', 400);
+      }
+    }
 
     const product = await Product.create({
       title,
@@ -101,6 +113,7 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       originalPrice,
       features,
       duration,
+      masterProduct: masterProductId || undefined,
       seller: req.user._id,
       status: 'active', // Automatically approve products
     });
@@ -120,8 +133,20 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
     if (product.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return sendError(res, 'Not authorized.', 403);
     }
+    
+    const updateData = { ...req.body };
+    if (updateData.masterProductId) {
+      const masterProduct = await MasterProduct.findById(updateData.masterProductId);
+      if (masterProduct && masterProduct.status === 'active') {
+        updateData.title = masterProduct.name;
+        updateData.logo = masterProduct.imageUrl;
+        updateData.masterProduct = updateData.masterProductId;
+      } else {
+        return sendError(res, 'Invalid or inactive Master Product.', 400);
+      }
+    }
 
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Product.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

@@ -33,7 +33,7 @@
 
 ## 🌟 About StreamKart
 
-**StreamKart** is a cutting-edge platform designed to revolutionize the way digital subscriptions and access tiers are traded. It provides a seamless, high-performance ecosystem bridging the gap between digital merchants and buyers. Built with a stunning, modern glassmorphic UI, StreamKart offers integrated payment solutions, real-time communications, and instant digital delivery.
+**StreamKart** is a cutting-edge platform designed to revolutionize the way digital subscriptions and access tiers are traded. It provides a seamless, high-performance ecosystem bridging the gap between digital merchants and buyers. Built with a stunning, modern glassmorphic UI, StreamKart offers manual UPI payment verification, real-time Socket.IO buyer-seller communications, and instant digital credential delivery.
 
 ---
 
@@ -42,27 +42,31 @@
 <table>
   <tr>
     <td>🎨 <strong>Premium UI/UX</strong></td>
-    <td>State-of-the-art design system featuring responsive glassmorphism, fluid typography, and micro-animations powered by Framer Motion.</td>
+    <td>State-of-the-art design system featuring responsive glassmorphism, dynamic product cards, fluid typography, and micro-animations powered by Framer Motion.</td>
   </tr>
   <tr>
     <td>🔐 <strong>Robust Authentication</strong></td>
     <td>Secure, multi-provider login (Google, Phone OTP, Email) powered by Firebase Auth, with strict role-based access control (Admin, Seller, User).</td>
   </tr>
   <tr>
-    <td>🛒 <strong>Seller Dashboard</strong></td>
-    <td>Comprehensive analytics, real-time sales tracking, financial reporting, and streamlined inventory management.</td>
+    <td>💳 <strong>Manual UPI Payment Verification</strong></td>
+    <td>Buyer checkout with UPI QR code generation, copyable UPI ID, screenshot proof upload, and a 5-minute persistent verification timer.</td>
   </tr>
   <tr>
-    <td>💳 <strong>Secure Payments</strong></td>
-    <td>Frictionless checkout using integrated payment gateways (Razorpay) with automated invoice generation.</td>
+    <td>🛡️ <strong>Admin Verification & Rejection Modal</strong></td>
+    <td>Dedicated Admin Payment Portal (`ManagePayments`) for verifying screenshots. Admin approvals trigger real-time 3-second countdown redirects. Rejections emit live pop-ups with reason details and one-click "Try Again / Re-upload" checkout mode.</td>
   </tr>
   <tr>
-    <td>💬 <strong>Live Order Chat</strong></td>
-    <td>Real-time Socket.IO communication between buyers and sellers to securely coordinate digital delivery and resolve issues.</td>
+    <td>💬 <strong>Shared Buyer-Seller Chat System</strong></td>
+    <td>Order-based (`orderId`) unified chat system between buyers and sellers with real-time Socket.IO synchronization, unread badges, and auto-sorted recent conversations.</td>
+  </tr>
+  <tr>
+    <td>🛒 <strong>Seller Dashboard & Bundles</strong></td>
+    <td>Comprehensive analytics, real-time sales tracking, financial reporting, and auto-populated multi-product bundle cards.</td>
   </tr>
   <tr>
     <td>🚀 <strong>Performance Optimized</strong></td>
-    <td>Built on Vite with intelligent code-splitting, lazy loading, and optimized global state management using Zustand.</td>
+    <td>Built on Vite with intelligent code-splitting, lazy loading, TanStack Query caching/polling, and Zustand state management.</td>
   </tr>
 </table>
 
@@ -77,6 +81,7 @@
 - **Styling**: [Tailwind CSS v3](https://tailwindcss.com/)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) & [TanStack Query](https://tanstack.com/query)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Real-time WebSockets**: Socket.io Client
 - **Routing**: React Router v6
 </details>
 
@@ -93,8 +98,8 @@
 <summary><strong>🔌 Third-Party Services</strong></summary>
 
 - **Authentication**: Firebase Auth
-- **Payment Processing**: Razorpay
 - **Cloud Storage**: Firebase Cloud Storage
+- **Push Notifications**: Web Push / FCM
 </details>
 
 ---
@@ -107,7 +112,8 @@ graph TD;
     Client -->|WebSockets| SocketIO[Socket.IO Server];
     Server -->|Mongoose| Database[(MongoDB Atlas)];
     Server -->|SDK| Firebase[Firebase Auth & Storage];
-    Server -->|SDK| Razorpay[Razorpay API];
+    Admin[Admin Panel] -->|Verify/Reject Proof| Server;
+    Server -->|Socket Redirect/Pop-up| Client;
 ```
 
 ---
@@ -123,7 +129,6 @@ Ensure your local environment meets the following requirements:
 - npm or yarn package manager
 - A MongoDB Atlas Cluster (or Local MongoDB instance)
 - A Firebase Project (with Auth and Storage enabled)
-- Razorpay Developer Account
 
 ### 1. Backend Setup
 
@@ -169,17 +174,18 @@ To run this project securely, add the following environment variables to your re
 | Variable | Description |
 |----------|-------------|
 | `PORT` | API Server port (e.g., 5000) |
-| `MONGO_URI` | MongoDB Connection String |
-| `JWT_SECRET` | Secret key for signing JWTs |
-
-| `RAZORPAY_KEY_SECRET`| Razorpay API Secret |
+| `MONGODB_URI` | MongoDB Connection String |
+| `ADMIN_EMAIL` | Super Admin Email for Admin role assignment |
+| `FIREBASE_PROJECT_ID` | Firebase Admin SDK Project ID |
+| `FIREBASE_CLIENT_EMAIL` | Firebase Admin SDK Service Account Email |
+| `FIREBASE_PRIVATE_KEY` | Firebase Admin SDK Private Key |
 
 ### Frontend (`frontend/.env`)
 | Variable | Description |
 |----------|-------------|
-| `VITE_API_URL` | Backend API URL |
+| `VITE_API_URL` | Backend API URL (e.g., `http://localhost:5000/api`) |
+| `VITE_SOCKET_URL` | Socket.IO Server URL (e.g., `http://localhost:5000`) |
 | `VITE_FIREBASE_API_KEY` | Firebase Client API Key |
-
 
 ---
 

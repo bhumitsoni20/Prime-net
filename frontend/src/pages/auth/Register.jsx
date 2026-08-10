@@ -33,8 +33,20 @@ const Register = () => {
       toast.success('Account created!');
       navigate('/verify-email');
     } catch (error) {
-      toast.error(error.message || 'Registration failed');
-    } finally { setLoading(false); }
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered. Please log in instead.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email sign-in is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
+      } else if (error.message) {
+        errorMessage = error.message.replace('Firebase: ', '');
+      }
+      toast.error(errorMessage);
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleGoogleLogin = async () => {

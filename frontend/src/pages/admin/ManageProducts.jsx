@@ -28,11 +28,18 @@ const ManageProducts = () => {
   }, []);
 
   const handleStatusChange = async (productId, newStatus) => {
+    // Optimistic UI update: instantly change the status in the local state
+    setProducts(prevProducts => 
+      prevProducts.map(p => p._id === productId ? { ...p, status: newStatus } : p)
+    );
+
     try {
       await updateProductStatus(productId, newStatus);
       toast.success('Product status updated');
-      fetchProducts();
+      // No need to re-fetch all products here since we updated it locally
     } catch (error) {
+      // Revert the optimistic update on failure
+      fetchProducts();
       toast.error('Failed to update status');
     }
   };

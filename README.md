@@ -107,71 +107,36 @@
 ## 📂 Architecture
 
 ```mermaid
-flowchart TB
-    subgraph Frontend["🖥️ Frontend Application (React 18 + Vite)"]
-        subgraph Portals["User Interfaces"]
-            BuyerUI["Buyer Marketplace & Checkout"]
-            SellerUI["Seller Dashboard & Bundles"]
-            AdminUI["Admin Payment Portal (ManagePayments)"]
-            ChatUI["Unified Buyer-Seller Chat (/dashboard/chats)"]
-        end
+graph TD
+    Client["📱 Frontend (React 18 + Vite)
+    Marketplace | Checkout | Seller Dashboard | Admin Portal | Live Chat"]
+    
+    API["⚙️ Backend API Server (Express + TypeScript)
+    Firebase Auth | RBAC (User / Seller / Admin) | Payment & Order Controllers"]
+    
+    Socket["⚡ Real-Time Socket.IO Server
+    User Rooms (user_id) | Chat Rooms (order_id) | Real-time Approval & Rejection Events"]
+    
+    DB[("🗄️ Database (MongoDB Atlas)
+    Users | Products | Bundles | Orders | PaymentVerifications | Messages")]
+    
+    Cloud["☁️ Cloud Services
+    Firebase Auth & Storage (Screenshots & Logos) | Push Notifications"]
 
-        subgraph ClientState["Client Infrastructure"]
-            Zustand["Zustand Auth Store"]
-            Query["TanStack Query (Polling & Caching)"]
-            SocketClient["Socket.IO Client"]
-            ApprovalHandler["Global Payment & Rejection Handler"]
-        end
+    %% Flow Connections
+    Client -->|REST API Requests| API
+    Client <-->|Live WebSockets| Socket
+    API <-->|Mongoose Queries| DB
+    API <-->|Event Trigger & Broadcast| Socket
+    API -->|Auth Token & Media Upload| Cloud
+    
+    %% Core Payment Workflow Subgraph
+    subgraph Flow ["🔄 Manual Payment & Verification Workflow"]
+        direction LR
+        P1["1. Buyer Uploads UPI Proof"] --> P2["2. Admin Approves or Rejects"]
+        P2 --> P3["3. Socket Pushes Real-Time Event"]
+        P3 --> P4["4. Buyer Auto-Redirected to Shared Seller Chat"]
     end
-
-    subgraph Backend["⚙️ Backend Server (Node.js + Express + TypeScript)"]
-        subgraph AuthMiddleware["Auth & RBAC Middleware"]
-            FirebaseAuth["Firebase Auth Verification"]
-            RBAC["Role Control (Admin / Seller / User)"]
-        end
-
-        subgraph Controllers["API Controllers"]
-            OrderCtrl["Order & Bundle Controller"]
-            PaymentCtrl["Manual UPI & Verification Controller"]
-            ChatCtrl["Messaging & Chat Controller"]
-            ProdCtrl["Product & Review Controller"]
-        end
-
-        subgraph Sockets["Real-Time Event Engine (Socket.IO)"]
-            UserRooms["User Personal Rooms (user_id)"]
-            OrderRooms["Order Chat Rooms (order_id)"]
-            Events["Events: payment_verified_redirect | payment_rejected_popup | new_message"]
-        end
-    end
-
-    subgraph External["🔌 Third-Party & Cloud Services"]
-        FBCloud["Firebase Auth & Cloud Storage"]
-        WebPush["Web Push & FCM Notification Service"]
-    end
-
-    subgraph Database["Database Layer (MongoDB Atlas)"]
-        Mongo[("MongoDB Collections
-        • Users & Products
-        • Bundles & Orders
-        • PaymentVerifications
-        • Messages & Reviews")]
-    end
-
-    %% Flow Interactions
-    BuyerUI -->|1. Submit UPI Proof| PaymentCtrl
-    AdminUI -->|2. Approve / Reject Verification| PaymentCtrl
-    PaymentCtrl -->|3. Update Status & Timeline| Mongo
-    PaymentCtrl -->|4. Emit Redirect / Rejection Event| Sockets
-    Sockets -->|5. Socket Push| SocketClient
-    SocketClient -->|6. Real-time Modal & Redirect| ApprovalHandler
-
-    ChatUI <-->|REST API & WebSockets| ChatCtrl
-    ChatCtrl <-->|Persist & Query Messages| Mongo
-    ChatCtrl -->|Emit Live Messages| Sockets
-
-    AuthMiddleware -->|Verify Tokens| FBCloud
-    PaymentCtrl -->|Send Push Notifications| WebPush
-    Controllers <-->|Mongoose ORM| Mongo
 ```
 
 ---

@@ -107,36 +107,52 @@
 ## 📂 Architecture
 
 ```mermaid
-graph TD
-    Client["📱 Frontend (React 18 + Vite)
-    Marketplace | Checkout | Seller Dashboard | Admin Portal | Live Chat"]
-    
-    API["⚙️ Backend API Server (Express + TypeScript)
-    Firebase Auth | RBAC (User / Seller / Admin) | Payment & Order Controllers"]
-    
-    Socket["⚡ Real-Time Socket.IO Server
-    User Rooms (user_id) | Chat Rooms (order_id) | Real-time Approval & Rejection Events"]
-    
-    DB[("🗄️ Database (MongoDB Atlas)
-    Users | Products | Bundles | Orders | PaymentVerifications | Messages")]
-    
-    Cloud["☁️ Cloud Services
-    Firebase Auth & Storage (Screenshots & Logos) | Push Notifications"]
+flowchart TD
+    %% Layer 1: Client Interfaces
+    subgraph L1 ["🖥️ CLIENT LAYER (React 18 + Vite)"]
+        UI_Buyer["🛒 Buyer Marketplace & Checkout"]
+        UI_Seller["📊 Seller Dashboard & Bundles"]
+        UI_Admin["🛡️ Admin Payment Verification"]
+        UI_Chat["💬 Live Shared Chat Engine"]
+    end
+
+    %% Layer 2: Server Infrastructure
+    subgraph L2 ["⚙️ SERVER & REAL-TIME LAYER (Express + TypeScript)"]
+        API_Gateway["🔐 API Gateway & Auth Middleware"]
+        Ctrl_Payment["💳 Payment Verification Controller"]
+        Ctrl_Order["📦 Order & Bundle Controller"]
+        Ctrl_Chat["✉️ Chat & Messaging Controller"]
+        Socket_Server["⚡ Socket.IO Event Engine"]
+    end
+
+    %% Layer 3: Data & Services
+    subgraph L3 ["🗄️ DATA & CLOUD LAYER"]
+        Mongo_DB[("Database (MongoDB Atlas)
+        Users | Orders | Verification | Messages")]
+        Firebase_Cloud["Firebase Auth & Cloud Storage"]
+        Push_Service["Web Push Notification Service"]
+    end
 
     %% Flow Connections
-    Client -->|REST API Requests| API
-    Client <-->|Live WebSockets| Socket
-    API <-->|Mongoose Queries| DB
-    API <-->|Event Trigger & Broadcast| Socket
-    API -->|Auth Token & Media Upload| Cloud
-    
-    %% Core Payment Workflow Subgraph
-    subgraph Flow ["🔄 Manual Payment & Verification Workflow"]
-        direction LR
-        P1["1. Buyer Uploads UPI Proof"] --> P2["2. Admin Approves or Rejects"]
-        P2 --> P3["3. Socket Pushes Real-Time Event"]
-        P3 --> P4["4. Buyer Auto-Redirected to Shared Seller Chat"]
-    end
+    UI_Buyer -->|HTTP REST| API_Gateway
+    UI_Seller -->|HTTP REST| API_Gateway
+    UI_Admin -->|HTTP REST| API_Gateway
+    UI_Chat <-->|WebSockets| Socket_Server
+
+    API_Gateway --> Ctrl_Payment
+    API_Gateway --> Ctrl_Order
+    API_Gateway --> Ctrl_Chat
+
+    Ctrl_Payment <--> Mongo_DB
+    Ctrl_Order <--> Mongo_DB
+    Ctrl_Chat <--> Mongo_DB
+
+    Ctrl_Payment -->|Emit Redirect / Rejection| Socket_Server
+    Ctrl_Chat -->|Emit Live Messages| Socket_Server
+    Socket_Server -->|Push Real-time Events| UI_Buyer
+
+    API_Gateway -->|Verify Tokens| Firebase_Cloud
+    Ctrl_Payment -->|Send Push Notifications| Push_Service
 ```
 
 ---

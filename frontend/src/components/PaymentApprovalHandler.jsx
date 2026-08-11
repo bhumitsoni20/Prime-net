@@ -130,7 +130,6 @@ const PaymentApprovalHandler = () => {
 
         return currentPending;
       } catch (err) {
-        console.error('Error polling payment status:', err);
         return [];
       }
     },
@@ -138,12 +137,13 @@ const PaymentApprovalHandler = () => {
       if (!token || redirectData) return false;
       try {
         const pending = JSON.parse(localStorage.getItem(PENDING_ORDERS_KEY) || '[]');
-        return pending.length > 0 ? 3000 : 15000;
+        return pending.length > 0 ? 5000 : false;
       } catch (e) {
-        return 15000;
+        return false;
       }
     },
     enabled: !!token && !redirectData,
+    retry: false,
   });
 
   // 3. Countdown & Redirect Logic

@@ -34,9 +34,9 @@ export const SocketProvider = ({ children }) => {
     const socketInstance = io(SOCKET_URL, {
       auth: { token },
       reconnection: true,
-      reconnectionAttempts: 15,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 3000,
+      reconnectionDelayMax: 10000,
       transports: ['websocket', 'polling'],
     });
 
@@ -50,8 +50,11 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
+    socketInstance.on('connect_error', (err) => {
+      setIsConnected(false);
+    });
+
     socketInstance.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
       setIsConnected(false);
     });
 

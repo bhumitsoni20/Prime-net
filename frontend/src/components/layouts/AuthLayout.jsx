@@ -14,6 +14,8 @@ const AuthLayout = () => {
       const response = await getPublicStats();
       return response.data;
     },
+    retry: 1,
+    staleTime: 10 * 60 * 1000,
   });
 
   const userCountText = stats?.totalUsers !== undefined

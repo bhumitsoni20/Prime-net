@@ -1,18 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as notificationService from '../services/notification.service';
+import useAuthStore from '../store/authStore';
 
 export const useNotifications = (params = '') => {
+  const token = useAuthStore((state) => state.token);
   return useQuery({
     queryKey: ['notifications', params],
     queryFn: () => notificationService.getNotifications(params),
+    enabled: !!token,
   });
 };
 
 export const useUnreadCount = () => {
+  const token = useAuthStore((state) => state.token);
   return useQuery({
     queryKey: ['unreadCount'],
     queryFn: notificationService.getUnreadCount,
     refetchInterval: 30000, // Poll every 30 seconds
+    enabled: !!token,
   });
 };
 

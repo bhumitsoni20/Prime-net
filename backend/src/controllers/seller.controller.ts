@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { SellerApplication } from '../models/SellerApplication';
 import { User } from '../models/User';
+import { Transaction } from '../models/Transaction';
 import { Notification } from '../models/Notification';
 import { sendSuccess, sendError } from '../utils/response';
 
@@ -63,6 +64,25 @@ export const getMyApplicationStatus = async (req: AuthRequest, res: Response) =>
 
     const application = await SellerApplication.findOne({ user: user._id }).sort({ createdAt: -1 });
     return sendSuccess(res, application);
+  } catch (error: any) {
+    return sendError(res, error.message);
+  }
+};
+
+// GET /api/seller/wallet
+export const getWallet = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user._id).select('walletBalance');
+    if (!user) return sendError(res, 'User not found.', 404);
+
+    const transactions = await Transaction.find({ seller: user._id })
+      .populate({
+        path: 'order',
+        populate: { path: 'product', select: 'title' }
+      })
+      .sort({ createdAt: -1 });
+
+    return sendSuccess(res, { balance: user.walletBalance || 0, transactions }, 'Wallet fetched.');
   } catch (error: any) {
     return sendError(res, error.message);
   }

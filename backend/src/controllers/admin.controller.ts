@@ -3,6 +3,8 @@ import { AuthRequest } from '../middleware/auth';
 import { User } from '../models/User';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
+import { Transaction } from '../models/Transaction';
+import crypto from 'crypto';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { firebaseAuth } from '../config/firebase';
 
@@ -288,6 +290,43 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
 
     await Product.findByIdAndDelete(req.params.id);
     return sendSuccess(res, null, 'Product deleted successfully.');
+  } catch (error: any) {
+    return sendError(res, error.message);
+  }
+};
+
+// POST /api/admin/reconcile-earnings
+export const reconcileEarnings = async (req: AuthRequest, res: Response) => {
+  try {
+    const completedOrders = await Order.find({ orderStatus: 'completed' });
+    let creditedCount = 0;
+
+    for (const order of completedOrders) {
+      const existingTx = await Transaction.findOne({ order: order._id, type: 'credit' });
+      if (!existingTx) {
+        const transactionId = 'TXN_REC_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+        const grossAmount = order.amount || 0;
+        const netEarning = grossAmount;
+
+        await Transaction.create({
+          transactionId,
+          order: order._id,
+          seller: order.seller,
+          grossAmount,
+          platformCommission: 0,
+          netEarning,
+          type: 'credit',
+          status: 'completed'
+        });
+
+        await User.findByIdAndUpdate(order.seller, {
+          $inc: { walletBalance: netEarning }
+        });
+        creditedCount++;
+      }
+    }
+
+    return sendSuccess(res, { creditedCount }, `Reconciliation complete. ${creditedCount} missing earnings credited.`);
   } catch (error: any) {
     return sendError(res, error.message);
   }

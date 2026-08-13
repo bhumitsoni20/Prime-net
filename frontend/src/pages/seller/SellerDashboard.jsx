@@ -4,6 +4,7 @@ import useAuthStore from '../../store/authStore';
 import { getSellerProducts } from '../../services/product.service';
 import { getSellerOrders } from '../../services/order.service';
 import { getNotifications } from '../../services/notification.service';
+import { getSellerWallet } from '../../services/seller.service';
 import StatsCard from '../../components/common/StatsCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
@@ -19,18 +20,21 @@ const SellerDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prodRes, orderRes, notifRes] = await Promise.all([
+        const [prodRes, orderRes, notifRes, walletRes] = await Promise.all([
           getSellerProducts('limit=10'),
           getSellerOrders(),
-          getNotifications('limit=5')
+          getNotifications('limit=5'),
+          getSellerWallet().catch(e => ({ data: { balance: 0 } }))
         ]);
         setProducts(prodRes.data || []);
         setOrders(orderRes.data || []);
         setNotifications(notifRes.data || []);
+        setWalletBalance(walletRes?.data?.balance || 0);
       } catch (error) {
         toast.error('Failed to load dashboard data');
       } finally {
@@ -40,7 +44,7 @@ const SellerDashboard = () => {
     fetchData();
   }, []);
 
-  const totalSales = orders.filter(o => o.paymentStatus === 'paid').reduce((acc, curr) => acc + (curr.amount || curr.totalAmount || 0), 0);
+  const totalSales = walletBalance;
   const pendingOrders = orders.filter(o => o.orderStatus === 'placed' && o.paymentStatus === 'paid').length;
   // unique customers
   const uniqueCustomers = new Set(orders.map(o => o.user?._id)).size;

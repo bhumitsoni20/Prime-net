@@ -5,7 +5,7 @@ export const generateLast6MonthsData = (orders = []) => {
   // Find the latest order date to use as the anchor
   let latestDate = new Date();
   if (orders.length > 0) {
-    const validOrders = orders.filter(o => o.paymentStatus === 'paid' && o.createdAt);
+    const validOrders = orders.filter(o => (o.paymentStatus === 'paid' || o.paymentStatus === 'payment_verified' || o.orderStatus === 'completed') && o.createdAt);
     if (validOrders.length > 0) {
       validOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       latestDate = new Date(validOrders[0].createdAt);
@@ -26,7 +26,7 @@ export const generateLast6MonthsData = (orders = []) => {
 
   // Aggregate orders
   orders.forEach(order => {
-    if (order.paymentStatus === 'paid' && order.createdAt) {
+    if ((order.paymentStatus === 'paid' || order.paymentStatus === 'payment_verified' || order.orderStatus === 'completed') && order.createdAt) {
       const orderDate = new Date(order.createdAt);
       const key = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
       

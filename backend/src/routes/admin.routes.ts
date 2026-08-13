@@ -10,6 +10,7 @@ import {
   getAllOrders,
   getApplications,
   updateApplicationStatus,
+  reconcileEarnings,
 } from '../controllers/admin.controller';
 import { authenticate } from '../middleware/auth';
 import { authorize } from '../middleware/authorize';
@@ -19,6 +20,8 @@ const router = Router();
 router.get('/debug-stats', getDashboardStats);
 
 router.use(authenticate, authorize('admin'));
+
+router.post('/reconcile-earnings', reconcileEarnings);
 
 router.get('/stats', getDashboardStats);
 router.get('/users', getUsers);
@@ -31,5 +34,9 @@ router.get('/orders', getAllOrders);
 router.get('/applications', getApplications);
 router.put('/applications/:id/status', updateApplicationStatus);
 
+
+
 export default router;
 // trigger restart
+
+

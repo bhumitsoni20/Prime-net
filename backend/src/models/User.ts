@@ -16,6 +16,7 @@ export interface IUser extends Document {
   suspensionExpiry?: Date;
   probationExpiry?: Date;
   createdAt: Date;
+  walletBalance: number;
   updatedAt: Date;
 }
 
@@ -80,6 +81,10 @@ const userSchema = new Schema<IUser>(
     },
     probationExpiry: {
       type: Date,
+    },
+    walletBalance: {
+      type: Number,
+      default: 0,
     },
   },
   {

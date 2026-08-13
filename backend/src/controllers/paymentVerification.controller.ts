@@ -29,18 +29,27 @@ export const getVerificationRequests = async (req: Request, res: Response) => {
       PaymentVerification.countDocuments(filter),
     ]);
 
-    // Also fetch related product info dynamically (for preview)
-    const enrichedVerifications = await Promise.all(verifications.map(async (v) => {
+    // Optimize by extracting orderIds and doing two batch queries
+    const orderIds = verifications.filter(v => v.orderType === 'Order').map(v => v.orderId);
+    const bundleOrderIds = verifications.filter(v => v.orderType !== 'Order').map(v => v.orderId);
+
+    const [orders, bundleOrders] = await Promise.all([
+      Order.find({ _id: { $in: orderIds } }).populate('product', 'title logo').lean(),
+      BundleOrder.find({ _id: { $in: bundleOrderIds } }).populate('bundle', 'title logo').lean()
+    ]);
+
+    const orderMap = new Map(orders.map(o => [o._id.toString(), o.product]));
+    const bundleOrderMap = new Map(bundleOrders.map(b => [b._id.toString(), b.bundle]));
+
+    const enrichedVerifications = verifications.map(v => {
       let productDetails = null;
       if (v.orderType === 'Order') {
-        const order = await Order.findById(v.orderId).populate('product', 'title logo');
-        if (order) productDetails = order.product;
+        productDetails = orderMap.get(v.orderId?.toString()) || null;
       } else {
-        const bundleOrder = await BundleOrder.findById(v.orderId).populate('bundle', 'title logo');
-        if (bundleOrder) productDetails = bundleOrder.bundle;
+        productDetails = bundleOrderMap.get(v.orderId?.toString()) || null;
       }
       return { ...v.toObject(), product: productDetails };
-    }));
+    });
 
     return sendSuccess(res, {
       verifications: enrichedVerifications,
@@ -106,19 +115,20 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
           }
         });
 
-        await sendPushNotification(
+        sendPushNotification(
           order.seller.toString(),
           'Payment Received!',
           `Payment of ₹${order.amount} verified for ${order.product ? (order.product as any).title : 'Product'}.`,
           'payment'
-        );
-        await sendPushNotification(
+        ).catch(e => logger.error('Push error:', e));
+        
+        sendPushNotification(
           order.user.toString(),
           'Payment verification completed',
           `Your payment for ${order.product ? (order.product as any).title : 'Product'} has been verified successfully. Click to go to chat.`,
           'order',
           `/dashboard/chats/${order._id}`
-        );
+        ).catch(e => logger.error('Push error:', e));
       }
     } else {
       const bundleOrder = await BundleOrder.findById(verification.orderId).populate('bundle');
@@ -154,19 +164,20 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
           }
         });
 
-        await sendPushNotification(
+        sendPushNotification(
           bundleOrder.seller.toString(),
           'Bundle Payment Received!',
           `Payment of ₹${bundleOrder.amount} verified for ${bundleOrder.bundle ? (bundleOrder.bundle as any).title : 'Bundle'}.`,
           'payment'
-        );
-        await sendPushNotification(
+        ).catch(e => logger.error('Push error:', e));
+        
+        sendPushNotification(
           bundleOrder.user.toString(),
           'Payment verification completed',
           `Your payment for ${bundleOrder.bundle ? (bundleOrder.bundle as any).title : 'Bundle'} has been verified successfully. Click to go to chat.`,
           'order',
           `/dashboard/chats/${bundleOrder._id}`
-        );
+        ).catch(e => logger.error('Push error:', e));
       }
     }
 
@@ -236,13 +247,13 @@ export const rejectPayment = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    await sendPushNotification(
+    sendPushNotification(
       verification.buyer.toString(),
       'Payment verification failed',
       `Your payment for ${productName} could not be verified. Reason: ${rejectionReason}`,
       'order',
       `/checkout`
-    );
+    ).catch(e => logger.error('Push error:', e));
 
     return sendSuccess(res, verification, 'Payment rejected successfully.');
   } catch (error: any) {

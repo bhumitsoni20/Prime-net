@@ -1,6 +1,9 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { Transaction } from '../models/Transaction';
+import { User } from '../models/User';
+import crypto from 'crypto';
 import { Product } from '../models/Product';
 import { Message } from '../models/Message';
 import mongoose from 'mongoose';
@@ -168,6 +171,35 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
       console.log('Completing order. Buyer:', order.user.toString(), 'Current user:', req.user._id.toString(), 'Role:', req.user.role);
       if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
         return sendError(res, 'Only the buyer can complete the order', 403);
+      }
+      
+      // Handle Seller Earnings safely
+      try {
+        const existingTx = await Transaction.findOne({ order: order._id, type: 'credit' });
+        if (!existingTx) {
+          const transactionId = 'TXN_' + crypto.randomBytes(8).toString('hex').toUpperCase();
+          const grossAmount = order.amount || 0;
+          const platformCommission = 0; // Configurable commission
+          const netEarning = grossAmount - platformCommission;
+
+          const newTx = await Transaction.create({
+            transactionId,
+            order: order._id,
+            seller: order.seller,
+            grossAmount,
+            platformCommission,
+            netEarning,
+            type: 'credit',
+            status: 'completed'
+          });
+
+          await User.findByIdAndUpdate(order.seller, {
+            $inc: { walletBalance: netEarning }
+          });
+          console.log(`Seller ${order.seller} credited ₹${netEarning} for order ${order._id}`);
+        }
+      } catch (err) {
+        console.error('Failed to process seller earning during completion:', err);
       }
     } else {
       if (order.seller.toString() !== req.user._id.toString() && req.user.role !== 'admin') {

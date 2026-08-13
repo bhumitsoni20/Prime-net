@@ -52,7 +52,9 @@ const BundleCard = ({ bundle }) => {
             {bundle.title}
           </h3>
         </Link>
-        <p className="text-[#94A3B8] text-[12px] font-medium mb-3">Includes {bundle.products?.length || 0} subscriptions</p>
+        <p className="text-[#94A3B8] text-[12px] font-medium mb-3 line-clamp-1" title={bundle.description}>
+          {bundle.description || `Includes ${bundle.products?.length || 0} subscriptions`}
+        </p>
 
         <div className="flex items-center gap-1.5 mb-4">
           <span className="text-[#F59E0B] text-[14px]">★</span>

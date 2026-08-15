@@ -108,7 +108,7 @@ const bundleOrderSchema = new Schema<IBundleOrder>(
 );
 
 bundleOrderSchema.index({ user: 1, createdAt: -1 });
-bundleOrderSchema.index({ seller: 1, createdAt: -1 });
+bundleOrderSchema.index({ seller: 1, paymentStatus: 1, createdAt: -1 }); // Added compound index for dashboard
 bundleOrderSchema.index({ paymentStatus: 1 });
 bundleOrderSchema.index({ orderStatus: 1 });
 

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Bundle } from '../models/Bundle';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
+import { Cache } from '../utils/cache';
 
 // GET /api/bundles/seller
 export const getSellerBundles = async (req: AuthRequest, res: Response) => {
@@ -114,6 +115,13 @@ export const getBundles = async (req: Request, res: Response) => {
     else if (req.query.sort === 'rating') sort.ratings = -1;
     else sort.createdAt = -1;
 
+    const cacheKey = `bundles_${JSON.stringify(req.query)}`;
+    let cachedData = Cache.get(cacheKey);
+
+    if (cachedData) {
+      return sendPaginated(res, cachedData.bundles, page, limit, cachedData.total);
+    }
+
     const [bundles, total] = await Promise.all([
       Bundle.find(filter)
         .populate('seller', 'name avatar')
@@ -124,6 +132,8 @@ export const getBundles = async (req: Request, res: Response) => {
         .lean(),
       Bundle.countDocuments(filter),
     ]);
+
+    Cache.set(cacheKey, { bundles, total }, 300); // Cache for 5 minutes
 
     return sendPaginated(res, bundles, page, limit, total);
   } catch (error: any) {

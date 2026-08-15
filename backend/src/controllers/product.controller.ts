@@ -43,10 +43,19 @@ export const getProducts = async (req: Request, res: Response) => {
     else if (req.query.sort === 'rating') sort.ratings = -1;
     else sort.createdAt = -1;
 
+    const cacheKey = `products_${JSON.stringify(req.query)}`;
+    let cachedData = Cache.get(cacheKey);
+
+    if (cachedData) {
+      return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
+    }
+
     const [products, total] = await Promise.all([
       Product.find(filter).populate('seller', 'name avatar').sort(sort).skip(skip).limit(limit).lean(),
       Product.countDocuments(filter),
     ]);
+
+    Cache.set(cacheKey, { products, total }, 300); // Cache for 5 minutes (300 seconds)
 
     return sendPaginated(res, products, page, limit, total);
   } catch (error: any) {

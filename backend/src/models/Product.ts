@@ -108,8 +108,8 @@ productSchema.index({ category: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ ratings: -1 });
-productSchema.index({ category: 1, status: 1 });
-productSchema.index({ seller: 1 });
+productSchema.index({ category: 1, status: 1, createdAt: -1 }); // Added compound index for homepage
+productSchema.index({ seller: 1, status: 1, createdAt: -1 }); // Added compound index for seller dashboard
 productSchema.index({ createdAt: -1 });
 
 export const Product = mongoose.model<IProduct>('Product', productSchema);

@@ -86,7 +86,7 @@ const orderSchema = new Schema<IOrder>(
 );
 
 orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ seller: 1 });
+orderSchema.index({ seller: 1, paymentStatus: 1, createdAt: -1 }); // Added compound index for dashboard
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ orderStatus: 1 });
 

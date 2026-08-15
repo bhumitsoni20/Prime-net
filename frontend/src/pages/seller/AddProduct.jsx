@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -22,6 +22,18 @@ const AddProduct = () => {
   const navigate = useNavigate();
   const createMutation = useCreateProduct();
   const [form, setForm] = useState({ title: '', description: '', price: '', category: 'ai-tools', features: '', duration: '1 month', deliveryType: 'instant' });
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   const { data: masterProductsRes, isLoading: isLoadingMasters } = useQuery({
     queryKey: ['masterProducts'],
@@ -71,21 +83,41 @@ const AddProduct = () => {
           <div className="space-y-6">
             <div>
               <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Select Product</label>
-              <div className="relative">
-                <select 
-                  value={form.masterProductId || ''} 
-                  onChange={(e) => setForm({ ...form, masterProductId: e.target.value })} 
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium"
-                  required
+              <div className="relative" ref={dropdownRef}>
+                <div 
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] cursor-pointer flex items-center justify-between transition-all font-medium hover:border-[#5B4BFF]/50"
                 >
-                  <option value="" disabled>Search or select a product...</option>
-                  {masterProducts.map((p) => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+                  {selectedMasterProduct ? (
+                    <div className="flex items-center gap-3">
+                      <img src={selectedMasterProduct.imageUrl} alt={selectedMasterProduct.name} className="w-6 h-6 object-contain rounded bg-white p-0.5 border border-gray-100" />
+                      <span>{selectedMasterProduct.name}</span>
+                    </div>
+                  ) : (
+                    <span className="text-[#94A3B8]">Search or select a product...</span>
+                  )}
+                  <svg className={`w-4 h-4 text-[#64748B] transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
                 </div>
+                
+                {isOpen && (
+                  <div className="absolute z-10 w-full mt-2 bg-white border border-[#E2E8F0] rounded-[16px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] max-h-64 overflow-auto py-2">
+                    {masterProducts.map((p) => (
+                      <div 
+                        key={p._id}
+                        className={`flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors ${form.masterProductId === p._id ? 'bg-[#F1F5F9] font-bold text-[#5B4BFF]' : 'text-[#0F172A]'}`}
+                        onClick={() => {
+                          setForm({ ...form, masterProductId: p._id });
+                          setIsOpen(false);
+                        }}
+                      >
+                        <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-contain rounded-lg bg-white border border-[#E2E8F0] p-1 shadow-sm" />
+                        <span>{p.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             

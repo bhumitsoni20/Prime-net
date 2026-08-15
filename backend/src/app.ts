@@ -97,6 +97,9 @@ import { Bundle } from './models/Bundle';
 app.get('/api/public/stats', async (_req, res) => {
   try {
     const cachedStats = Cache.get('public_stats');
+    
+    res.setHeader('Cache-Control', 'public, max-age=300');
+
     if (cachedStats) {
       return sendSuccess(res, cachedStats);
     }

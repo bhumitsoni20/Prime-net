@@ -46,6 +46,8 @@ export const getProducts = async (req: Request, res: Response) => {
     const cacheKey = `products_${JSON.stringify(req.query)}`;
     let cachedData = Cache.get(cacheKey);
 
+    res.setHeader('Cache-Control', 'public, max-age=300');
+
     if (cachedData) {
       return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
     }

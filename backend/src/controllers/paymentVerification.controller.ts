@@ -7,9 +7,14 @@ import { BundleOrder } from '../models/BundleOrder';
 import { sendError, sendSuccess } from '../utils/response';
 import { sendPushNotification } from '../services/notification.service';
 import { logger } from '../utils/logger';
+import { Cache } from '../utils/cache';
 
 export const getVerificationRequests = async (req: Request, res: Response) => {
   try {
+    const cacheKey = `admin_verifications_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendSuccess(res, cachedData);
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -51,7 +56,7 @@ export const getVerificationRequests = async (req: Request, res: Response) => {
       return { ...v.toObject(), product: productDetails };
     });
 
-    return sendSuccess(res, {
+    const result = {
       verifications: enrichedVerifications,
       pagination: {
         page,
@@ -59,7 +64,10 @@ export const getVerificationRequests = async (req: Request, res: Response) => {
         total,
         pages: Math.ceil(total / limit),
       },
-    });
+    };
+    Cache.set(cacheKey, result, 300);
+
+    return sendSuccess(res, result);
   } catch (error: any) {
     logger.error('Error fetching verification requests:', error);
     return sendError(res, 'Could not fetch verifications', 500);
@@ -181,6 +189,7 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    Cache.clearAll();
     return sendSuccess(res, verification, 'Payment approved successfully.');
   } catch (error: any) {
     logger.error('Error approving payment:', error);
@@ -255,6 +264,7 @@ export const rejectPayment = async (req: AuthRequest, res: Response) => {
       `/checkout`
     ).catch(e => logger.error('Push error:', e));
 
+    Cache.clearAll();
     return sendSuccess(res, verification, 'Payment rejected successfully.');
   } catch (error: any) {
     logger.error('Error rejecting payment:', error);
@@ -279,6 +289,7 @@ export const updatePaymentSettings = async (req: AuthRequest, res: Response) => 
     settings.updatedBy = req.user._id;
     await settings.save();
 
+    Cache.clearAll();
     return sendSuccess(res, settings, 'Payment settings updated successfully.');
   } catch (error: any) {
     logger.error('Error updating payment settings:', error);

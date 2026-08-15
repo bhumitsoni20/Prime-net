@@ -7,10 +7,15 @@ import { Transaction } from '../models/Transaction';
 import crypto from 'crypto';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
 import { firebaseAuth } from '../config/firebase';
+import { Cache } from '../utils/cache';
 
 // GET /api/admin/stats
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
+    const cacheKey = 'admin_dashboard_stats';
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendSuccess(res, cachedData);
+
     const latestOrder = await Order.findOne({ paymentStatus: { $in: ['paid', 'payment_verified'] } }).sort({ createdAt: -1 });
     const anchorDate = latestOrder ? latestOrder.createdAt : new Date();
     
@@ -61,14 +66,17 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
       .limit(10)
       .lean();
 
-    return sendSuccess(res, {
+    const result = {
       totalUsers,
       totalProducts,
       totalOrders,
       totalRevenue: totalRevenue[0]?.total || 0,
       monthlyRevenue,
       recentOrders,
-    });
+    };
+    Cache.set(cacheKey, result, 300);
+
+    return sendSuccess(res, result);
   } catch (error: any) {
     return sendError(res, error.message);
   }
@@ -77,6 +85,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 // GET /api/admin/users
 export const getUsers = async (req: Request, res: Response) => {
   try {
+    const cacheKey = `admin_users_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.users, page, limit, cachedData.total);
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -95,6 +107,7 @@ export const getUsers = async (req: Request, res: Response) => {
       User.countDocuments(filter),
     ]);
 
+    Cache.set(cacheKey, { users, total }, 300);
     return sendPaginated(res, users, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -104,6 +117,10 @@ export const getUsers = async (req: Request, res: Response) => {
 // GET /api/admin/products
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
+    const cacheKey = `admin_products_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -121,6 +138,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       Product.countDocuments(filter),
     ]);
 
+    Cache.set(cacheKey, { products, total }, 300);
     return sendPaginated(res, products, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -142,6 +160,7 @@ export const updateUserRole = async (req: AuthRequest, res: Response) => {
     );
 
     if (!user) return sendError(res, 'User not found.', 404);
+    Cache.clearAll();
     return sendSuccess(res, user, 'User role updated.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -163,6 +182,7 @@ export const updateProductStatus = async (req: AuthRequest, res: Response) => {
     );
 
     if (!product) return sendError(res, 'Product not found.', 404);
+    Cache.clearAll();
     return sendSuccess(res, product, 'Product status updated.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -172,6 +192,10 @@ export const updateProductStatus = async (req: AuthRequest, res: Response) => {
 // GET /api/admin/orders
 export const getAllOrders = async (req: Request, res: Response) => {
   try {
+    const cacheKey = `admin_orders_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.orders, page, limit, cachedData.total);
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -188,6 +212,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
       Order.countDocuments(),
     ]);
 
+    Cache.set(cacheKey, { orders, total }, 300);
     return sendPaginated(res, orders, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -197,6 +222,10 @@ export const getAllOrders = async (req: Request, res: Response) => {
 // GET /api/admin/applications
 export const getApplications = async (req: Request, res: Response) => {
   try {
+    const cacheKey = `admin_applications_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.applications, page, limit, cachedData.total);
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
@@ -217,6 +246,7 @@ export const getApplications = async (req: Request, res: Response) => {
       SellerApplication.countDocuments(filter),
     ]);
 
+    Cache.set(cacheKey, { applications, total }, 300);
     return sendPaginated(res, applications, page, limit, total);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -253,6 +283,7 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
       });
     }
 
+    Cache.clearAll();
     return sendSuccess(res, application, `Application ${status}.`);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -276,6 +307,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 
     await User.findByIdAndDelete(req.params.id);
+    Cache.clearAll();
     return sendSuccess(res, null, 'User deleted successfully.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -289,6 +321,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     if (!product) return sendError(res, 'Product not found.', 404);
 
     await Product.findByIdAndDelete(req.params.id);
+    Cache.clearAll();
     return sendSuccess(res, null, 'Product deleted successfully.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -326,6 +359,7 @@ export const reconcileEarnings = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    Cache.clearAll();
     return sendSuccess(res, { creditedCount }, `Reconciliation complete. ${creditedCount} missing earnings credited.`);
   } catch (error: any) {
     return sendError(res, error.message);

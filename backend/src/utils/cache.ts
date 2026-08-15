@@ -20,4 +20,8 @@ export class Cache {
   static invalidate(key: string) {
     delete this.store[key];
   }
+
+  static clearAll() {
+    this.store = {};
+  }
 }

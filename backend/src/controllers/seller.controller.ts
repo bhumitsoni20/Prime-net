@@ -5,6 +5,7 @@ import { User } from '../models/User';
 import { Transaction } from '../models/Transaction';
 import { Notification } from '../models/Notification';
 import { sendSuccess, sendError } from '../utils/response';
+import { Cache } from '../utils/cache';
 
 // POST /api/seller/application
 export const applySeller = async (req: AuthRequest, res: Response) => {
@@ -50,6 +51,7 @@ export const applySeller = async (req: AuthRequest, res: Response) => {
       await Notification.insertMany(notifications);
     }
 
+    Cache.clearAll();
     return sendSuccess(res, application, 'Application submitted successfully.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -62,7 +64,13 @@ export const getMyApplicationStatus = async (req: AuthRequest, res: Response) =>
     const user = req.user;
     if (!user) return sendError(res, 'User not found.', 404);
 
+    const cacheKey = `seller_app_status_${user._id}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendSuccess(res, cachedData);
+
     const application = await SellerApplication.findOne({ user: user._id }).sort({ createdAt: -1 });
+    Cache.set(cacheKey, application, 300);
+
     return sendSuccess(res, application);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -72,6 +80,10 @@ export const getMyApplicationStatus = async (req: AuthRequest, res: Response) =>
 // GET /api/seller/wallet
 export const getWallet = async (req: AuthRequest, res: Response) => {
   try {
+    const cacheKey = `seller_wallet_${req.user._id}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendSuccess(res, cachedData, 'Wallet fetched.');
+
     const user = await User.findById(req.user._id).select('walletBalance');
     if (!user) return sendError(res, 'User not found.', 404);
 
@@ -82,7 +94,10 @@ export const getWallet = async (req: AuthRequest, res: Response) => {
       })
       .sort({ createdAt: -1 });
 
-    return sendSuccess(res, { balance: user.walletBalance || 0, transactions }, 'Wallet fetched.');
+    const result = { balance: user.walletBalance || 0, transactions };
+    Cache.set(cacheKey, result, 300);
+
+    return sendSuccess(res, result, 'Wallet fetched.');
   } catch (error: any) {
     return sendError(res, error.message);
   }

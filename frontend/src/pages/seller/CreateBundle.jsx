@@ -25,6 +25,18 @@ const CreateBundle = () => {
   });
 
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
 
 
@@ -186,22 +198,34 @@ const CreateBundle = () => {
           <h2 className="text-xl font-bold text-[#0F172A] mb-2">Bundle Builder</h2>
           <p className="text-[#64748B] text-sm mb-6">Select products from your inventory to include in this bundle.</p>
           
-          <div className="mb-6">
-            <select 
-              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-4 py-3 h-[52px] text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#5B4BFF]/20 focus:border-[#5B4BFF] transition-all"
-              onChange={(e) => {
-                if(e.target.value) {
-                  handleAddProduct(e.target.value);
-                  e.target.value = "";
-                }
-              }}
-              defaultValue=""
+          <div className="mb-6 relative" ref={dropdownRef}>
+            <div 
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-4 py-3 h-[52px] text-[#0F172A] cursor-pointer flex items-center justify-between transition-all hover:border-[#5B4BFF]/50"
             >
-              <option value="" disabled>+ Add a product to bundle...</option>
-              {products.map(p => (
-                <option key={p._id} value={p._id}>{p.name}</option>
-              ))}
-            </select>
+              <span className="text-[#64748B]">+ Add a product to bundle...</span>
+              <svg className={`w-4 h-4 text-[#64748B] transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            
+            {isOpen && (
+              <div className="absolute z-10 w-full mt-2 bg-white border border-[#E2E8F0] rounded-[16px] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] max-h-64 overflow-auto py-2">
+                {products.map((p) => (
+                  <div 
+                    key={p._id}
+                    className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors text-[#0F172A]"
+                    onClick={() => {
+                      handleAddProduct(p._id);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <img src={p.imageUrl} alt={p.name} className="w-8 h-8 object-contain rounded-lg bg-white border border-[#E2E8F0] p-1 shadow-sm" />
+                    <span>{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {selectedProducts.length > 0 && (

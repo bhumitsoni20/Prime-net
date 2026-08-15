@@ -199,7 +199,7 @@ const CreateBundle = () => {
             >
               <option value="" disabled>+ Add a product to bundle...</option>
               {products.map(p => (
-                <option key={p._id} value={p._id}>{p.title} - ₹{p.price}</option>
+                <option key={p._id} value={p._id}>{p.name}</option>
               ))}
             </select>
           </div>

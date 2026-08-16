@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import HeroSection from '../../components/common/HeroSection';
 import CategoryFilter from '../../components/common/CategoryFilter';
@@ -12,8 +13,16 @@ import { getPublicStats } from '../../services/public.service';
 
 const Home = () => {
   const navigate = useNavigate();
+  const carouselRef = useRef(null);
 
-  const { data, isLoading } = useProducts('limit=4&sort=rating');
+  const scroll = (direction) => {
+    if (carouselRef.current) {
+      const scrollAmount = 320;
+      carouselRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const { data, isLoading } = useProducts('limit=12&sort=rating');
   const { data: stats } = useQuery({
     queryKey: ['publicStats'],
     queryFn: async () => {
@@ -64,16 +73,18 @@ const Home = () => {
         ) : data?.data?.length > 0 ? (
           <div className="relative">
             {/* Optional Carousel Arrows (Visual only for now as requested by UI design) */}
-            <button className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
+            <button onClick={() => scroll('left')} className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
-            <button className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
+            <button onClick={() => scroll('right')} className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div ref={carouselRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4" style={{ scrollBehavior: 'smooth' }}>
               {data.data.map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <div key={product._id} className="min-w-[280px] sm:min-w-[300px] lg:min-w-[280px] snap-start flex-shrink-0">
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           </div>

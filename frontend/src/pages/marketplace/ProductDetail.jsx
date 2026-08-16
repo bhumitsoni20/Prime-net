@@ -225,6 +225,10 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
+
+            <div className="mt-6 pt-4 border-t border-[#F1F5F9] text-[11px] leading-relaxed text-[#94A3B8] text-center px-4">
+              Disclaimer: Brand names and logos are displayed solely for identification and informational purposes.
+            </div>
           </div>
         </div>
       </div>

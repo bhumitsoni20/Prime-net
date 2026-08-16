@@ -75,6 +75,10 @@ const ProductCard = ({ product }) => {
             <HiShoppingCart className="w-5 h-5" />
           </button>
         </div>
+
+        <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-[9px] leading-tight text-[#94A3B8] text-center">
+          Disclaimer: Brand names and logos are displayed solely for identification and informational purposes.
+        </div>
       </div>
     </div>
   );

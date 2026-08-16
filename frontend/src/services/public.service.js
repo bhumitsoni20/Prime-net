@@ -1,3 +1,3 @@
 import { apiGet } from './api';
 
-export const getPublicStats = () => apiGet('/admin/debug-stats');
+export const getPublicStats = () => apiGet('/public/stats');

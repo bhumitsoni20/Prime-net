@@ -56,7 +56,7 @@ const termsSections = [
     icon: FiCreditCard,
     content: (
       <>
-        <p className="mb-6">Payments via third-party gateways.</p>
+        <p className="mb-6">Payments are made manually via UPI or bank transfer and verified through uploaded screenshots.</p>
         <h4 className="font-semibold text-slate-800 mb-4">Platform Fees:</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col items-center justify-center text-center">

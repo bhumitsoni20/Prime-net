@@ -71,20 +71,20 @@ const privacySections = [
     icon: FiCreditCard,
     content: (
       <>
-        <p className="mb-4">Payments are processed securely through trusted third-party payment service providers.</p>
+        <p className="mb-4">Payments on StreamKart are made manually via UPI or bank transfer. To verify your order, you are required to upload a screenshot or receipt of your transaction.</p>
         
         <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-4">
           <h4 className="font-semibold text-indigo-900 mb-2">StreamKart does not store:</h4>
           <ul className="list-disc list-inside space-y-1 text-indigo-700">
+            <li>UPI PINs</li>
+            <li>Banking passwords</li>
             <li>Debit card numbers</li>
             <li>Credit card numbers</li>
             <li>CVV</li>
-            <li>Banking passwords</li>
-            <li>UPI PINs</li>
           </ul>
         </div>
         
-        <p>Payment providers process payment information in accordance with their own privacy and security policies.</p>
+        <p>Uploaded payment screenshots are strictly used for verifying your transaction with the seller and are processed securely.</p>
       </>
     )
   },

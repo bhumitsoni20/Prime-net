@@ -147,11 +147,11 @@ const refundSections = [
           </li>
           <li className="flex gap-3 text-slate-700 items-start">
             <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mt-0.5"><div className="w-2 h-2 bg-slate-600 rounded-full"></div></div>
-            Refunds will be issued to the original payment method wherever possible.
+            Refunds will be issued to the user's provided bank account or UPI ID.
           </li>
           <li className="flex gap-3 text-slate-700 items-start">
             <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mt-0.5"><div className="w-2 h-2 bg-slate-600 rounded-full"></div></div>
-            Processing time may vary depending on the payment provider or financial institution.
+            Processing time may vary depending on manual verification and bank processing times.
           </li>
         </ul>
       </>

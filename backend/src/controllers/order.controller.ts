@@ -368,11 +368,41 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
     }
 
     order.credentials = { email, password, notes };
-    order.orderStatus = 'delivered';
+    order.orderStatus = 'completed'; // Automatically complete upon delivery
     if (!order.timeline) order.timeline = [];
     order.timeline.push({ status: 'delivered', date: new Date() });
+    order.timeline.push({ status: 'completed', date: new Date() });
     
     await order.save();
+
+    // Handle Seller Earnings safely
+    try {
+      const existingTx = await Transaction.findOne({ order: order._id, type: 'credit' });
+      if (!existingTx) {
+        const transactionId = 'TXN_' + crypto.randomBytes(8).toString('hex').toUpperCase();
+        const grossAmount = order.amount || 0;
+        const platformCommission = 0; // Configurable commission
+        const netEarning = grossAmount - platformCommission;
+
+        const newTx = await Transaction.create({
+          transactionId,
+          order: order._id,
+          seller: order.seller,
+          buyer: order.user,
+          type: 'credit',
+          amount: netEarning,
+          status: 'completed',
+          description: 'Earnings from order completion'
+        });
+
+        await User.findByIdAndUpdate(order.seller, {
+          $inc: { walletBalance: netEarning }
+        });
+        console.log(`Seller ${order.seller} credited ?${netEarning} for order ${order._id}`);
+      }
+    } catch (err) {
+      console.error('Failed to process seller earning during completion:', err);
+    }
 
     // Create a system message for the delivery
     const message = await Message.create({

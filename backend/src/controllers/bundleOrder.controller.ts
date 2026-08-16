@@ -11,6 +11,8 @@ import {
 } from '../services/email.service';
 import mongoose from 'mongoose';
 import { User } from '../models/User';
+import { Transaction } from '../models/Transaction';
+import crypto from 'crypto';
 import { getIO } from '../socket';
 
 // POST /api/bundle-orders
@@ -125,7 +127,7 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
 
     // Check if all credentials are delivered
     const allDelivered = order.credentials.every(c => c.deliveryStatus === 'delivered');
-    const newStatus = allDelivered ? 'delivered' : 'partial';
+    const newStatus = allDelivered ? 'completed' : 'partial'; // Auto-complete if all delivered
 
     if (order.orderStatus !== newStatus) {
       order.orderStatus = newStatus;
@@ -133,6 +135,36 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
     }
 
     await order.save();
+
+    // Handle Seller Earnings if bundle is fully completed
+    if (allDelivered) {
+      try {
+        const existingTx = await Transaction.findOne({ order: order._id, type: 'credit' });
+        if (!existingTx) {
+          const transactionId = 'TXN_' + crypto.randomBytes(8).toString('hex').toUpperCase();
+          const grossAmount = order.bundlePrice || order.amount || 0;
+          const platformCommission = 0; // Configurable commission
+          const netEarning = grossAmount - platformCommission;
+
+          await Transaction.create({
+            transactionId,
+            order: order._id,
+            seller: order.seller,
+            buyer: order.user,
+            type: 'credit',
+            amount: netEarning,
+            status: 'completed',
+            description: 'Earnings from bundle completion'
+          });
+
+          await User.findByIdAndUpdate(order.seller, {
+            $inc: { walletBalance: netEarning }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to process seller earning during bundle completion:', err);
+      }
+    }
 
     // Create the message payload specifically for this product's credentials
     const message = await Message.create({

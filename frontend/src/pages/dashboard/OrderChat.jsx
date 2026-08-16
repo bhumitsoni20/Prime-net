@@ -490,11 +490,6 @@ const OrderChat = ({ orderId: orderIdProp, onBack, onMessageSent }) => {
             <HiShieldCheck className="w-[20px] h-[20px] mr-2" /> Secure Deliver Credentials
           </Button>
         )}
-        {!isSeller && order.orderStatus === 'delivered' && (
-          <Button size="lg" onClick={() => { setShowMobileSidebar(false); handleCompleteOrder(); }} className="w-full bg-[#16A34A] hover:bg-[#15803D] text-white shadow-[0_4px_14px_rgba(22,163,74,0.3)] border-none">
-            Confirm & Complete
-          </Button>
-        )}
         {!isSeller && order.orderStatus === 'completed' && !order.isReviewed && (
           <Button size="lg" onClick={() => { setShowMobileSidebar(false); setShowReviewModal(true); }} className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white shadow-[0_4px_14px_rgba(245,158,11,0.3)] border-none">
             ★ Rate & Review Experience

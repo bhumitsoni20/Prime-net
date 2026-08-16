@@ -80,7 +80,11 @@ const SellerProducts = () => {
                   <td className="p-5 text-[14px] font-medium text-[#64748B]">{product.category}</td>
                   <td className="p-5 text-[15px] font-extrabold text-[#0F172A]">₹{product.price.toLocaleString()}</td>
                   <td className="p-5">
-                    <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${product.status === 'active' ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' : 'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'}`}>
+                    <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] shadow-sm ${
+                      product.status === 'active' ? 'bg-[#F0FDF4] text-[#16A34A] border border-[#BBF7D0]' : 
+                      product.status === 'sold' ? 'bg-slate-100 text-slate-500 border border-slate-200' :
+                      'bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]'
+                    }`}>
                       {product.status || 'Active'}
                     </span>
                   </td>

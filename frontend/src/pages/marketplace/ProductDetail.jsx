@@ -164,14 +164,23 @@ const ProductDetail = () => {
             )}
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button size="lg" className="flex-1 py-4 text-[17px] shadow-[0_4px_14px_rgba(91,75,255,0.4)]" onClick={() => { addToCart(product); navigate('/checkout'); }}>
-                Buy Now
-              </Button>
-              <Button variant="secondary" size="lg" className="flex-1 py-4 text-[17px]" onClick={() => addToCart(product)}>
-                Add to Cart
-              </Button>
-            </div>
+            {product.status === 'sold' ? (
+              <div className="flex flex-col gap-3 mb-8">
+                <Button disabled size="lg" className="flex-1 py-4 text-[17px] bg-slate-200 text-slate-500 cursor-not-allowed border-none shadow-none">
+                  SOLD OUT
+                </Button>
+                <p className="text-center text-[13px] text-rose-500 font-bold uppercase tracking-wide">This listing is no longer available</p>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Button size="lg" className="flex-1 py-4 text-[17px] shadow-[0_4px_14px_rgba(91,75,255,0.4)]" onClick={() => { addToCart(product); navigate('/checkout'); }}>
+                  Buy Now
+                </Button>
+                <Button variant="secondary" size="lg" className="flex-1 py-4 text-[17px]" onClick={() => addToCart(product)}>
+                  Add to Cart
+                </Button>
+              </div>
+            )}
             
             <div className="flex items-center justify-between border-t border-[#F1F5F9] pt-6">
               <Button 

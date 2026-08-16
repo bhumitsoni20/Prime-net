@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
 import { BundleOrder } from '../models/BundleOrder';
+import { Product } from '../models/Product';
+import { Bundle } from '../models/Bundle';
 import PaymentVerification from '../models/PaymentVerification';
 import PaymentSettings from '../models/PaymentSettings';
 import { sendError, sendSuccess } from '../utils/response';
@@ -51,6 +53,16 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
         continue;
       }
 
+      // ATOMIC LISTING REMOVAL
+      const product = await Product.findOneAndUpdate(
+        { _id: order.product, status: 'active' },
+        { status: 'sold' },
+        { new: true }
+      );
+      if (!product) {
+        return sendError(res, 'This listing is no longer available. It has already been sold to another buyer.', 409);
+      }
+
       await PaymentVerification.create({
         orderId: order._id,
         orderType: 'Order',
@@ -80,6 +92,16 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
         continue;
       }
 
+      // ATOMIC LISTING REMOVAL
+      const bundle = await Bundle.findOneAndUpdate(
+        { _id: bundleOrder.bundle, status: 'active' },
+        { status: 'sold' },
+        { new: true }
+      );
+      if (!bundle) {
+        return sendError(res, 'This bundle is no longer available. It has already been sold to another buyer.', 409);
+      }
+
       await PaymentVerification.create({
         orderId: bundleOrder._id,
         orderType: 'BundleOrder',
@@ -93,6 +115,9 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
       bundleOrder.paymentStatus = 'pending_verification';
       await bundleOrder.save();
     }
+
+    const { Cache } = require('../utils/cache');
+    Cache.clearAll();
 
     return sendSuccess(res, null, 'Payment proof submitted successfully. Waiting for admin verification.', 200);
   } catch (error: any) {

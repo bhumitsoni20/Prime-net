@@ -19,7 +19,7 @@ export interface IBundle extends Document {
   thumbnail: string;
   bannerImage: string;
   tags: string[];
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'sold';
   visibility: 'public' | 'hidden';
   seller: mongoose.Types.ObjectId;
   products: IBundleProduct[];
@@ -89,7 +89,7 @@ const bundleSchema = new Schema<IBundle>(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'pending'],
+      enum: ['active', 'inactive', 'pending', 'sold'],
       default: 'pending',
     },
     visibility: {

@@ -172,20 +172,29 @@ const BundleDetail = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button 
-                size="lg"
-                className="flex-1 py-4 text-lg font-bold shadow-[0_4px_14px_rgba(91,75,255,0.4)] hover:shadow-[0_6px_20px_rgba(91,75,255,0.6)] hover:-translate-y-0.5 transition-all"
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-                onClick={handleCheckout}
-              >
-                Buy Now
-              </Button>
-              <Button variant="secondary" size="lg" className="flex-1 py-4 text-lg font-bold" onClick={() => addToCart(bundle)}>
-                Add to Cart
-              </Button>
-            </div>
+            {bundle.status === 'sold' ? (
+              <div className="flex flex-col gap-3 mb-8">
+                <Button disabled size="lg" className="flex-1 py-4 text-lg font-bold bg-slate-200 text-slate-500 cursor-not-allowed border-none shadow-none">
+                  SOLD OUT
+                </Button>
+                <p className="text-center text-[13px] text-rose-500 font-bold uppercase tracking-wide">This bundle is no longer available</p>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Button 
+                  size="lg"
+                  className="flex-1 py-4 text-lg font-bold shadow-[0_4px_14px_rgba(91,75,255,0.4)] hover:shadow-[0_6px_20px_rgba(91,75,255,0.6)] hover:-translate-y-0.5 transition-all"
+                  onMouseEnter={() => setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                  onClick={handleCheckout}
+                >
+                  Buy Now
+                </Button>
+                <Button variant="secondary" size="lg" className="flex-1 py-4 text-lg font-bold" onClick={() => addToCart(bundle)}>
+                  Add to Cart
+                </Button>
+              </div>
+            )}
 
             <div className="mt-8 pt-8 border-t border-[#F1F5F9]">
               <p className="text-[13px] font-bold text-[#94A3B8] uppercase tracking-wider mb-4">Offered By</p>

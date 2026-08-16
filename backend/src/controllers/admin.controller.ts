@@ -85,13 +85,13 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
 // GET /api/admin/users
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const cacheKey = `admin_users_${JSON.stringify(req.query)}`;
-    const cachedData = Cache.get(cacheKey);
-    if (cachedData) return sendPaginated(res, cachedData.users, page, limit, cachedData.total);
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
+
+    const cacheKey = `admin_users_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.users, page, limit, cachedData.total);
 
     const filter: any = {};
     if (req.query.role) filter.role = req.query.role;
@@ -117,13 +117,13 @@ export const getUsers = async (req: Request, res: Response) => {
 // GET /api/admin/products
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const cacheKey = `admin_products_${JSON.stringify(req.query)}`;
-    const cachedData = Cache.get(cacheKey);
-    if (cachedData) return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
+
+    const cacheKey = `admin_products_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
 
     const filter: any = {};
     if (req.query.status) filter.status = req.query.status;
@@ -192,13 +192,13 @@ export const updateProductStatus = async (req: AuthRequest, res: Response) => {
 // GET /api/admin/orders
 export const getAllOrders = async (req: Request, res: Response) => {
   try {
-    const cacheKey = `admin_orders_${JSON.stringify(req.query)}`;
-    const cachedData = Cache.get(cacheKey);
-    if (cachedData) return sendPaginated(res, cachedData.orders, page, limit, cachedData.total);
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
+
+    const cacheKey = `admin_orders_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.orders, page, limit, cachedData.total);
 
     const [orders, total] = await Promise.all([
       Order.find()
@@ -222,13 +222,13 @@ export const getAllOrders = async (req: Request, res: Response) => {
 // GET /api/admin/applications
 export const getApplications = async (req: Request, res: Response) => {
   try {
-    const cacheKey = `admin_applications_${JSON.stringify(req.query)}`;
-    const cachedData = Cache.get(cacheKey);
-    if (cachedData) return sendPaginated(res, cachedData.applications, page, limit, cachedData.total);
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
+
+    const cacheKey = `admin_applications_${JSON.stringify(req.query)}`;
+    const cachedData = Cache.get(cacheKey);
+    if (cachedData) return sendPaginated(res, cachedData.applications, page, limit, cachedData.total);
 
     const filter: any = {};
     if (req.query.status) filter.status = req.query.status;

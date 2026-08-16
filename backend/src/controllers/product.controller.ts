@@ -46,8 +46,6 @@ export const getProducts = async (req: Request, res: Response) => {
     const cacheKey = `products_${JSON.stringify(req.query)}`;
     let cachedData = Cache.get(cacheKey);
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
-
     if (cachedData) {
       return sendPaginated(res, cachedData.products, page, limit, cachedData.total);
     }
@@ -129,6 +127,7 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       status: 'active', // Automatically approve products
     });
 
+    Cache.clearAll();
     return sendSuccess(res, product, 'Product created and is now live.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -162,6 +161,7 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
       runValidators: true,
     });
 
+    Cache.clearAll();
     return sendSuccess(res, updated, 'Product updated.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -179,6 +179,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 
     await Product.findByIdAndDelete(req.params.id);
+    Cache.clearAll();
     return sendSuccess(res, null, 'Product deleted.');
   } catch (error: any) {
     return sendError(res, error.message);

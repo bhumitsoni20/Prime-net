@@ -9,7 +9,7 @@ export interface IProduct extends Document {
   originalPrice?: number;
   seller: mongoose.Types.ObjectId;
   masterProduct?: mongoose.Types.ObjectId;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'sold';
   features: string[];
   duration: string;
   ratings: number;
@@ -71,7 +71,7 @@ const productSchema = new Schema<IProduct>(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'pending'],
+      enum: ['active', 'inactive', 'pending', 'sold'],
       default: 'pending',
     },
     features: {

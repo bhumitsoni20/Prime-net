@@ -99,7 +99,9 @@ const SellerBundles = () => {
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase ${
                       bundle.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100/50' : 
                       bundle.status === 'pending' ? 'bg-amber-50 text-amber-600 border border-amber-100/50' : 
-                      'bg-slate-50 text-slate-500 border border-slate-200'
+                      bundle.status === 'inactive' ? 'bg-amber-50 text-amber-600 border border-amber-100/50' :
+                      bundle.status === 'sold' ? 'bg-slate-100 text-slate-500 border border-slate-200' :
+                      'bg-slate-50 text-slate-600 border border-slate-200'
                     }`}>
                       {bundle.status}
                     </span>

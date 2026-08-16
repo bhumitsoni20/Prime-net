@@ -4,6 +4,8 @@ import PaymentVerification from '../models/PaymentVerification';
 import PaymentSettings from '../models/PaymentSettings';
 import { Order } from '../models/Order';
 import { BundleOrder } from '../models/BundleOrder';
+import { Product } from '../models/Product';
+import { Bundle } from '../models/Bundle';
 import { sendError, sendSuccess } from '../utils/response';
 import { sendPushNotification } from '../services/notification.service';
 import { logger } from '../utils/logger';
@@ -26,6 +28,7 @@ export const getVerificationRequests = async (req: Request, res: Response) => {
 
     const [verifications, total] = await Promise.all([
       PaymentVerification.find(filter)
+        .select('-paymentScreenshot')
         .populate('buyer', 'name email avatar')
         .populate('seller', 'name')
         .sort({ createdAt: -1 })
@@ -74,6 +77,18 @@ export const getVerificationRequests = async (req: Request, res: Response) => {
   }
 };
 
+export const getVerificationRequestById = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const verification = await PaymentVerification.findById(id).lean();
+    if (!verification) return sendError(res, 'Verification request not found', 404);
+    return sendSuccess(res, verification);
+  } catch (error: any) {
+    logger.error('Error fetching verification request by ID:', error);
+    return sendError(res, 'Internal server error', 500);
+  }
+};
+
 export const approvePayment = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -81,6 +96,14 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
 
     if (!verification) return sendError(res, 'Verification request not found', 404);
     if (verification.status !== 'pending_verification') return sendError(res, 'Already processed', 400);
+
+    if (verification.orderType === 'Order') {
+      const order = await Order.findById(verification.orderId).populate('product');
+      if (!order) return sendError(res, 'Order not found', 404);
+    } else {
+      const bundleOrder = await BundleOrder.findById(verification.orderId).populate('bundle');
+      if (!bundleOrder) return sendError(res, 'Bundle Order not found', 404);
+    }
 
     // Update Verification Record
     verification.status = 'payment_verified';
@@ -224,6 +247,12 @@ export const rejectPayment = async (req: AuthRequest, res: Response) => {
         order.paymentStatus = 'payment_rejected';
         order.timeline.push({ status: 'payment_rejected', date: new Date() });
         await order.save();
+        
+        // Restore listing to active since payment was rejected
+        if (order.product) {
+          await Product.findByIdAndUpdate((order.product as any)._id, { status: 'active' });
+        }
+        
         productName = order.product ? (order.product as any).title : 'Product';
       }
     } else {
@@ -232,6 +261,12 @@ export const rejectPayment = async (req: AuthRequest, res: Response) => {
         bundleOrder.paymentStatus = 'payment_rejected';
         bundleOrder.timeline.push({ status: 'payment_rejected', date: new Date() });
         await bundleOrder.save();
+
+        // Restore listing to active since payment was rejected
+        if (bundleOrder.bundle) {
+          await Bundle.findByIdAndUpdate((bundleOrder.bundle as any)._id, { status: 'active' });
+        }
+
         productName = bundleOrder.bundle ? (bundleOrder.bundle as any).title : 'Bundle';
       }
     }

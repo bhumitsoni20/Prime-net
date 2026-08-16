@@ -18,11 +18,6 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['framer-motion', 'react-hot-toast', 'react-icons'],
-          query: ['@tanstack/react-query'],
-        },
       },
     },
   },

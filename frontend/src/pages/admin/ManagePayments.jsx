@@ -15,6 +15,7 @@ const ManagePayments = () => {
   const [statusFilter, setStatusFilter] = useState('pending_verification');
   
   const [previewImage, setPreviewImage] = useState(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, id: null, reason: '' });
   const [approveModal, setApproveModal] = useState({ isOpen: false, id: null });
 
@@ -53,6 +54,20 @@ const ManagePayments = () => {
 
   const handleApproveClick = (id) => {
     setApproveModal({ isOpen: true, id });
+  };
+
+  const handleViewScreenshot = async (id) => {
+    setIsPreviewLoading(true);
+    setPreviewImage('loading'); // open modal with loading state
+    try {
+      const res = await api.get(`/payment-verifications/${id}`);
+      setPreviewImage(res.data?.paymentScreenshot || null);
+    } catch (err) {
+      toast.error('Failed to load screenshot');
+      setPreviewImage(null);
+    } finally {
+      setIsPreviewLoading(false);
+    }
   };
 
   const confirmApprove = () => {
@@ -151,7 +166,8 @@ const ManagePayments = () => {
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={() => setPreviewImage(v.paymentScreenshot)}
+                          onClick={() => handleViewScreenshot(v._id)}
+                          disabled={isPreviewLoading && previewImage === 'loading'}
                           className="p-2 text-[#5B4BFF] bg-[#5B4BFF]/10 hover:bg-[#5B4BFF]/20 rounded-lg transition-colors"
                           title="View Screenshot"
                         >
@@ -215,7 +231,16 @@ const ManagePayments = () => {
       {/* Image Preview Modal */}
       <Modal isOpen={!!previewImage} onClose={() => setPreviewImage(null)} title="Payment Screenshot">
         <div className="mt-4">
-          <img src={previewImage} alt="Payment Proof" className="w-full rounded-xl" />
+          {previewImage === 'loading' ? (
+            <div className="flex flex-col items-center justify-center py-20 text-[#64748B]">
+              <Spinner size="lg" className="mb-4" />
+              <p>Loading screenshot...</p>
+            </div>
+          ) : previewImage ? (
+            <img src={previewImage} alt="Payment Proof" className="w-full rounded-xl" />
+          ) : (
+            <div className="text-center py-20 text-[#64748B]">No screenshot available</div>
+          )}
         </div>
       </Modal>
 

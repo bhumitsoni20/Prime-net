@@ -118,8 +118,6 @@ export const getBundles = async (req: Request, res: Response) => {
     const cacheKey = `bundles_${JSON.stringify(req.query)}`;
     let cachedData = Cache.get(cacheKey);
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
-
     if (cachedData) {
       return sendPaginated(res, cachedData.bundles, page, limit, cachedData.total);
     }
@@ -184,6 +182,7 @@ export const createBundle = async (req: AuthRequest, res: Response) => {
       status: 'active', // Automatically approve for now
     });
 
+    Cache.clearAll();
     return sendSuccess(res, bundle, 'Bundle created.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -201,6 +200,7 @@ export const updateBundle = async (req: AuthRequest, res: Response) => {
     }
 
     const updatedBundle = await Bundle.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    Cache.clearAll();
     return sendSuccess(res, updatedBundle);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -218,7 +218,7 @@ export const deleteBundle = async (req: AuthRequest, res: Response) => {
     }
 
     await bundle.deleteOne();
-
+    Cache.clearAll();
     return sendSuccess(res, { message: 'Bundle deleted successfully' });
   } catch (error: any) {
     return sendError(res, error.message);

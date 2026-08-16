@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth';
 import { authorize } from '../middleware/authorize';
 import {
   getVerificationRequests,
+  getVerificationRequestById,
   approvePayment,
   rejectPayment,
   updatePaymentSettings,
@@ -14,6 +15,7 @@ const router = Router();
 router.use(authenticate, authorize('admin'));
 
 router.get('/', getVerificationRequests);
+router.get('/:id', getVerificationRequestById);
 router.post('/:id/approve', approvePayment);
 router.post('/:id/reject', rejectPayment);
 router.put('/settings', updatePaymentSettings);

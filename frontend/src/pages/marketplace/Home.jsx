@@ -7,11 +7,24 @@ import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane } from 'react-icons/hi';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { getPublicStats } from '../../services/public.service';
 
 const Home = () => {
   const navigate = useNavigate();
 
   const { data, isLoading } = useProducts('limit=4&sort=rating');
+  const { data: stats } = useQuery({
+    queryKey: ['publicStats'],
+    queryFn: async () => {
+      const response = await getPublicStats();
+      return response.data;
+    }
+  });
+
+  const userCountText = stats?.totalUsers !== undefined
+    ? `${stats.totalUsers.toLocaleString()}+` 
+    : '4+';
 
   const handleSearch = (query) => {
     navigate(`/search?q=${encodeURIComponent(query)}`);
@@ -95,7 +108,7 @@ const Home = () => {
               <HiUsers className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">Trusted by 4+ Users</h4>
+              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">Trusted by {userCountText} Users</h4>
               <p className="text-[12px] text-[#64748B] leading-snug">Join thousands of happy customers worldwide.</p>
             </div>
           </div>

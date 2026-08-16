@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Button from '../../components/ui/Button';
@@ -14,11 +14,18 @@ const Checkout = () => {
   const [screenshotBase64, setScreenshotBase64] = useState(null);
   
   const { items: cartItems, total: subtotal, clearCart } = useCart();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const bundleId = location.state?.bundleId;
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error('Please login to checkout');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const { data: bundle } = useQuery({
     queryKey: ['bundle', bundleId],

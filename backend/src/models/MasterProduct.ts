@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IMasterProduct extends Document {
   name: string;
   imageUrl: string;
+  planNames: string[];
   status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +21,10 @@ const masterProductSchema = new Schema<IMasterProduct>(
     imageUrl: {
       type: String,
       required: [true, 'Product image is required'],
+    },
+    planNames: {
+      type: [String],
+      default: [],
     },
     status: {
       type: String,

@@ -19,13 +19,32 @@ const categories = [
   { value: 'software', label: 'Software & Tools' },
 ];
 
+
+
+const deviceLoginTypes = [
+  { id: 'Mobile Only', icon: '📱' },
+  { id: 'TV/PC Only', icon: '💻' },
+  { id: 'Own Mail', icon: '📧' },
+  { id: 'Own Number', icon: '📞' }
+];
+
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: productData, isLoading } = useProduct(id);
   const updateMutation = useUpdateProduct();
   
-  const [form, setForm] = useState({ masterProductId: '', description: '', price: '', category: 'ai-tools', features: '', duration: '1 month', deliveryType: 'instant' });
+  const [form, setForm] = useState({ 
+    masterProductId: '', 
+    description: '', 
+    price: '', 
+    category: 'ott', 
+    features: '', 
+    duration: '1 month',
+    planName: 'Default Plan',
+    deviceLoginCount: 1,
+    deviceLoginType: 'Mobile Only'
+  });
 
   const { data: masterProductsRes, isLoading: isLoadingMasters } = useQuery({
     queryKey: ['masterProducts'],
@@ -37,6 +56,7 @@ const EditProduct = () => {
 
   const masterProducts = masterProductsRes?.data || [];
   const selectedMasterProduct = masterProducts.find(p => p._id === form.masterProductId);
+  const currentPlanNames = selectedMasterProduct?.planNames?.length > 0 ? selectedMasterProduct.planNames : ['Default Plan'];
 
   useEffect(() => {
     if (productData?.data) {
@@ -45,18 +65,15 @@ const EditProduct = () => {
         masterProductId: p.masterProduct || '',
         description: p.description || '',
         price: p.price?.toString() || '',
-        category: p.category || 'ai-tools',
+        category: p.category || 'ott',
         features: p.features ? p.features.join(', ') : '',
         duration: p.duration || '1 month',
+        planName: p.planName || 'Default Plan',
+        deviceLoginCount: p.deviceLoginCount || 1,
+        deviceLoginType: p.deviceLoginType || 'Mobile Only'
       });
-      // Fallback for existing products without masterProduct
-      if (!p.masterProduct && p.title) {
-        // We will just leave masterProductId empty and let the backend keep the old title/logo unless changed
-      }
     }
   }, [productData]);
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,7 +93,7 @@ const EditProduct = () => {
         navigate('/seller/products');
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to update product');
+        toast.error(err?.message || 'Failed to update product');
       }
     });
   };
@@ -89,45 +106,91 @@ const EditProduct = () => {
       <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-8 tracking-[-0.02em]">Edit Product</h1>
       
       <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-[24px] p-8 max-w-5xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition-shadow">
+        
+        {/* Top: Product Selection */}
+        <div className="mb-8">
+          <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Select Product</label>
+          <div className="relative">
+            <select 
+              value={form.masterProductId || ''} 
+              onChange={(e) => {
+                const pid = e.target.value;
+                const p = masterProducts.find(x => x._id === pid);
+                const newPlanNames = p?.planNames?.length > 0 ? p.planNames : ['Default Plan'];
+                setForm({ ...form, masterProductId: pid, planName: newPlanNames[0] });
+              }} 
+              className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium"
+            >
+              <option value="" disabled>Search or select a product...</option>
+              {masterProducts.map((p) => (
+                <option key={p._id} value={p._id}>{p.name}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
           
           {/* Left Column */}
           <div className="space-y-6">
-            <div>
-              <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Select Product</label>
-              <div className="relative">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[13px] font-bold text-[#334155] mb-2">Category or Plan Name</label>
                 <select 
-                  value={form.masterProductId || ''} 
-                  onChange={(e) => setForm({ ...form, masterProductId: e.target.value })} 
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white appearance-none transition-all font-medium"
+                  value={form.planName} 
+                  onChange={(e) => setForm({ ...form, planName: e.target.value })} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] px-4 py-3 text-[#0F172A] focus:outline-none focus:ring-[2px] focus:ring-[#5B4BFF]/20 focus:border-[#5B4BFF] appearance-none font-medium"
                 >
-                  <option value="" disabled>Search or select a product...</option>
-                  {masterProducts.map((p) => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
+                  {currentPlanNames.map(name => <option key={name} value={name}>{name}</option>)}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#64748B]">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd"></path></svg>
-                </div>
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-[#334155] mb-2">Number of Device Login</label>
+                <select 
+                  value={form.deviceLoginCount} 
+                  onChange={(e) => setForm({ ...form, deviceLoginCount: Number(e.target.value) })} 
+                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] px-4 py-3 text-[#0F172A] focus:outline-none focus:ring-[2px] focus:ring-[#5B4BFF]/20 focus:border-[#5B4BFF] appearance-none font-medium"
+                >
+                  {[1,2,3,4,5].map(num => <option key={num} value={num}>{num}</option>)}
+                </select>
               </div>
             </div>
-            
-            {selectedMasterProduct && (
-              <div className="flex items-center gap-4 bg-[#F8FAFC] p-4 rounded-[16px] border border-[#E2E8F0]">
-                <div className="w-16 h-16 rounded-[12px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center p-1.5 overflow-hidden">
-                  <img src={selectedMasterProduct.imageUrl} alt={selectedMasterProduct.name} className="max-w-full max-h-full object-contain" />
-                </div>
-                <div>
-                  <div className="text-[12px] font-bold text-[#64748B] uppercase tracking-wider mb-0.5">Product Identity</div>
-                  <div className="text-[16px] font-extrabold text-[#0F172A]">{selectedMasterProduct.name}</div>
-                </div>
-              </div>
-            )}
 
             <div>
-              <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Description</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all resize-none" required />
+              <label className="block text-[13px] font-bold text-[#334155] mb-3">Select Device/Login (Anyone)</label>
+              <div className="flex flex-wrap gap-3">
+                {deviceLoginTypes.map((type) => (
+                  <button
+                    type="button"
+                    key={type.id}
+                    onClick={() => setForm({ ...form, deviceLoginType: type.id })}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-[12px] border font-medium text-[14px] transition-all ${
+                      form.deviceLoginType === type.id 
+                        ? 'bg-[#F0FDF4] border-[#22C55E] text-[#15803D]' 
+                        : 'bg-white border-[#E2E8F0] text-[#64748B] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    <span>{type.icon}</span>
+                    {type.id}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div>
+              <label className="block text-[13px] font-bold text-[#334155] mb-2">Description (Max 200 words) (Optional)</label>
+              <textarea 
+                value={form.description} 
+                onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                rows={4} 
+                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] px-5 py-3.5 text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/10 focus:border-[#5B4BFF] focus:bg-white transition-all resize-none" 
+              />
+            </div>
+            
+            <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
           </div>
 
           {/* Right Column */}
@@ -148,8 +211,6 @@ const EditProduct = () => {
             </div>
             
             <Input label="Duration" placeholder="e.g. 1 month, 3 months, Lifetime" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
-            
-            <Input label="Features" placeholder="Comma-separated (e.g. 4K Ultra HD, 4 Screens, 1 Year)" value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} className="bg-[#F8FAFC] border-transparent focus:bg-white" />
           </div>
         </div>
         
@@ -158,7 +219,6 @@ const EditProduct = () => {
           <Button type="submit" size="lg" className="w-full sm:w-48 shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex justify-center" loading={updateMutation.isPending}>Update Product</Button>
         </div>
       </form>
-
     </div>
   );
 };

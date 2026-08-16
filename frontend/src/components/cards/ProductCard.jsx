@@ -46,6 +46,13 @@ const ProductCard = ({ product }) => {
           </h3>
         </Link>
 
+        {(product.planName || product.deviceLoginType) && (
+          <div className="flex flex-wrap gap-1.5 mb-3 mt-2">
+            {product.planName && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.planName}</Badge>}
+            {product.deviceLoginCount && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.deviceLoginCount} Device{product.deviceLoginCount > 1 ? 's' : ''}</Badge>}
+            {product.deviceLoginType && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.deviceLoginType}</Badge>}
+          </div>
+        )}
 
         <div className="flex items-center gap-1.5 mb-4">
           <span className="text-[#F59E0B] text-[14px]">★</span>

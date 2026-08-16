@@ -4,6 +4,9 @@ export interface IProduct extends Document {
   title: string;
   description: string;
   category: string;
+  planName?: string;
+  deviceLoginCount?: number;
+  deviceLoginType?: string;
   logo: string;
   price: number;
   originalPrice?: number;
@@ -46,6 +49,19 @@ const productSchema = new Schema<IProduct>(
         'gaming',
         'other',
       ],
+    },
+    planName: {
+      type: String,
+      trim: true,
+    },
+    deviceLoginCount: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+    deviceLoginType: {
+      type: String,
+      enum: ['Mobile Only', 'TV/PC Only', 'Own Mail', 'Own Number'],
     },
     logo: {
       type: String,

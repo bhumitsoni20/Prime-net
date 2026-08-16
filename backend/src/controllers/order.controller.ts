@@ -388,11 +388,11 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
           transactionId,
           order: order._id,
           seller: order.seller,
-          buyer: order.user,
+          grossAmount,
+          platformCommission,
+          netEarning,
           type: 'credit',
-          amount: netEarning,
-          status: 'completed',
-          description: 'Earnings from order completion'
+          status: 'completed'
         });
 
         await User.findByIdAndUpdate(order.seller, {

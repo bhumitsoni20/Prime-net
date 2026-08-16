@@ -49,7 +49,7 @@ export const getMasterProductById = async (req: Request, res: Response) => {
 // POST /api/master-products
 export const createMasterProduct = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, imageUrl, status } = req.body;
+    const { name, imageUrl, status, planNames } = req.body;
 
     const existingProduct = await MasterProduct.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
     if (existingProduct) {
@@ -59,6 +59,7 @@ export const createMasterProduct = async (req: AuthRequest, res: Response) => {
     const product = await MasterProduct.create({
       name,
       imageUrl,
+      planNames: Array.isArray(planNames) ? planNames : [],
       status: status || 'active',
     });
 
@@ -71,7 +72,7 @@ export const createMasterProduct = async (req: AuthRequest, res: Response) => {
 // PUT /api/master-products/:id
 export const updateMasterProduct = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, imageUrl, status } = req.body;
+    const { name, imageUrl, status, planNames } = req.body;
     
     if (name) {
       const existingProduct = await MasterProduct.findOne({ 
@@ -83,9 +84,14 @@ export const updateMasterProduct = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    const updateData: any = { name, imageUrl, status };
+    if (planNames !== undefined) {
+      updateData.planNames = Array.isArray(planNames) ? planNames : [];
+    }
+
     const product = await MasterProduct.findByIdAndUpdate(
       req.params.id,
-      { name, imageUrl, status },
+      updateData,
       { new: true, runValidators: true }
     );
 

@@ -20,7 +20,8 @@ const ProductCatalog = () => {
   const [productToEdit, setProductToEdit] = useState(null);
 
   // Form states
-  const [form, setForm] = useState({ name: '', status: 'active' });
+  const [form, setForm] = useState({ name: '', status: 'active', planNames: [] });
+  const [planInput, setPlanInput] = useState('');
   const [imageSrc, setImageSrc] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [croppedBlob, setCroppedBlob] = useState(null);
@@ -86,13 +87,19 @@ const ProductCatalog = () => {
   const resetForm = () => {
     setIsAddModalOpen(false);
     setProductToEdit(null);
-    setForm({ name: '', status: 'active' });
+    setForm({ name: '', status: 'active', planNames: [] });
+    setPlanInput('');
     setPreviewUrl(null);
     setCroppedBlob(null);
   };
 
   const openEditModal = (product) => {
-    setForm({ name: product.name, status: product.status });
+    setForm({ 
+      name: product.name, 
+      status: product.status,
+      planNames: product.planNames || []
+    });
+    setPlanInput('');
     setPreviewUrl(product.imageUrl);
     setCroppedBlob(null); // No new image initially
     setProductToEdit(product);
@@ -220,6 +227,50 @@ const ProductCatalog = () => {
             onChange={e => setForm({...form, name: e.target.value})} 
             required 
           />
+
+          <div>
+            <label className="block text-[13px] font-bold text-[#334155] mb-2 uppercase tracking-[0.08em]">Available Plan Names</label>
+            <div className="flex gap-2 mb-3">
+              <input 
+                type="text"
+                placeholder="e.g. Mobile Edition"
+                value={planInput}
+                onChange={e => setPlanInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (planInput.trim()) {
+                      setForm(f => ({ ...f, planNames: [...f.planNames, planInput.trim()] }));
+                      setPlanInput('');
+                    }
+                  }
+                }}
+                className="flex-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[12px] px-4 py-3 text-[#0F172A] focus:outline-none focus:border-[#5B4BFF] transition-all outline-none"
+              />
+              <Button type="button" onClick={() => {
+                if (planInput.trim()) {
+                  setForm(f => ({ ...f, planNames: [...f.planNames, planInput.trim()] }));
+                  setPlanInput('');
+                }
+              }} className="px-4">
+                <HiPlus className="w-5 h-5" />
+              </Button>
+            </div>
+            {form.planNames.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {form.planNames.map((plan, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F1F5F9] text-[#475569] text-sm font-medium rounded-lg border border-[#E2E8F0]">
+                    {plan}
+                    <button type="button" onClick={() => {
+                      setForm(f => ({ ...f, planNames: f.planNames.filter((_, i) => i !== idx) }));
+                    }} className="text-[#94A3B8] hover:text-[#EF4444] transition-colors ml-1">
+                      <HiTrash className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           
           <div>
             <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">Product Image</label>

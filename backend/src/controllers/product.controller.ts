@@ -100,7 +100,7 @@ export const getProduct = async (req: Request, res: Response) => {
 // POST /api/products
 export const createProduct = async (req: AuthRequest, res: Response) => {
   try {
-    const { category, price, originalPrice, features, duration, masterProductId } = req.body;
+    const { category, price, originalPrice, features, duration, masterProductId, planName, deviceLoginCount, deviceLoginType } = req.body;
     let { title, description, logo } = req.body;
 
     if (masterProductId) {
@@ -122,6 +122,9 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       originalPrice,
       features,
       duration,
+      planName,
+      deviceLoginCount,
+      deviceLoginType,
       masterProduct: masterProductId || undefined,
       seller: req.user._id,
       status: 'active', // Automatically approve products

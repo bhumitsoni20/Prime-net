@@ -142,7 +142,7 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
         const existingTx = await Transaction.findOne({ order: order._id, type: 'credit' });
         if (!existingTx) {
           const transactionId = 'TXN_' + crypto.randomBytes(8).toString('hex').toUpperCase();
-          const grossAmount = order.bundlePrice || order.amount || 0;
+          const grossAmount = order.amount || 0;
           const platformCommission = 0; // Configurable commission
           const netEarning = grossAmount - platformCommission;
 
@@ -150,11 +150,11 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
             transactionId,
             order: order._id,
             seller: order.seller,
-            buyer: order.user,
+            grossAmount,
+            platformCommission,
+            netEarning,
             type: 'credit',
-            amount: netEarning,
-            status: 'completed',
-            description: 'Earnings from bundle completion'
+            status: 'completed'
           });
 
           await User.findByIdAndUpdate(order.seller, {

@@ -141,9 +141,16 @@ const ProductDetail = () => {
               <Badge variant="primary" className="px-3 py-1 bg-[#5B4BFF]/10 text-[#5B4BFF] border-[#5B4BFF]/20">BEST SELLER</Badge>
             </div>
             
-            <div className="flex items-end gap-1.5 mb-10 flex-1">
+            <div className="flex items-end gap-1.5 mb-6 flex-1">
               <span className="text-5xl md:text-[64px] font-extrabold text-[#0F172A] tracking-[-0.04em] leading-none">₹{product.price}</span>
               <span className="text-[#94A3B8] font-semibold text-lg mb-2 capitalize">/ {product.duration || '1 month'}</span>
+            </div>
+
+            {/* Plan Info Badges */}
+            <div className="flex flex-wrap gap-2 mb-10">
+              {product.planName && <Badge variant="gray" className="text-[13px] py-1.5 px-3 bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] font-semibold">{product.planName}</Badge>}
+              {product.deviceLoginCount && <Badge variant="gray" className="text-[13px] py-1.5 px-3 bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] font-semibold">{product.deviceLoginCount} Device{product.deviceLoginCount > 1 ? 's' : ''}</Badge>}
+              {product.deviceLoginType && <Badge variant="gray" className="text-[13px] py-1.5 px-3 bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] font-semibold">{product.deviceLoginType}</Badge>}
             </div>
 
             {/* Key Features */}

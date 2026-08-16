@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { HiCheckCircle, HiXCircle, HiTrash, HiExclamation } from 'react-icons/hi';
+import { HiCheckCircle, HiXCircle, HiTrash, HiExclamation, HiSearch } from 'react-icons/hi';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
 const AdminBundles = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const [bundleToDelete, setBundleToDelete] = useState(null);
 
@@ -53,13 +54,28 @@ const AdminBundles = () => {
 
   const bundles = data?.data || [];
 
+
+  const filteredBundles = (bundles || []).filter(bundle => {
+    const searchStr = searchQuery.toLowerCase();
+    return bundle.title?.toString().toLowerCase().includes(searchStr) || bundle.seller?.name?.toString().toLowerCase().includes(searchStr);
+  });
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em]">Manage Bundles</h1>
+        <div className="relative w-full sm:w-[300px]">
+          <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+          <input
+            type="text"
+            placeholder="Search bundles..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white border border-[#E2E8F0] rounded-[16px] py-3 pl-12 pr-4 text-[15px] font-medium text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#5B4BFF] focus:ring-4 focus:ring-[#5B4BFF]/10 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+          />
+        </div>
       </div>
 
-      {bundles.length === 0 ? (
+      {filteredBundles.length === 0 ? (
         <div className="bg-white border border-[#E2E8F0] rounded-[24px] p-12 text-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
           <div className="w-20 h-20 bg-[#F8FAFC] border border-[#F1F5F9] rounded-[20px] flex items-center justify-center mx-auto mb-5 shadow-sm text-3xl">🎁</div>
           <h3 className="text-[20px] font-bold text-[#0F172A] mb-2">No Bundles Found</h3>
@@ -79,7 +95,7 @@ const AdminBundles = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F1F5F9]">
-              {bundles.map(bundle => (
+              {filteredBundles.map(bundle => (
                 <tr key={bundle._id} className="hover:bg-[#F8FAFC] transition-colors group">
                   <td className="p-5 pl-6 text-sm font-medium text-[#0F172A]">
                     <div className="flex items-center gap-4">

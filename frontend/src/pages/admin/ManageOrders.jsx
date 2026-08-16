@@ -1,8 +1,11 @@
+import { HiSearch } from 'react-icons/hi';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllOrders } from '../../services/admin.service';
 import dayjs from 'dayjs';
 
 const ManageOrders = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['adminOrders'],
     queryFn: async () => {
@@ -11,12 +14,27 @@ const ManageOrders = () => {
     },
   });
 
+
+  const filteredOrders = (orders || []).filter(order => {
+    const searchStr = searchQuery.toLowerCase();
+    return order._id?.toString().toLowerCase().includes(searchStr) || order.user?.name?.toString().toLowerCase().includes(searchStr) || order.user?.email?.toString().toLowerCase().includes(searchStr) || order.product?.title?.toString().toLowerCase().includes(searchStr);
+  });
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] mb-1">Manage Orders</h1>
           <p className="text-[#64748B] text-[15px]">View and update all platform orders.</p>
+        </div>
+        <div className="relative w-full sm:w-[300px]">
+          <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+          <input
+            type="text"
+            placeholder="Search orders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white border border-[#E2E8F0] rounded-[16px] py-3 pl-12 pr-4 text-[15px] font-medium text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#5B4BFF] focus:ring-4 focus:ring-[#5B4BFF]/10 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+          />
         </div>
       </div>
       
@@ -36,10 +54,10 @@ const ManageOrders = () => {
             <tbody className="divide-y divide-[#F1F5F9]">
               {isLoading ? (
                 <tr><td colSpan={6} className="p-12 text-center text-[#94A3B8] font-medium animate-pulse">Loading orders...</td></tr>
-              ) : orders.length === 0 ? (
+              ) : filteredOrders.length === 0 ? (
                 <tr><td colSpan={6} className="p-12 text-center text-[#64748B] font-medium bg-[#F8FAFC]">No orders found.</td></tr>
               ) : (
-                orders.map(order => (
+                filteredOrders.map(order => (
                   <tr key={order._id} className="hover:bg-[#F8FAFC] transition-colors group">
                     <td className="p-5 pl-6 text-[13px] font-mono font-medium text-[#94A3B8] group-hover:text-[#5B4BFF] transition-colors">#{order._id.substring(0, 8)}</td>
                     <td className="p-5 text-[14px] font-semibold text-[#0F172A]">{order.user?.email || 'Unknown'}</td>

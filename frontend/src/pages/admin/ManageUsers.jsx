@@ -4,13 +4,14 @@ import { getUsers, updateUserRole, deleteUser } from '../../services/admin.servi
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { HiTrash, HiExclamation } from 'react-icons/hi';
+import { HiTrash, HiExclamation, HiSearch } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
 const ManageUsers = () => {
   const queryClient = useQueryClient();
   const [userToDelete, setUserToDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['adminUsers'],
@@ -60,12 +61,27 @@ const ManageUsers = () => {
     deleteMutation.mutate(userToDelete._id);
   };
 
+
+  const filteredUsers = (users || []).filter(user => {
+    const searchStr = searchQuery.toLowerCase();
+    return user.name?.toString().toLowerCase().includes(searchStr) || user.email?.toString().toLowerCase().includes(searchStr);
+  });
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] mb-1">Manage Users</h1>
           <p className="text-[#64748B] text-[15px]">View and manage all registered users.</p>
+        </div>
+        <div className="relative w-full sm:w-[300px]">
+          <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white border border-[#E2E8F0] rounded-[16px] py-3 pl-12 pr-4 text-[15px] font-medium text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#5B4BFF] focus:ring-4 focus:ring-[#5B4BFF]/10 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+          />
         </div>
       </div>
 
@@ -84,10 +100,10 @@ const ManageUsers = () => {
             <tbody className="divide-y divide-[#F1F5F9]">
               {isLoading ? (
                 <tr><td colSpan={5} className="p-12 text-center text-[#94A3B8] font-medium animate-pulse">Loading users...</td></tr>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <tr><td colSpan={5} className="p-12 text-center text-[#64748B] font-medium bg-[#F8FAFC]">No users found.</td></tr>
               ) : (
-                users.map(user => (
+                filteredUsers.map(user => (
                   <tr key={user._id} className="hover:bg-[#F8FAFC] transition-colors group">
                     <td className="p-5 pl-6">
                       <div className="flex items-center gap-4">

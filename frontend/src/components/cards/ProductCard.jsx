@@ -24,12 +24,14 @@ const ProductCard = ({ product }) => {
       </Link>
 
       {/* Badges and Actions */}
-      <div className="absolute top-7 right-7">
-        <div className="bg-[#F0FDF4] text-[#16A34A] px-2 py-1 rounded-[6px] text-[10px] font-bold tracking-wide flex items-center gap-1 border border-[#BBF7D0]">
-          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-          Verified
+      {(product.seller?.totalSales || 0) >= 10 && (
+        <div className="absolute top-7 right-7">
+          <div className="bg-[#F0FDF4] text-[#16A34A] px-2 py-1 rounded-[6px] text-[10px] font-bold tracking-wide flex items-center gap-1 border border-[#BBF7D0]">
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+            Verified
+          </div>
         </div>
-      </div>
+      )}
       <button
         onClick={(e) => { e.preventDefault(); toggleItem(product); }}
         className={`absolute top-7 left-7 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 ${liked ? 'text-red-500' : 'text-[#94A3B8] hover:text-red-400'}`}

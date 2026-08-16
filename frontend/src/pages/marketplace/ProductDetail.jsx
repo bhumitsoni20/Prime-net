@@ -199,7 +199,11 @@ const ProductDetail = () => {
                 <Avatar name={product.seller?.name || 'Seller'} size="lg" className="ring-4 ring-white" />
                 <div>
                   <p className="text-[#0F172A] font-bold text-[17px]">{product.seller?.name || 'Seller'}</p>
-                  <p className="text-[#15803D] text-[13px] flex items-center gap-1 mt-1 font-semibold"><HiCheckCircle className="w-4 h-4" /> Verified Vendor</p>
+                  {(product.seller?.totalSales || 0) >= 10 && (
+                    <p className="text-[#15803D] text-[13px] flex items-center gap-1 mt-1 font-semibold">
+                      <HiCheckCircle className="w-4 h-4" /> Verified Vendor
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-8 text-center bg-white py-3 px-6 rounded-[16px] border border-[#E2E8F0] shadow-sm">

@@ -102,7 +102,7 @@ const AddProduct = () => {
           masterProductId: form.masterProductId,
           planName: form.planName,
           deviceLoginCount: form.deviceLoginCount,
-          deviceLoginType: form.deviceLoginType,
+          deviceLoginType: form.deviceLoginType || undefined,
           duration: duration,
           price: Number(price)
         });
@@ -111,7 +111,7 @@ const AddProduct = () => {
       toast.success('Product(s) created successfully!');
       navigate('/seller/products');
     } catch (err) {
-      toast.error(err?.message || 'Failed to create products');
+      alert('SERVER ERROR: ' + JSON.stringify(err?.response?.data || err?.message));
     }
   };
 

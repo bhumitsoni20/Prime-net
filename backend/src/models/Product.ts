@@ -32,7 +32,7 @@ const productSchema = new Schema<IProduct>(
     },
     description: {
       type: String,
-      required: [true, 'Description is required'],
+      
       maxlength: 2000,
     },
     category: {

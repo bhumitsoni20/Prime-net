@@ -8,7 +8,7 @@ export const sendSuccess = (res: Response, data: any, message = 'Success', statu
   });
 };
 
-export const sendError = (res: Response, message = 'Server Error', statusCode = 500, errors?: any) => {
+export const sendError = (res: Response, message = 'Server Error', statusCode = 500, errors?: any) => { require('fs').appendFileSync('D:/streamkart/backend/backend_error.log', new Date().toISOString() + ' ' + message + '\n');
   if (statusCode >= 500) console.error("BACKEND ERROR:", message, errors);
   return res.status(statusCode).json({
     success: false,

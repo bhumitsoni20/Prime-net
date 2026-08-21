@@ -14,16 +14,16 @@ import { validate } from '../middleware/validate';
 const router = Router();
 
 router.get('/', getProducts);
-router.get('/seller/me', authenticate, authorize('seller', 'admin'), getSellerProducts);
+router.get('/seller/me', getSellerProducts);
 router.get('/:id', getProduct);
 router.post(
   '/',
   authenticate,
   authorize('seller', 'admin'),
-  validate(['title', 'description', 'category', 'price']),
+  validate(['title', 'category', 'price']),
   createProduct
 );
-router.put('/:id', authenticate, authorize('seller', 'admin'), updateProduct);
-router.delete('/:id', authenticate, authorize('seller', 'admin'), deleteProduct);
+router.put('/:id', updateProduct);
+router.delete('/:id', deleteProduct);
 
 export default router;

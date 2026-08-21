@@ -59,7 +59,7 @@ const bundleSchema = new Schema<IBundle>(
     },
     description: {
       type: String,
-      required: [true, 'Description is required'],
+      
       maxlength: 3000,
     },
     category: {

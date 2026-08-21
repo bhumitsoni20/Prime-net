@@ -49,7 +49,7 @@ api.interceptors.response.use(
         console.warn('Firebase signout failed', err);
       }
     }
-    handleApiError(error);
+    console.error('FRONTEND CATCH:', error.response?.data); handleApiError(error);
     return Promise.reject(error);
   }
 );

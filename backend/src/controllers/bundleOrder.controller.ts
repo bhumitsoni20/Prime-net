@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { BundleOrder } from '../models/BundleOrder';
 import { Bundle } from '../models/Bundle';
+import { Coupon } from '../models/Coupon';
 import { Message } from '../models/Message';
 import { sendSuccess, sendError } from '../utils/response';
 import { 
@@ -18,7 +19,7 @@ import { getIO } from '../socket';
 // POST /api/bundle-orders
 export const createBundleOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const { bundleId, paymentMethod, paymentId } = req.body;
+    const { bundleId, paymentMethod, paymentId, couponCode, cartTotal } = req.body;
 
     const bundle = await Bundle.findById(bundleId);
     if (!bundle) return sendError(res, 'Bundle not found.', 404);
@@ -30,14 +31,48 @@ export const createBundleOrder = async (req: AuthRequest, res: Response) => {
       deliveryStatus: 'pending' as const,
     }));
 
-    const order = await BundleOrder.create({
+    
+      let finalAmount = bundle.bundlePrice;
+      let discountAmount = 0;
+      let appliedCouponId = undefined;
+      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : 'paid'; // Current default was 'paid' in BundleOrder, let's keep it or change it
+
+      if (couponCode) {
+        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+        if (coupon && coupon.usageCount < coupon.maxUsage) {
+          appliedCouponId = coupon._id;
+          if (coupon.discountType === 'percentage') {
+            discountAmount = (bundle.bundlePrice * coupon.discountValue) / 100;
+          } else if (coupon.discountType === 'fixed' && cartTotal) {
+            // Proportional discount
+            discountAmount = coupon.discountValue * (bundle.bundlePrice / cartTotal);
+          } else if (coupon.discountType === 'fixed') {
+            discountAmount = coupon.discountValue;
+          }
+
+          if (discountAmount > bundle.bundlePrice) discountAmount = bundle.bundlePrice;
+          finalAmount = bundle.bundlePrice - discountAmount;
+          
+          if (finalAmount <= 0) {
+            finalAmount = 0;
+            finalPaymentStatus = 'not_required';
+          }
+        }
+      }
+
+      const order = await BundleOrder.create({
       user: req.user._id,
       bundle: bundleId,
       seller: bundle.seller,
-      amount: bundle.bundlePrice,
+      amount: finalAmount,
+        originalAmount: bundle.bundlePrice,
+        discountAmount,
+        finalAmount,
+        couponCode: appliedCouponId ? couponCode.toUpperCase() : undefined,
+        couponId: appliedCouponId,
       paymentMethod,
       paymentId,
-      paymentStatus: 'paid', // Assuming instant payment for this iteration
+      paymentStatus: finalPaymentStatus, // Assuming instant payment for this iteration
       orderStatus: 'placed',
       credentials,
       timeline: [{ status: 'placed', date: new Date() }],

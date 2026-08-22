@@ -5,6 +5,7 @@ import { Transaction } from '../models/Transaction';
 import { User } from '../models/User';
 import crypto from 'crypto';
 import { Product } from '../models/Product';
+import { Coupon } from '../models/Coupon';
 import { Message } from '../models/Message';
 import mongoose from 'mongoose';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
@@ -14,21 +15,55 @@ import { sendPushNotification } from '../services/notification.service';
 // POST /api/orders
 export const createOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, paymentMethod, paymentId, sessionId } = req.body;
+    const { productId, paymentMethod, paymentId, sessionId, couponCode, cartTotal } = req.body;
 
     const product = await Product.findById(productId);
     if (!product) return sendError(res, 'Product not found.', 404);
     if (product.status !== 'active') return sendError(res, 'Product is not available.', 400);
 
-    const order = await Order.create({
+    
+      let finalAmount = product.price;
+      let discountAmount = 0;
+      let appliedCouponId = undefined;
+      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : 'pending';
+
+      if (couponCode) {
+        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+        if (coupon && coupon.usageCount < coupon.maxUsage) {
+          appliedCouponId = coupon._id;
+          if (coupon.discountType === 'percentage') {
+            discountAmount = (product.price * coupon.discountValue) / 100;
+          } else if (coupon.discountType === 'fixed' && cartTotal) {
+            // Proportional discount
+            discountAmount = coupon.discountValue * (product.price / cartTotal);
+          } else if (coupon.discountType === 'fixed') {
+            discountAmount = coupon.discountValue; // Fallback
+          }
+
+          if (discountAmount > product.price) discountAmount = product.price;
+          finalAmount = product.price - discountAmount;
+          
+          if (finalAmount <= 0) {
+            finalAmount = 0;
+            finalPaymentStatus = 'not_required';
+          }
+        }
+      }
+
+      const order = await Order.create({
       user: req.user._id,
       product: product._id,
       seller: product.seller,
-      amount: product.price,
+      amount: finalAmount,
+        originalAmount: product.price,
+        discountAmount,
+        finalAmount,
+        couponCode: appliedCouponId ? couponCode.toUpperCase() : undefined,
+        couponId: appliedCouponId,
       paymentMethod,
       paymentId: paymentId || '',
       sessionId,
-      paymentStatus: 'pending',
+      paymentStatus: finalPaymentStatus,
       orderStatus: 'placed',
       timeline: [{ status: 'placed', date: new Date() }]
     });

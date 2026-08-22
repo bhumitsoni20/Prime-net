@@ -5,10 +5,15 @@ export interface IOrder extends Document {
   product: mongoose.Types.ObjectId;
   seller: mongoose.Types.ObjectId;
   amount: number;
-  paymentMethod: 'upi' | 'razorpay';
-  paymentStatus: 'pending' | 'pending_verification' | 'payment_verified' | 'paid' | 'payment_rejected' | 'failed' | 'refunded';
+  paymentMethod: 'upi' | 'razorpay' | 'coupon';
+  paymentStatus: 'pending' | 'pending_verification' | 'payment_verified' | 'paid' | 'payment_rejected' | 'failed' | 'refunded' | 'not_required';
   orderStatus: 'placed' | 'preparing' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
+  originalAmount?: number;
+  couponCode?: string;
+  couponId?: mongoose.Types.ObjectId;
+  discountAmount?: number;
+  finalAmount?: number;
   sessionId?: string;
   credentials?: {
     email?: string;
@@ -47,13 +52,13 @@ const orderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['upi', 'razorpay'],
+      enum: ['upi', 'razorpay', 'coupon'],
       required: true,
       default: 'upi'
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'pending_verification', 'payment_verified', 'paid', 'payment_rejected', 'failed', 'refunded'],
+      enum: ['pending', 'pending_verification', 'payment_verified', 'paid', 'payment_rejected', 'failed', 'refunded', 'not_required'],
       default: 'pending',
     },
     orderStatus: {
@@ -61,6 +66,11 @@ const orderSchema = new Schema<IOrder>(
       enum: ['placed', 'preparing', 'delivered', 'completed', 'cancelled'],
       default: 'placed',
     },
+    originalAmount: { type: Number },
+    couponCode: { type: String },
+    couponId: { type: Schema.Types.ObjectId, ref: 'Coupon' },
+    discountAmount: { type: Number },
+    finalAmount: { type: Number },
     paymentId: {
       type: String,
       default: '',

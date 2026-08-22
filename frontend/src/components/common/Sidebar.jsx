@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiSupport, HiChat, HiSparkles, HiTemplate } from 'react-icons/hi';
+import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiOutlineTicket, HiSupport, HiChat, HiSparkles, HiTemplate } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useUiStore from '../../store/uiStore';
 import Button from '../ui/Button';
@@ -38,6 +38,7 @@ const Sidebar = () => {
     { to: '/admin/orders', icon: HiCog, label: 'Orders' },
     { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },
     { to: '/admin/payments', icon: HiClipboardList, label: 'Payment Verifications' },
+    { to: '/admin/coupons', icon: HiOutlineTicket, label: 'Coupons' },
     { to: '/admin/payment-settings', icon: HiCog, label: 'Payment Settings' },
   ];
 

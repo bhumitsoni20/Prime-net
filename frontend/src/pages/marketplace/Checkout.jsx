@@ -12,6 +12,9 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [screenshotPreview, setScreenshotPreview] = useState(null);
   const [screenshotBase64, setScreenshotBase64] = useState(null);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   
   const { items: cartItems, total: subtotal, clearCart } = useCart();
   const { user, isAuthenticated } = useAuthStore();
@@ -46,8 +49,34 @@ const Checkout = () => {
 
   const settings = settingsRes || {};
   const cartSubtotal = bundleId && bundle ? bundle.bundlePrice : subtotal;
-  const platformFee = cartSubtotal * 0.02;
-  const total = cartSubtotal + platformFee;
+  const currentSubtotal = appliedCoupon ? appliedCoupon.finalAmount : cartSubtotal;
+  const platformFee = currentSubtotal * 0.02;
+  const displayTotal = currentSubtotal + platformFee;
+  const isFreeOrder = displayTotal <= 0;
+
+  const handleApplyCoupon = async (e) => {
+    e.preventDefault();
+    if (!couponCodeInput.trim()) return;
+    try {
+      setIsApplyingCoupon(true);
+      const res = await apiPost('/coupons/validate', {
+        couponCode: couponCodeInput,
+        cartTotal: bundleId && bundle ? bundle.bundlePrice : subtotal
+      });
+      setAppliedCoupon(res.data);
+      toast.success('Coupon applied successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid coupon');
+      setAppliedCoupon(null);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+  
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCodeInput('');
+  };
 
   const handleCopyUpi = () => {
     if (settings.upiId) {
@@ -84,7 +113,7 @@ const Checkout = () => {
     const reuploadOrder = location.state?.reuploadOrder;
 
     if (!reuploadOrder && !bundleId && cartItems.length === 0) return toast.error('Your cart is empty');
-    if (!screenshotBase64) return toast.error('Please upload a payment screenshot');
+    if (!isFreeOrder && !screenshotBase64) return toast.error('Please upload a payment screenshot');
 
     try {
       setIsProcessing(true);
@@ -111,10 +140,10 @@ const Checkout = () => {
         const bundleItems = cartItems.filter(item => !!item.bundlePrice);
 
         const productOrderPromises = productItems.map(item => 
-          apiPost('/orders', { productId: item._id, paymentMethod: 'upi' })
+          apiPost('/orders', { productId: item._id, paymentMethod: isFreeOrder ? 'coupon' : 'upi', couponCode: appliedCoupon?.code, cartTotal: cartSubtotal })
         );
         const bundleOrderPromises = bundleItems.map(item => 
-          apiPost('/bundle-orders', { bundleId: item._id, paymentMethod: 'upi' })
+          apiPost('/bundle-orders', { bundleId: item._id, paymentMethod: isFreeOrder ? 'coupon' : 'upi', couponCode: appliedCoupon?.code, cartTotal: cartSubtotal })
         );
 
         const dbOrdersResponses = await Promise.all(productOrderPromises);
@@ -128,7 +157,7 @@ const Checkout = () => {
       await apiPost('/payments/submit-proof', {
         orderIds,
         bundleOrderIds,
-        screenshot: screenshotBase64,
+        screenshot: isFreeOrder ? 'FREE_ORDER' : screenshotBase64,
         upiReference: '', // Could add an input for this later if needed
       });
 
@@ -178,7 +207,8 @@ const Checkout = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left — Payment Info */}
-        <div className="lg:col-span-7 space-y-8">
+        {!isFreeOrder ? (
+          <div className="lg:col-span-7 space-y-8">
           <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[24px] p-8 lg:p-12 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
             <h2 className="text-[26px] font-extrabold text-[#0F172A] mb-3 tracking-[-0.02em]">Complete Your Payment</h2>
             <p className="text-[#64748B] leading-relaxed text-[15px] mb-8">
@@ -227,6 +257,19 @@ const Checkout = () => {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="lg:col-span-7 space-y-8">
+            <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-[24px] p-8 lg:p-12 shadow-sm h-full flex flex-col justify-center items-center text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <HiShieldCheck className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-[26px] font-extrabold text-green-900 mb-3 tracking-tight">100% Free Order!</h2>
+              <p className="text-green-700 text-[15px] font-medium">
+                Your coupon covers the entire cost. No payment is required. Simply submit your order for verification.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Right — Order Summary & Proof Upload */}
         <div className="lg:col-span-5">
@@ -266,55 +309,102 @@ const Checkout = () => {
               </div>
             )}
 
-            <div className="flex justify-between items-baseline mb-8">
-              <span className="text-[#0F172A] font-bold text-[17px]">Total Payable</span>
-              <div className="text-right">
-                <p className="text-[#0F172A] font-extrabold text-[32px] tracking-[-0.02em] leading-none mb-1">₹{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                <p className="text-[#94A3B8] text-[11px] font-bold tracking-[0.08em]">BILLED IN INR</p>
+            {/* Coupon UI */}
+            <div className="mb-6 pb-6 border-b border-[#F1F5F9]">
+              {!appliedCoupon ? (
+                <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <input
+                    placeholder="Have a coupon? Enter code"
+                    value={couponCodeInput}
+                    onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                    className="uppercase flex-1 px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5B4BFF] text-[14px]"
+                  />
+                  <button type="submit" disabled={isApplyingCoupon} className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-6 py-3 rounded-xl font-bold transition-colors">
+                    {isApplyingCoupon ? '...' : 'Apply'}
+                  </button>
+                </form>
+              ) : (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 flex items-center gap-1"><HiShieldCheck className="w-4 h-4" /> Coupon Applied</p>
+                    <p className="text-xs text-green-700 font-medium mt-0.5">{appliedCoupon.code}</p>
+                  </div>
+                  <button onClick={removeCoupon} className="text-sm text-red-500 hover:text-red-700 font-bold px-3 py-1.5 bg-red-50 rounded-lg">Remove</button>
+                </div>
+              )}
+            </div>
+
+            {/* Price Calculation */}
+            <div className="space-y-4 text-[14px] mb-8">
+              <div className="flex justify-between text-[#64748B]">
+                <span>Subtotal</span>
+                <span className="font-semibold text-[#0F172A]">₹{cartSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Discount ({appliedCoupon.code})</span>
+                  <span>-₹{appliedCoupon.discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-[#64748B]">
+                <span className="flex items-center gap-1">Platform Fee</span>
+                <span className="font-semibold text-[#0F172A]">₹{platformFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              
+              <div className="flex justify-between pt-5 border-t border-[#F1F5F9] items-baseline">
+                <span className="text-[#0F172A] font-bold text-[17px]">Total Payable</span>
+                <div className="text-right">
+                  <p className="text-[#0F172A] font-extrabold text-[32px] tracking-[-0.02em] leading-none mb-1">
+                    ₹{displayTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-[#94A3B8] text-[11px] font-bold tracking-[0.08em]">BILLED IN INR</p>
+                </div>
               </div>
             </div>
 
             {/* File Uploader */}
-            <div className="mb-8">
-              <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">Payment Screenshot</label>
-              
-              {!screenshotPreview ? (
-                <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#CBD5E1] rounded-[16px] bg-[#F8FAFC] p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#F1F5F9] hover:border-[#94A3B8] transition-colors"
-                >
-                  <HiOutlinePhotograph className="w-10 h-10 text-[#94A3B8] mb-3" />
-                  <p className="text-[14px] font-bold text-[#334155]">Click to upload proof</p>
-                  <p className="text-[12px] font-medium text-[#64748B] mt-1">JPG, PNG up to 10MB</p>
-                </div>
-              ) : (
-                <div className="relative border border-[#E2E8F0] rounded-[16px] overflow-hidden bg-[#F8FAFC] p-2">
-                  <div className="relative aspect-video rounded-[12px] overflow-hidden bg-white">
-                    <img src={screenshotPreview} alt="Screenshot" className="w-full h-full object-contain" />
-                  </div>
-                  <button 
-                    onClick={removeScreenshot}
-                    className="absolute top-4 right-4 bg-white/90 backdrop-blur text-[#0F172A] p-2 rounded-full shadow-sm hover:bg-white hover:text-red-600 transition-colors"
+            {!isFreeOrder && (
+              <div className="mb-8">
+                <label className="block text-[13px] font-bold text-[#334155] mb-3 uppercase tracking-[0.08em]">Payment Screenshot</label>
+                
+                {!screenshotPreview ? (
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-[#CBD5E1] rounded-[16px] bg-[#F8FAFC] p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#F1F5F9] hover:border-[#94A3B8] transition-colors"
                   >
-                    <HiOutlineX className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-              <input type="file" ref={fileInputRef} accept="image/png, image/jpeg, image/jpg, image/webp" className="hidden" onChange={handleFileChange} />
-            </div>
+                    <HiOutlinePhotograph className="w-10 h-10 text-[#94A3B8] mb-3" />
+                    <p className="text-[14px] font-bold text-[#334155]">Click to upload proof</p>
+                    <p className="text-[12px] font-medium text-[#64748B] mt-1">JPG, PNG up to 10MB</p>
+                  </div>
+                ) : (
+                  <div className="relative border border-[#E2E8F0] rounded-[16px] overflow-hidden bg-[#F8FAFC] p-2">
+                    <div className="relative aspect-video rounded-[12px] overflow-hidden bg-white">
+                      <img src={screenshotPreview} alt="Screenshot" className="w-full h-full object-contain" />
+                    </div>
+                    <button 
+                      onClick={removeScreenshot}
+                      className="absolute top-4 right-4 bg-white/90 backdrop-blur text-[#0F172A] p-2 rounded-full shadow-sm hover:bg-white hover:text-red-600 transition-colors"
+                    >
+                      <HiOutlineX className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                <input type="file" ref={fileInputRef} accept="image/png, image/jpeg, image/jpg, image/webp" className="hidden" onChange={handleFileChange} />
+              </div>
+            )}
 
             <Button 
               size="lg" 
-              className="w-full py-4 text-[15px] font-extrabold shadow-[0_4px_14px_rgba(91,75,255,0.4)]" 
+              className={`w-full py-4 text-[15px] font-extrabold shadow-[0_4px_14px_rgba(91,75,255,0.4)] ${isFreeOrder ? '!bg-[#22C55E] !hover:bg-[#16A34A] shadow-[0_4px_14px_rgba(34,197,94,0.4)]' : ''}`}
               onClick={handleSubmitProof} 
-              disabled={isProcessing || !screenshotBase64}
+              disabled={isProcessing || (!isFreeOrder && !screenshotBase64)}
               loading={isProcessing}
             >
-              Submit Payment for Verification
+              {isFreeOrder ? 'Complete Free Order' : 'Submit Payment for Verification'}
             </Button>
             
             <p className="text-[12px] text-[#94A3B8] text-center leading-relaxed mt-5">
-              Your payment will be manually reviewed by our team. Access will be granted upon successful verification.
+              {isFreeOrder ? 'Your order will be completed instantly.' : 'Your payment will be manually reviewed by our team. Access will be granted upon successful verification.'}
             </p>
           </div>
         </div>

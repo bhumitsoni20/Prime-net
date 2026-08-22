@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { HiOutlineEye, HiOutlineCheck, HiOutlineX } from 'react-icons/hi';
+import { HiOutlineEye, HiOutlineCheck, HiOutlineX, HiShieldCheck } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import Badge from '../../components/ui/Badge';
@@ -235,6 +235,12 @@ const ManagePayments = () => {
             <div className="flex flex-col items-center justify-center py-20 text-[#64748B]">
               <Spinner size="lg" className="mb-4" />
               <p>Loading screenshot...</p>
+            </div>
+          ) : previewImage === 'FREE_ORDER' ? (
+            <div className="text-center py-16 bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl text-green-800">
+              <HiShieldCheck className="w-16 h-16 mx-auto mb-4 text-green-500" />
+              <p className="text-[20px] font-bold">100% Free Order</p>
+              <p className="text-sm mt-2 font-medium opacity-80">This order was completely covered by a coupon.</p>
             </div>
           ) : previewImage ? (
             <img src={previewImage} alt="Payment Proof" className="w-full rounded-xl" />

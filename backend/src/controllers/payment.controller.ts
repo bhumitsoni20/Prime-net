@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { Coupon } from '../models/Coupon';
+import { CouponRedemption } from '../models/CouponRedemption';
 import { BundleOrder } from '../models/BundleOrder';
 import { Product } from '../models/Product';
 import { Bundle } from '../models/Bundle';
@@ -27,7 +30,6 @@ export const getPaymentSettings = async (req: Request, res: Response) => {
 export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
   try {
     const { orderIds = [], bundleOrderIds = [], screenshot, upiReference } = req.body;
-    require('fs').appendFileSync('debug.log', JSON.stringify({ orderIds, bundleOrderIds }) + '\n');
 
     if (!screenshot) {
       return sendError(res, 'Payment screenshot is required.', 400);
@@ -36,6 +38,57 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
     if (orderIds.length === 0 && bundleOrderIds.length === 0) {
       return sendError(res, 'No orders provided for verification.', 400);
     }
+
+    // --- COUPON VALIDATION & REDEMPTION (Race Condition Prevention) ---
+    const ordersToCheck = [];
+    if (orderIds.length > 0) {
+      const orders = await Order.find({ _id: { $in: orderIds } });
+      ordersToCheck.push(...orders);
+    }
+    if (bundleOrderIds.length > 0) {
+      const bundleOrders = await mongoose.model('BundleOrder').find({ _id: { $in: bundleOrderIds } });
+      ordersToCheck.push(...bundleOrders);
+    }
+
+    // Check if a screenshot is actually required
+    const isTotallyFree = ordersToCheck.every(o => o.amount === 0);
+    if (!isTotallyFree && screenshot === 'FREE_ORDER') {
+      return sendError(res, 'Payment screenshot is required for orders with a payable amount.', 400);
+    }
+
+    const uniqueCouponIds = [...new Set(ordersToCheck.filter(o => o.couponId).map(o => o.couponId.toString()))];
+    
+    // Redeem coupons atomically
+    for (const couponIdStr of uniqueCouponIds) {
+      // Find one of the orders associated with this coupon for the redemption record
+      const associatedOrder = ordersToCheck.find(o => o.couponId?.toString() === couponIdStr);
+      
+      const coupon = await Coupon.findById(couponIdStr);
+      if (!coupon) return sendError(res, 'Applied coupon not found.', 400);
+
+      if (coupon.usageCount >= coupon.maxUsage) {
+        return sendError(res, `Coupon ${coupon.code} was redeemed by someone else or limit reached.`, 400);
+      }
+      
+      // Try to create the redemption atomically (relies on unique compound index)
+      try {
+        await CouponRedemption.create({
+          couponId: coupon._id,
+          userId: req.user._id,
+          orderId: associatedOrder._id
+        });
+        
+        // Increment usage safely
+        await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usageCount: 1 } });
+      } catch (err: any) {
+        if (err.code === 11000) {
+          // Already redeemed by this user in another session
+          return sendError(res, `You have already redeemed coupon ${coupon.code}.`, 400);
+        }
+        throw err; // Re-throw other errors
+      }
+    }
+    // ----------------------------------------------------------------
 
     // Handle normal orders
     for (const orderId of orderIds) {

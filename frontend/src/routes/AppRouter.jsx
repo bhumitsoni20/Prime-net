@@ -95,6 +95,7 @@ const AdminBundles = safeLazy(() => import('../pages/admin/AdminBundles'));
 const ProductCatalog = safeLazy(() => import('../pages/admin/ProductCatalog'));
 const ManagePayments = safeLazy(() => import('../pages/admin/ManagePayments'));
 const PaymentSettings = safeLazy(() => import('../pages/admin/PaymentSettings'));
+const AdminCoupons = safeLazy(() => import('../pages/admin/AdminCoupons'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -201,6 +202,7 @@ const router = createBrowserRouter([
       { path: 'product-requests', element: withSuspense(AdminProductRequests) },
       { path: 'payments', element: withSuspense(ManagePayments) },
       { path: 'payment-settings', element: withSuspense(PaymentSettings) },
+      { path: 'coupons', element: withSuspense(AdminCoupons) },
     ],
   },
   { path: '*', element: withSuspense(NotFound), errorElement: <ErrorBoundary /> },

@@ -24,6 +24,7 @@ import productRequestRoutes from './routes/productRequest.routes';
 import supportRoutes from './routes/support.routes';
 import bundleRoutes from './routes/bundle.routes';
 import bundleOrderRoutes from './routes/bundleOrder.routes';
+import couponRoutes from './routes/coupon.routes';
 
 const app = express();
 
@@ -87,6 +88,7 @@ app.use('/api/requests', productRequestRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/bundles', bundleRoutes);
 app.use('/api/bundle-orders', bundleOrderRoutes);
+app.use('/api/coupons', couponRoutes);
 
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';

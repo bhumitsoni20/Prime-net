@@ -121,6 +121,48 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
         
         // Create system message
         const { Message } = await import('../models/Message');
+
+        // --- AUTOMATED BUYER MESSAGE (ORDER) ---
+        const existingAutoMsg = await Message.findOne({
+          orderId: order._id,
+          'metadata.isAutomatedPurchaseMessage': true
+        });
+
+        if (!existingAutoMsg) {
+          try {
+            const productName = order.product ? (order.product as any).title : 'Product';
+            const duration = order.product ? (order.product as any).duration || 'N/A' : 'N/A';
+            const price = order.amount || 'N/A';
+            
+            const autoMessage = await Message.create({
+              orderId: order._id,
+              onModel: 'Order',
+              senderId: order.user,
+              content: `Hey, I've purchased ${productName} | Duration: ${duration} | Price: ₹${price}. Please provide the required credentials.`,
+              type: 'text',
+              status: 'sent',
+              metadata: { isAutomatedPurchaseMessage: true }
+            });
+            const populatedAutoMsg = await autoMessage.populate('senderId', 'name avatar');
+            
+            try {
+              const io = require('../socket').getIO();
+              const orderIdStr = order._id?.toString();
+              const sellerIdStr = order.seller?.toString();
+              const buyerIdStr = order.user?.toString();
+              io.to(`order_${orderIdStr}`).emit('new_message', populatedAutoMsg);
+              io.to(`user_${sellerIdStr}`).emit('new_message', populatedAutoMsg);
+              io.to(`user_${buyerIdStr}`).emit('new_message', populatedAutoMsg);
+            } catch (e) {
+              console.error('Socket emit error for auto message:', e);
+            }
+          } catch (err: any) {
+            require('fs').appendFileSync('D:/streamkart/backend/auto_msg_error.log', new Date().toISOString() + ' ' + err.stack + '\n');
+            console.error('Failed to create auto message', err);
+          }
+        }
+        // --- END AUTOMATED BUYER MESSAGE ---
+
         const message = await Message.create({
           orderId: order._id,
           onModel: 'Order',
@@ -170,6 +212,47 @@ export const approvePayment = async (req: AuthRequest, res: Response) => {
 
         // Create system message
         const { Message } = await import('../models/Message');
+
+        // --- AUTOMATED BUYER MESSAGE (BUNDLE) ---
+        const existingBundleAutoMsg = await Message.findOne({
+          orderId: bundleOrder._id,
+          'metadata.isAutomatedPurchaseMessage': true
+        });
+
+        if (!existingBundleAutoMsg) {
+          try {
+            const bundleName = bundleOrder.bundle ? (bundleOrder.bundle as any).title : 'Bundle';
+            const price = bundleOrder.amount || 'N/A';
+            
+            const autoMessageBundle = await Message.create({
+              orderId: bundleOrder._id,
+              onModel: 'BundleOrder',
+              senderId: bundleOrder.user,
+              content: `Hey, I've purchased ${bundleName} | Price: ₹${price}. Please provide the required credentials.`,
+              type: 'text',
+              status: 'sent',
+              metadata: { isAutomatedPurchaseMessage: true }
+            });
+            const populatedAutoMsgBundle = await autoMessageBundle.populate('senderId', 'name avatar');
+            
+            try {
+              const io = require('../socket').getIO();
+              const orderIdStr = bundleOrder._id?.toString();
+              const sellerIdStr = bundleOrder.seller?.toString();
+              const buyerIdStr = bundleOrder.user?.toString();
+              io.to(`order_${orderIdStr}`).emit('new_message', populatedAutoMsgBundle);
+              io.to(`user_${sellerIdStr}`).emit('new_message', populatedAutoMsgBundle);
+              io.to(`user_${buyerIdStr}`).emit('new_message', populatedAutoMsgBundle);
+            } catch (e) {
+              console.error('Socket emit error for bundle auto message:', e);
+            }
+          } catch (err: any) {
+            require('fs').appendFileSync('D:/streamkart/backend/auto_msg_error.log', new Date().toISOString() + ' ' + err.stack + '\n');
+            console.error('Failed to create bundle auto message', err);
+          }
+        }
+        // --- END AUTOMATED BUYER MESSAGE ---
+
         const message = await Message.create({
           orderId: bundleOrder._id,
           onModel: 'BundleOrder',

@@ -14,7 +14,7 @@ import { validate } from '../middleware/validate';
 const router = Router();
 
 router.get('/', getProducts);
-router.get('/seller/me', getSellerProducts);
+router.get('/seller/me', authenticate, authorize('seller', 'admin'), getSellerProducts);
 router.get('/:id', getProduct);
 router.post(
   '/',
@@ -23,7 +23,7 @@ router.post(
   validate(['title', 'category', 'price']),
   createProduct
 );
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
+router.put('/:id', authenticate, authorize('seller', 'admin'), updateProduct);
+router.delete('/:id', authenticate, authorize('seller', 'admin'), deleteProduct);
 
 export default router;

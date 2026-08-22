@@ -190,7 +190,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
 };
 
 // GET /api/products/seller/me
-export const getSellerProducts = async (req: AuthRequest, res: Response) => {
+export const getSellerProducts = async (req: AuthRequest, res: Response) => { console.log('getSellerProducts called. req.user:', req.user);
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;

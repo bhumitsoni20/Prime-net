@@ -29,7 +29,7 @@ export const handleApiError = (error) => {
       toast.error('Too many requests. Please try again later.');
       break;
     case 500:
-      toast.error('Server error. Our team has been notified.');
+      console.error('Server error. Our team has been notified.');
       break;
     default:
       toast.error(message);

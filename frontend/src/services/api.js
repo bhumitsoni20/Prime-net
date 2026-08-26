@@ -48,8 +48,11 @@ api.interceptors.response.use(
       } catch (err) {
         console.warn('Firebase signout failed', err);
       }
+      // Instantly force page reload to log out completely and prevent hanging states
+      window.location.href = '/login';
     }
-    console.error('FRONTEND CATCH:', error.response?.data); handleApiError(error);
+    console.error('FRONTEND CATCH:', error.response?.data); 
+    handleApiError(error);
     return Promise.reject(error);
   }
 );

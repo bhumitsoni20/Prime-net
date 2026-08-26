@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Notification } from '../models/Notification';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
+import { getIO } from '../socket';
 
 // GET /api/notifications
 export const getNotifications = async (req: AuthRequest, res: Response) => {
@@ -47,6 +48,9 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     );
 
     if (!notification) return sendError(res, 'Notification not found.', 404);
+    try {
+      getIO().to(`user_${req.user._id.toString()}`).emit('notifications_read');
+    } catch (err) {}
     return sendSuccess(res, notification, 'Marked as read.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -60,6 +64,9 @@ export const markAllAsRead = async (req: AuthRequest, res: Response) => {
       { user: req.user._id, isRead: false },
       { isRead: true }
     );
+    try {
+      getIO().to(`user_${req.user._id.toString()}`).emit('notifications_read');
+    } catch (err) {}
     return sendSuccess(res, null, 'All notifications marked as read.');
   } catch (error: any) {
     return sendError(res, error.message);

@@ -9,7 +9,8 @@ import {
   sendOrderMessage,
   deliverOrderCredentials,
   markMessagesSeen,
-  getMyChats
+  getMyChats,
+  getUnreadChatsCount
 } from '../controllers/order.controller';
 import { authenticate } from '../middleware/auth';
 import { authorize } from '../middleware/authorize';
@@ -18,6 +19,7 @@ const router = Router();
 
 router.post('/', authenticate, createOrder);
 router.get('/', authenticate, getMyOrders);
+router.get('/chats/unread-count', authenticate, getUnreadChatsCount);
 router.get('/chats', authenticate, getMyChats);
 router.get('/seller/me', authenticate, authorize('seller', 'admin'), getSellerOrders);
 router.get('/:id', authenticate, getOrder);

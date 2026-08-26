@@ -14,6 +14,7 @@ import useUiStore from "../../store/uiStore";
 import useCartStore from "../../store/cartStore";
 import { apiGet } from "../../services/api";
 import { signOut } from "../../firebase/auth";
+import { useSocket } from "../../context/SocketContext";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 
@@ -24,8 +25,10 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChats, setUnreadChats] = useState(0);
   const dropdownRef = useRef(null);
   const { user, isAuthenticated } = useAuthStore();
+  const { socket } = useSocket();
   const { setSidebarOpen } = useUiStore();
   const itemCount = useCartStore((s) => s.items.length);
   const navigate = useNavigate();
@@ -55,23 +58,47 @@ const Navbar = () => {
     };
   }, [profileOpen]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (isAuthenticated) {
-      const fetchUnreadCount = async () => {
+      const fetchCounts = async () => {
         try {
-          const res = await apiGet("/notifications/unread-count");
-          setUnreadCount(res.data?.count || 0);
+          const resNotif = await apiGet("/notifications/unread-count");
+          setUnreadCount(resNotif.data?.count || 0);
+
+          const resChats = await apiGet("/orders/chats/unread-count");
+          setUnreadChats(resChats.data?.count || 0);
         } catch (error) {
-          console.error("Failed to fetch unread count", error);
+          console.error("Failed to fetch unread counts", error);
         }
       };
-      fetchUnreadCount();
+      fetchCounts();
 
-      // Optional: poll every minute for new notifications
-      const interval = setInterval(fetchUnreadCount, 60000);
-      return () => clearInterval(interval);
+      const interval = setInterval(fetchCounts, 60000);
+
+      const handleUpdate = () => {
+        fetchCounts();
+      };
+
+      if (socket) {
+        socket.on('new_message', handleUpdate);
+        socket.on('messages_seen', handleUpdate);
+        socket.on('new_notification', handleUpdate);
+        socket.on('payment_verified_redirect', handleUpdate);
+        socket.on('notifications_read', handleUpdate);
+      }
+
+      return () => {
+        clearInterval(interval);
+        if (socket) {
+          socket.off('new_message', handleUpdate);
+          socket.off('messages_seen', handleUpdate);
+          socket.off('new_notification', handleUpdate);
+          socket.off('payment_verified_redirect', handleUpdate);
+          socket.off('notifications_read', handleUpdate);
+        }
+      };
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, socket]);
 
   const handleLogout = async () => {
     await signOut();
@@ -171,14 +198,21 @@ const Navbar = () => {
                 >
                   <HiBell className="w-[18px] h-[18px]" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#EF4444] ring-2 ring-white animate-pulse" />
+                    <span className="absolute -top-1 -right-1 h-[16px] min-w-[16px] px-1 rounded-full bg-[#EF4444] text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-white shadow-sm">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
                   )}
                 </Link>
                 <Link
                   to="/dashboard/chats"
-                  className="hidden sm:flex items-center text-[12px] sm:text-[13px] font-semibold text-white bg-[#5B4BFF] hover:bg-[#4F3FE8] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 shadow-sm mx-0.5 sm:mx-1"
+                  className="relative hidden sm:flex items-center text-[12px] sm:text-[13px] font-semibold text-white bg-[#5B4BFF] hover:bg-[#4F3FE8] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-200 shadow-sm mx-0.5 sm:mx-1"
                 >
                   Chats
+                  {unreadChats > 0 && (
+                    <span className="absolute -top-1 -right-1 h-[18px] min-w-[18px] px-1 rounded-full bg-[#EF4444] text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-[#5B4BFF] shadow-sm">
+                      {unreadChats > 99 ? '99+' : unreadChats}
+                    </span>
+                  )}
                 </Link>
                 <Link
                   to="/cart"

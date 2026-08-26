@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { Message } from '../models/Message';
+import { sendPushNotification } from '../services/notification.service';
 import { Coupon } from '../models/Coupon';
 import { CouponRedemption } from '../models/CouponRedemption';
 import { BundleOrder } from '../models/BundleOrder';
@@ -11,6 +13,7 @@ import PaymentVerification from '../models/PaymentVerification';
 import PaymentSettings from '../models/PaymentSettings';
 import { sendError, sendSuccess } from '../utils/response';
 import { logger } from '../utils/logger';
+import { getIO } from '../socket';
 
 // GET /api/payments/settings
 export const getPaymentSettings = async (req: Request, res: Response) => {
@@ -92,7 +95,7 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
 
     // Handle normal orders
     for (const orderId of orderIds) {
-      const order = await Order.findById(orderId);
+      const order = await Order.findById(orderId).populate("product");
       if (!order) continue;
       if (order.user.toString() !== req.user._id.toString()) continue;
 
@@ -116,23 +119,63 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
         return sendError(res, 'This listing is no longer available. It has already been sold to another buyer.', 409);
       }
 
-      await PaymentVerification.create({
-        orderId: order._id,
-        orderType: 'Order',
-        buyer: req.user._id,
-        seller: order.seller,
-        amount: order.amount,
-        paymentScreenshot: screenshot,
-        status: 'pending_verification'
-      });
+      if (screenshot === 'FREE_ORDER') {
+        order.paymentStatus = 'payment_verified';
+        order.timeline.push({ status: 'payment_verified', date: new Date() });
+        await order.save();
+        
+        // --- AUTOMATED BUYER MESSAGE ---
+        const productName = order.product ? (order.product as any).title : 'Product';
+        const duration = order.product ? (order.product as any).duration || 'N/A' : 'N/A';
+        const autoMessage = await Message.create({
+          orderId: order._id,
+          onModel: 'Order',
+          senderId: order.user,
+          content: `Hey, I've purchased ${productName} | Duration: ${duration} for FREE using a coupon. Please provide the required credentials.`,
+          type: 'text',
+          status: 'sent',
+          metadata: { isAutomatedPurchaseMessage: true }
+        });
+        const populatedAutoMsg = await autoMessage.populate('senderId', 'name avatar');
+        
+        try {
+          const io = getIO();
+          const orderIdStr = order._id?.toString();
+          const buyerIdStr = order.user?.toString();
+          const sellerIdStr = order.seller?.toString();
+          io.to(`order_${orderIdStr}`).emit('new_message', populatedAutoMsg);
+          if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', populatedAutoMsg);
+          if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', populatedAutoMsg);
+          io.to(`order_${orderIdStr}`).emit('payment_verified_redirect', { orderId: orderIdStr });
+        } catch (err) {
+          logger.error('Socket emit error for free order message', err);
+        }
+        
+        await sendPushNotification(
+          order.seller.toString(),
+          'Payment Verified',
+          `A 100% Free Order for ${productName} has been processed. Check your chats.`,
+          'payment'
+        );
+      } else {
+        await PaymentVerification.create({
+          orderId: order._id,
+          orderType: 'Order',
+          buyer: req.user._id,
+          seller: order.seller,
+          amount: order.amount,
+          paymentScreenshot: screenshot,
+          status: 'pending_verification'
+        });
 
-      order.paymentStatus = 'pending_verification';
-      await order.save();
+        order.paymentStatus = 'pending_verification';
+        await order.save();
+      }
     }
 
     // Handle bundle orders
     for (const bundleOrderId of bundleOrderIds) {
-      const bundleOrder = await BundleOrder.findById(bundleOrderId);
+      const bundleOrder = await BundleOrder.findById(bundleOrderId).populate("bundle");
       if (!bundleOrder) continue;
       if (bundleOrder.user.toString() !== req.user._id.toString()) continue;
 
@@ -155,18 +198,56 @@ export const submitPaymentProof = async (req: AuthRequest, res: Response) => {
         return sendError(res, 'This bundle is no longer available. It has already been sold to another buyer.', 409);
       }
 
-      await PaymentVerification.create({
-        orderId: bundleOrder._id,
-        orderType: 'BundleOrder',
-        buyer: req.user._id,
-        seller: bundleOrder.seller,
-        amount: bundleOrder.amount,
-        paymentScreenshot: screenshot,
-        status: 'pending_verification'
-      });
+      if (screenshot === 'FREE_ORDER') {
+        bundleOrder.paymentStatus = 'payment_verified';
+        bundleOrder.timeline.push({ status: 'payment_verified', date: new Date() });
+        await bundleOrder.save();
 
-      bundleOrder.paymentStatus = 'pending_verification';
-      await bundleOrder.save();
+        const bundleName = bundleOrder.bundle ? (bundleOrder.bundle as any).title : 'Bundle';
+        const autoMessage = await Message.create({
+          orderId: bundleOrder._id,
+          onModel: 'BundleOrder',
+          senderId: bundleOrder.user,
+          content: `Hey, I've purchased the ${bundleName} bundle for FREE using a coupon. Please provide the credentials.`,
+          type: 'text',
+          status: 'sent',
+          metadata: { isAutomatedPurchaseMessage: true }
+        });
+        const populatedAutoMsg = await autoMessage.populate('senderId', 'name avatar');
+        
+        try {
+          const io = getIO();
+          const orderIdStr = bundleOrder._id?.toString();
+          const buyerIdStr = bundleOrder.user?.toString();
+          const sellerIdStr = bundleOrder.seller?.toString();
+          io.to(`order_${orderIdStr}`).emit('new_message', populatedAutoMsg);
+          if (sellerIdStr) io.to(`user_${sellerIdStr}`).emit('new_message', populatedAutoMsg);
+          if (buyerIdStr) io.to(`user_${buyerIdStr}`).emit('new_message', populatedAutoMsg);
+          io.to(`order_${orderIdStr}`).emit('payment_verified_redirect', { orderId: orderIdStr });
+        } catch (err) {
+          logger.error('Socket emit error for free bundle message', err);
+        }
+
+        await sendPushNotification(
+          bundleOrder.seller.toString(),
+          'Payment Verified',
+          `A 100% Free Order for ${bundleName} has been processed. Check your chats.`,
+          'payment'
+        );
+      } else {
+        await PaymentVerification.create({
+          orderId: bundleOrder._id,
+          orderType: 'BundleOrder',
+          buyer: req.user._id,
+          seller: bundleOrder.seller,
+          amount: bundleOrder.amount,
+          paymentScreenshot: screenshot,
+          status: 'pending_verification'
+        });
+
+        bundleOrder.paymentStatus = 'pending_verification';
+        await bundleOrder.save();
+      }
     }
 
     const { Cache } = require('../utils/cache');

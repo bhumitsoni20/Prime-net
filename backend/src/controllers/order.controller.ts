@@ -590,3 +590,56 @@ export const getMyChats = async (req: AuthRequest, res: Response) => {
     return sendError(res, error.message);
   }
 };
+
+
+// GET /api/orders/chats/unread-count
+export const getUnreadChatsCount = async (req: AuthRequest, res: Response) => {
+  try {
+    const userIdStr = req.user._id?.toString();
+    const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
+
+    const BundleOrder = mongoose.model('BundleOrder');
+
+    const userConditions: any[] = [];
+    if (userObjId) userConditions.push({ user: userObjId }, { seller: userObjId });
+    if (userIdStr) userConditions.push({ user: userIdStr }, { seller: userIdStr });
+    
+    // Fetch all active orders where user is either buyer or seller
+    const [orders, bundleOrders] = await Promise.all([
+      Order.find({
+        $or: userConditions,
+        paymentStatus: { $nin: ['failed', 'payment_rejected'] }
+      }).select('_id').lean(),
+      BundleOrder.find({
+        $or: userConditions,
+        paymentStatus: { $nin: ['failed', 'payment_rejected'] }
+      }).select('_id').lean()
+    ]);
+
+    const orderIds = [...orders, ...bundleOrders].map(o => o._id);
+    const orderObjIds = orderIds.map(id => mongoose.Types.ObjectId.isValid(id?.toString()) ? new mongoose.Types.ObjectId(id?.toString()) : null).filter(Boolean);
+    const orderStrIds = orderIds.map(id => id?.toString());
+
+    const orderConditions: any[] = [];
+    if (orderObjIds.length > 0) orderConditions.push({ orderId: { $in: orderObjIds } });
+    if (orderStrIds.length > 0) orderConditions.push({ orderId: { $in: orderStrIds } });
+
+    if (orderConditions.length === 0) {
+      return sendSuccess(res, { count: 0 });
+    }
+
+    const unreadConditions: any[] = [];
+    if (userObjId) unreadConditions.push({ senderId: { $ne: userObjId } });
+    if (userIdStr) unreadConditions.push({ senderId: { $ne: userIdStr } });
+
+    const totalUnreadCount = await Message.countDocuments({
+      $or: orderConditions,
+      $and: unreadConditions,
+      status: { $ne: 'seen' }
+    });
+
+    return sendSuccess(res, { count: totalUnreadCount });
+  } catch (error: any) {
+    return sendError(res, error.message);
+  }
+};

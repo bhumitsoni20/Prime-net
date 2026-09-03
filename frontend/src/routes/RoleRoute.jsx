@@ -15,14 +15,14 @@ const RoleRoute = ({ children, roles = [] }) => {
   
   if (roles.length > 0 && !roles.includes(user?.role)) {
     if (roles.includes('seller') && (user?.sellerStatus === 'pending' || user?.sellerStatus === 'rejected')) {
-      return <Navigate to="/seller-review" replace />;
+      return <Navigate to="/dashboard/seller-review" replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }
 
   if (roles.includes('seller') && user?.role === 'seller') {
     if (user?.sellerStatus !== 'approved') {
-      return <Navigate to="/seller-review" replace />;
+      return <Navigate to="/dashboard/seller-review" replace />;
     }
   }
 

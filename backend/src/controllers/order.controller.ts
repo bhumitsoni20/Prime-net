@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { BundleOrder } from '../models/BundleOrder';
 import { Transaction } from '../models/Transaction';
 import { User } from '../models/User';
 import crypto from 'crypto';
@@ -95,7 +96,7 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
     const userIdStr = req.user._id?.toString();
     const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
 
-    const BundleOrder = mongoose.model('BundleOrder');
+    
 
     const userConditions: any[] = [];
     if (userObjId) userConditions.push({ user: userObjId });
@@ -153,7 +154,7 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
 
     let isBundle = false;
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id)
         .populate({
           path: 'bundle',
@@ -196,7 +197,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
 
     let order: any = await Order.findById(req.params.id);
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id);
     }
     if (!order) return sendError(res, 'Order not found.', 404);
@@ -275,7 +276,7 @@ export const getSellerOrders = async (req: AuthRequest, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const BundleOrder = mongoose.model('BundleOrder');
+    
 
     const [allOrders, allBundleOrders] = await Promise.all([
       Order.find({ seller: req.user._id })
@@ -310,7 +311,7 @@ export const getOrderChat = async (req: AuthRequest, res: Response) => {
   try {
     let order: any = await Order.findById(req.params.id);
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id);
     }
     if (!order) return sendError(res, 'Order not found.', 404);
@@ -339,7 +340,7 @@ export const sendOrderMessage = async (req: AuthRequest, res: Response) => {
     let order: any = await Order.findById(req.params.id);
     let onModel: 'Order' | 'BundleOrder' = 'Order';
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id);
       onModel = 'BundleOrder';
     }
@@ -393,7 +394,7 @@ export const deliverOrderCredentials = async (req: AuthRequest, res: Response) =
     const { email, password, notes } = req.body;
     let order: any = await Order.findById(req.params.id);
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id);
     }
     if (!order) return sendError(res, 'Order not found.', 404);
@@ -480,7 +481,7 @@ export const markMessagesSeen = async (req: AuthRequest, res: Response) => {
   try {
     let order: any = await Order.findById(req.params.id);
     if (!order) {
-      const BundleOrder = mongoose.model('BundleOrder');
+      
       order = await BundleOrder.findById(req.params.id);
     }
     if (!order) return sendError(res, 'Order not found.', 404);
@@ -509,7 +510,7 @@ export const getMyChats = async (req: AuthRequest, res: Response) => {
     const userIdStr = req.user._id?.toString();
     const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
 
-    const BundleOrder = mongoose.model('BundleOrder');
+    
 
     const userConditions: any[] = [];
     if (userObjId) userConditions.push({ user: userObjId }, { seller: userObjId });
@@ -598,7 +599,7 @@ export const getUnreadChatsCount = async (req: AuthRequest, res: Response) => {
     const userIdStr = req.user._id?.toString();
     const userObjId = mongoose.Types.ObjectId.isValid(userIdStr) ? new mongoose.Types.ObjectId(userIdStr) : null;
 
-    const BundleOrder = mongoose.model('BundleOrder');
+    
 
     const userConditions: any[] = [];
     if (userObjId) userConditions.push({ user: userObjId }, { seller: userObjId });

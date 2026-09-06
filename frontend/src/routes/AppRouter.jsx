@@ -41,15 +41,15 @@ const PhoneLogin = safeLazy(() => import('../pages/auth/PhoneLogin'));
 const ForgotPassword = safeLazy(() => import('../pages/auth/ForgotPassword'));
 const VerifyEmail = safeLazy(() => import('../pages/auth/VerifyEmail'));
 
-// Public Pages (Lazy Loaded)
+// Public / Marketplace Pages (Lazy Loaded)
 const Home = safeLazy(() => import('../pages/marketplace/Home'));
 const ProductList = safeLazy(() => import('../pages/marketplace/ProductList'));
 const ProductDetail = safeLazy(() => import('../pages/marketplace/ProductDetail'));
 const BundleDetail = safeLazy(() => import('../pages/marketplace/BundleDetail'));
 const Search = safeLazy(() => import('../pages/marketplace/Search'));
 const Checkout = safeLazy(() => import('../pages/marketplace/Checkout'));
-const PaymentVerificationPending = safeLazy(() => import('../pages/marketplace/PaymentVerificationPending'));
 const PaymentCancel = safeLazy(() => import('../pages/marketplace/PaymentCancel'));
+const PaymentVerificationPending = safeLazy(() => import('../pages/marketplace/PaymentVerificationPending'));
 const Cart = safeLazy(() => import('../pages/marketplace/Cart'));
 const Wishlist = safeLazy(() => import('../pages/marketplace/Wishlist'));
 const About = safeLazy(() => import('../pages/public/About'));
@@ -61,6 +61,7 @@ const SellerPolicy = safeLazy(() => import('../pages/public/SellerPolicy'));
 const SellerVerificationPolicy = safeLazy(() => import('../pages/public/SellerVerificationPolicy'));
 const NotFound = safeLazy(() => import('../pages/public/NotFound'));
 const RequestProduct = safeLazy(() => import('../pages/public/RequestProduct'));
+const Maintenance = safeLazy(() => import('../pages/public/Maintenance'));
 
 // Dashboard Pages (Lazy Loaded)
 const Dashboard = safeLazy(() => import('../pages/dashboard/Dashboard'));
@@ -104,7 +105,8 @@ const withSuspense = (Component) => (
   </Suspense>
 );
 
-const router = createBrowserRouter([
+// Standard Full Website Router
+const standardRouter = createBrowserRouter([
   {
     path: '/',
     element: <MainLayout />,
@@ -208,9 +210,43 @@ const router = createBrowserRouter([
   { path: '*', element: withSuspense(NotFound), errorElement: <ErrorBoundary /> },
 ]);
 
+// Dedicated Maintenance Router - Preserves Admin Access while gating public routes
+const maintenanceRouter = createBrowserRouter([
+  {
+    path: '/admin',
+    element: (
+      <RoleRoute roles={['admin']}>
+        <DashboardLayout />
+      </RoleRoute>
+    ),
+    errorElement: <ErrorBoundary />,
+    children: [
+      { index: true, element: withSuspense(AdminDashboard) },
+      { path: 'users', element: withSuspense(ManageUsers) },
+      { path: 'products/catalog', element: withSuspense(ProductCatalog) },
+      { path: 'products', element: withSuspense(ManageProducts) },
+      { path: 'bundles', element: withSuspense(AdminBundles) },
+      { path: 'orders', element: withSuspense(ManageOrders) },
+      { path: 'applications', element: withSuspense(ManageApplications) },
+      { path: 'product-requests', element: withSuspense(AdminProductRequests) },
+      { path: 'payments', element: withSuspense(ManagePayments) },
+      { path: 'payment-settings', element: withSuspense(PaymentSettings) },
+      { path: 'coupons', element: withSuspense(AdminCoupons) },
+    ],
+  },
+  {
+    path: '*',
+    element: withSuspense(Maintenance),
+    errorElement: <ErrorBoundary />,
+  },
+]);
+
+const isMaintenanceActive = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+const activeRouter = isMaintenanceActive ? maintenanceRouter : standardRouter;
+
 const AppRouter = () => (
   <ErrorBoundary>
-    <RouterProvider router={router} />
+    <RouterProvider router={activeRouter} />
   </ErrorBoundary>
 );
 

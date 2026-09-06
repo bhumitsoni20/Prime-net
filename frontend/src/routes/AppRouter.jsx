@@ -241,7 +241,9 @@ const maintenanceRouter = createBrowserRouter([
   },
 ]);
 
-const isMaintenanceActive = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+// Maintenance mode is ACTIVE by default (unless explicitly disabled via MAINTENANCE_MODE=false or VITE_MAINTENANCE_MODE=false)
+const envVal = import.meta.env.MAINTENANCE_MODE ?? import.meta.env.VITE_MAINTENANCE_MODE;
+const isMaintenanceActive = envVal !== 'false';
 const activeRouter = isMaintenanceActive ? maintenanceRouter : standardRouter;
 
 const AppRouter = () => (

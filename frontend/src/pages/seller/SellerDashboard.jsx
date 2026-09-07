@@ -27,14 +27,14 @@ const SellerDashboard = () => {
       try {
         const [prodRes, orderRes, notifRes, walletRes] = await Promise.all([
           getSellerProducts('limit=10'),
-          getSellerOrders(),
+          getSellerOrders('limit=100'),
           getNotifications('limit=5'),
-          getSellerWallet().catch(e => ({ data: { balance: 0 } }))
+          getSellerWallet().catch(() => ({ data: { balance: 0 } }))
         ]);
         setProducts(prodRes.data || []);
         setOrders(orderRes.data || []);
         setNotifications(notifRes.data || []);
-        setWalletBalance(walletRes?.data?.balance || 0);
+        setWalletBalance(walletRes?.data?.balance ?? user?.walletBalance ?? 0);
       } catch (error) {
         toast.error('Failed to load dashboard data');
       } finally {
@@ -42,12 +42,16 @@ const SellerDashboard = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
-  const totalSales = walletBalance;
+  // Accurate total gross sales from completed/paid orders
+  const totalSales = orders
+    .filter(o => o.paymentStatus === 'paid' || o.orderStatus === 'completed' || o.orderStatus === 'delivered')
+    .reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+
   const pendingOrders = orders.filter(o => o.orderStatus === 'placed' && o.paymentStatus === 'paid').length;
   // unique customers
-  const uniqueCustomers = new Set(orders.map(o => o.user?._id)).size;
+  const uniqueCustomers = new Set(orders.map(o => o.user?._id).filter(Boolean)).size;
 
   return (
     <div>
@@ -82,7 +86,9 @@ const SellerDashboard = () => {
             <h3 className="font-bold text-[18px] mb-6 tracking-tight">Available for Payout</h3>
             <div className="bg-white/5 border border-white/10 rounded-[16px] p-5 mb-6 backdrop-blur-md">
               <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mb-1.5">Wallet Balance (95% Net)</p>
-              <p className="text-[32px] font-extrabold tracking-tight">₹{loading ? '...' : totalSales.toLocaleString()}</p>
+              <p className="text-[32px] font-extrabold tracking-tight">
+                ₹{loading ? '...' : (walletBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="flex items-center gap-2 mb-8">
               <div className="w-2 h-2 bg-[#10B981] rounded-full"></div>

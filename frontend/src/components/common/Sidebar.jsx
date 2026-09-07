@@ -32,6 +32,7 @@ const Sidebar = () => {
 
   const userLinks = [
     { to: '/dashboard', icon: HiHome, label: 'Dashboard', end: true },
+    { to: '/dashboard/wallet', icon: HiCurrencyRupee, label: 'My Wallet' },
     { to: '/dashboard/orders', icon: HiClipboardList, label: 'My Orders' },
     { to: '/dashboard/profile', icon: HiUser, label: 'Profile' },
   ];
@@ -49,14 +50,15 @@ const Sidebar = () => {
   const adminLinks = [
     { to: '/admin', icon: HiChartBar, label: 'Dashboard', end: true },
     { to: '/admin/users', icon: HiUsers, label: 'Subscribers' },
+    { to: '/admin/buyer-refunds', icon: HiCurrencyRupee, label: 'Buyer Refunds' },
+    { to: '/admin/payments', icon: HiClipboardList, label: 'Payment Verifications' },
+    { to: '/admin/payouts', icon: HiCurrencyRupee, label: 'Seller Payouts' },
     { to: '/admin/applications', icon: HiClipboardList, label: 'Applications' },
     { to: '/admin/products/catalog', icon: HiTemplate, label: 'Product Catalog' },
     { to: '/admin/products', icon: HiCube, label: 'Integrations', end: true },
     { to: '/admin/bundles', icon: HiShoppingBag, label: 'Bundles' },
     { to: '/admin/orders', icon: HiCog, label: 'Orders' },
     { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },
-    { to: '/admin/payments', icon: HiClipboardList, label: 'Payment Verifications' },
-    { to: '/admin/payouts', icon: HiCurrencyRupee, label: 'Seller Payouts' },
     { to: '/admin/coupons', icon: HiOutlineTicket, label: 'Coupons' },
     { to: '/admin/payment-settings', icon: HiCog, label: 'Payment Settings' },
   ];

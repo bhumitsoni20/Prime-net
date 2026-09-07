@@ -26,7 +26,7 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
       let finalAmount = product.price;
       let discountAmount = 0;
       let appliedCouponId = undefined;
-      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : 'pending';
+      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : paymentMethod === 'wallet' ? 'payment_verified' : 'pending';
 
       if (couponCode) {
         const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
@@ -51,40 +51,97 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
         }
       }
 
+      // If paying with wallet, atomically deduct amount from user's balance
+      if (paymentMethod === 'wallet' && finalAmount > 0) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: req.user._id, walletBalance: { $gte: finalAmount } },
+          { $inc: { walletBalance: -finalAmount } },
+          { new: true }
+        );
+
+        if (!updatedUser) {
+          return sendError(res, 'Insufficient wallet balance for this purchase. Please top up your wallet.', 400);
+        }
+
+        finalPaymentStatus = 'payment_verified';
+
+        // Emit live wallet update to the buyer
+        try {
+          const io = getIO();
+          io.to(`user_${req.user._id.toString()}`).emit('wallet_updated', {
+            walletBalance: updatedUser.walletBalance,
+            change: -finalAmount,
+            reason: 'product_purchase',
+            productId: product._id,
+          });
+        } catch (e) {}
+      }
+
+      const initialTimeline = [{ status: 'placed', date: new Date() }];
+      if (finalPaymentStatus === 'payment_verified' || finalPaymentStatus === 'not_required') {
+        initialTimeline.push({ status: 'payment_verified', date: new Date() });
+      }
+
       const order = await Order.create({
-      user: req.user._id,
-      product: product._id,
-      seller: product.seller,
-      amount: finalAmount,
+        user: req.user._id,
+        product: product._id,
+        seller: product.seller,
+        amount: finalAmount,
         originalAmount: product.price,
         discountAmount,
         finalAmount,
         couponCode: appliedCouponId ? couponCode.toUpperCase() : undefined,
         couponId: appliedCouponId,
-      paymentMethod,
-      paymentId: paymentId || '',
-      sessionId,
-      paymentStatus: finalPaymentStatus,
-      orderStatus: 'placed',
-      timeline: [{ status: 'placed', date: new Date() }]
-    });
+        paymentMethod: paymentMethod || 'wallet',
+        paymentId: paymentId || '',
+        sessionId,
+        paymentStatus: finalPaymentStatus,
+        orderStatus: 'placed',
+        timeline: initialTimeline,
+      });
 
-    // Increment product sales
-    await Product.findByIdAndUpdate(productId, { $inc: { totalSales: 1 } });
+      // Increment product sales
+      await Product.findByIdAndUpdate(productId, { $inc: { totalSales: 1 } });
 
-    // Notify seller
-    await sendPushNotification(
-      product.seller.toString(),
-      'New Order!',
-      `You received a new order for ${product.title}`,
-      'order'
-    );
+      // If paid via wallet or free, auto-generate chat messages immediately
+      if (finalPaymentStatus === 'payment_verified' || finalPaymentStatus === 'not_required') {
+        try {
+          await Message.create({
+            orderId: order._id,
+            onModel: 'Order',
+            senderId: req.user._id,
+            content: `Hey, I've purchased ${product.title} | Duration: ${product.duration || '1 month'} | Price: ₹${finalAmount} via StreamKart Wallet. Please provide the required credentials.`,
+            type: 'text',
+            status: 'sent',
+            metadata: { isAutomatedPurchaseMessage: true },
+          });
 
-    return sendSuccess(res, order, 'Order placed successfully.', 201);
-  } catch (error: any) {
-    return sendError(res, error.message);
-  }
-};
+          await Message.create({
+            orderId: order._id,
+            onModel: 'Order',
+            senderId: product.seller,
+            content: 'Payment completed via StreamKart Wallet. Waiting for seller to share credentials.',
+            type: 'system',
+            status: 'sent',
+          });
+        } catch (e) {
+          console.error('Failed to create initial wallet purchase chat messages:', e);
+        }
+      }
+
+      // Notify seller
+      await sendPushNotification(
+        product.seller.toString(),
+        'New Order!',
+        `You received a new order for ${product.title} (Paid via Wallet)`,
+        'order'
+      );
+
+      return sendSuccess(res, order, 'Order placed successfully.', 201);
+    } catch (error: any) {
+      return sendError(res, error.message);
+    }
+  };
 
 // GET /api/orders
 export const getMyOrders = async (req: AuthRequest, res: Response) => {

@@ -65,6 +65,7 @@ const Maintenance = safeLazy(() => import('../pages/public/Maintenance'));
 
 // Dashboard Pages (Lazy Loaded)
 const Dashboard = safeLazy(() => import('../pages/dashboard/Dashboard'));
+const BuyerWallet = safeLazy(() => import('../pages/dashboard/BuyerWallet'));
 const Orders = safeLazy(() => import('../pages/dashboard/Orders'));
 const OrderDetail = safeLazy(() => import('../pages/dashboard/OrderDetail'));
 const Chats = safeLazy(() => import('../pages/dashboard/Chats'));
@@ -89,6 +90,7 @@ const SellerWallet = safeLazy(() => import('../pages/seller/SellerWallet'));
 // Admin Pages (Lazy Loaded)
 const AdminDashboard = safeLazy(() => import('../pages/admin/AdminDashboard'));
 const ManageUsers = safeLazy(() => import('../pages/admin/ManageUsers'));
+const ManageBuyerRefunds = safeLazy(() => import('../pages/admin/ManageBuyerRefunds'));
 const ManageProducts = safeLazy(() => import('../pages/admin/ManageProducts'));
 const ManageOrders = safeLazy(() => import('../pages/admin/ManageOrders'));
 const ManageApplications = safeLazy(() => import('../pages/admin/ManageApplications'));
@@ -157,6 +159,7 @@ const standardRouter = createBrowserRouter([
     errorElement: <ErrorBoundary />,
     children: [
       { index: true, element: withSuspense(Dashboard) },
+      { path: 'wallet', element: withSuspense(BuyerWallet) },
       { path: 'orders', element: withSuspense(Orders) },
       { path: 'orders/:id', element: withSuspense(OrderDetail) },
       { path: 'chats', element: withSuspense(Chats) },
@@ -199,6 +202,7 @@ const standardRouter = createBrowserRouter([
     children: [
       { index: true, element: withSuspense(AdminDashboard) },
       { path: 'users', element: withSuspense(ManageUsers) },
+      { path: 'buyer-refunds', element: withSuspense(ManageBuyerRefunds) },
       { path: 'products/catalog', element: withSuspense(ProductCatalog) },
       { path: 'products', element: withSuspense(ManageProducts) },
       { path: 'bundles', element: withSuspense(AdminBundles) },
@@ -227,6 +231,7 @@ const maintenanceRouter = createBrowserRouter([
     children: [
       { index: true, element: withSuspense(AdminDashboard) },
       { path: 'users', element: withSuspense(ManageUsers) },
+      { path: 'buyer-refunds', element: withSuspense(ManageBuyerRefunds) },
       { path: 'products/catalog', element: withSuspense(ProductCatalog) },
       { path: 'products', element: withSuspense(ManageProducts) },
       { path: 'bundles', element: withSuspense(AdminBundles) },

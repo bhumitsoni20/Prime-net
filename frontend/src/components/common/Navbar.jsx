@@ -9,7 +9,9 @@ import {
   HiSearch,
   HiChatAlt2,
   HiMenuAlt2,
+  HiCreditCard,
 } from "react-icons/hi";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../../store/authStore";
 import useUiStore from "../../store/uiStore";
 import useCartStore from "../../store/cartStore";
@@ -29,12 +31,22 @@ const Navbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChats, setUnreadChats] = useState(0);
   const dropdownRef = useRef(null);
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
   const { socket } = useSocket();
   const { setSidebarOpen } = useUiStore();
   const itemCount = useCartStore((s) => s.items.length);
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const { data: walletData } = useQuery({
+    queryKey: ['buyerWallet'],
+    queryFn: async () => {
+      const res = await apiGet('/wallet/me');
+      return res.data;
+    },
+    enabled: !!isAuthenticated,
+  });
   const isDashboardRoute =
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/seller") ||
@@ -81,11 +93,20 @@ const Navbar = () => {
         fetchCounts();
       };
 
+      const handleWalletUpdate = () => {
+        queryClient.invalidateQueries({ queryKey: ['buyerWallet'] });
+        queryClient.invalidateQueries({ queryKey: ['sellerWallet'] });
+      };
+
       if (socket) {
         socket.on('new_message', handleUpdate);
         socket.on('messages_seen', handleUpdate);
         socket.on('new_notification', handleUpdate);
-        socket.on('payment_verified_redirect', handleUpdate);
+        socket.on('payment_verified_redirect', () => {
+          handleUpdate();
+          handleWalletUpdate();
+        });
+        socket.on('wallet_updated', handleWalletUpdate);
         socket.on('notifications_read', handleUpdate);
       }
 
@@ -95,12 +116,13 @@ const Navbar = () => {
           socket.off('new_message', handleUpdate);
           socket.off('messages_seen', handleUpdate);
           socket.off('new_notification', handleUpdate);
-          socket.off('payment_verified_redirect', handleUpdate);
+          socket.off('payment_verified_redirect');
+          socket.off('wallet_updated', handleWalletUpdate);
           socket.off('notifications_read', handleUpdate);
         }
       };
     }
-  }, [isAuthenticated, socket]);
+  }, [isAuthenticated, socket, queryClient]);
 
   const handleLogout = async () => {
     await signOut();
@@ -206,6 +228,15 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <Link
+                  to="/dashboard/wallet"
+                  className="relative hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] hover:bg-[#E0E7FF] border border-[#C7D2FE] text-[#5B4BFF] font-extrabold text-[12px] sm:text-[13px] rounded-full transition-all duration-200 shadow-xs mr-0.5"
+                  title="StreamKart Wallet"
+                >
+                  <HiCreditCard className="w-4 h-4 text-[#5B4BFF]" />
+                  <span>₹{(walletData?.walletBalance ?? user?.walletBalance ?? 0).toLocaleString()}</span>
+                </Link>
+
+                <Link
                   to="/notifications"
                   className="relative p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200"
                 >
@@ -262,6 +293,16 @@ const Navbar = () => {
                         </p>
                       </div>
                       <div className="py-1">
+                        <Link
+                          to="/dashboard/wallet"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center justify-between px-4 py-2.5 text-sm text-[#5B4BFF] bg-[#F5F3FF] hover:bg-[#EDE9FE] transition-colors font-bold"
+                        >
+                          <span className="flex items-center gap-2">
+                            <HiCreditCard className="w-4 h-4" /> My Wallet
+                          </span>
+                          <span className="text-xs">₹{(walletData?.walletBalance ?? user?.walletBalance ?? 0).toLocaleString()}</span>
+                        </Link>
                         <Link
                           to="/dashboard"
                           onClick={() => setProfileOpen(false)}
@@ -360,7 +401,17 @@ const Navbar = () => {
               </Link>
             ))}
             {isAuthenticated && (
-              <div className="px-2 pt-2 pb-1 border-t border-[#F1F5F9] mt-2">
+              <div className="px-2 pt-2 pb-1 border-t border-[#F1F5F9] mt-2 space-y-2">
+                <Link
+                  to="/dashboard/wallet"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-between py-2.5 px-3 bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#5B4BFF] rounded-[10px] transition-all font-bold text-sm shadow-xs"
+                >
+                  <span className="flex items-center gap-2">
+                    <HiCreditCard className="w-4 h-4" /> My Wallet
+                  </span>
+                  <span>₹{(walletData?.walletBalance ?? user?.walletBalance ?? 0).toLocaleString()}</span>
+                </Link>
                 <Link
                   to="/dashboard/chats"
                   onClick={() => setMobileOpen(false)}

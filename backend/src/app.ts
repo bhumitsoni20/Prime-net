@@ -25,6 +25,8 @@ import bundleRoutes from './routes/bundle.routes';
 import bundleOrderRoutes from './routes/bundleOrder.routes';
 import couponRoutes from './routes/coupon.routes';
 import payoutRoutes from './routes/payout.routes';
+import walletRoutes from './routes/wallet.routes';
+import walletAdminRoutes from './routes/walletAdmin.routes';
 
 const app = express();
 
@@ -89,6 +91,8 @@ app.use('/api/bundles', bundleRoutes);
 app.use('/api/bundle-orders', bundleOrderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/payouts', payoutRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/admin/wallet', walletAdminRoutes);
 
 import { User } from './models/User';
 import { sendSuccess, sendError } from './utils/response';

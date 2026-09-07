@@ -16,7 +16,7 @@ export interface IBundleOrder extends Document {
   bundle: mongoose.Types.ObjectId;
   seller: mongoose.Types.ObjectId;
   amount: number;
-  paymentMethod: 'upi' | 'razorpay' | 'coupon';
+  paymentMethod: 'upi' | 'razorpay' | 'coupon' | 'wallet';
   paymentStatus: 'pending' | 'pending_verification' | 'payment_verified' | 'paid' | 'payment_rejected' | 'failed' | 'refunded' | 'not_required';
   orderStatus: 'placed' | 'preparing' | 'partial' | 'delivered' | 'completed' | 'cancelled';
   paymentId: string;
@@ -78,9 +78,9 @@ const bundleOrderSchema = new Schema<IBundleOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ['upi', 'razorpay', 'coupon'],
+      enum: ['upi', 'razorpay', 'coupon', 'wallet'],
       required: true,
-      default: 'upi'
+      default: 'wallet'
     },
     paymentStatus: {
       type: String,

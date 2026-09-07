@@ -35,7 +35,7 @@ export const createBundleOrder = async (req: AuthRequest, res: Response) => {
       let finalAmount = bundle.bundlePrice;
       let discountAmount = 0;
       let appliedCouponId = undefined;
-      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : 'paid'; // Current default was 'paid' in BundleOrder, let's keep it or change it
+      let finalPaymentStatus: any = paymentMethod === 'coupon' ? 'not_required' : paymentMethod === 'wallet' ? 'payment_verified' : 'pending';
 
       if (couponCode) {
         const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
@@ -60,39 +60,70 @@ export const createBundleOrder = async (req: AuthRequest, res: Response) => {
         }
       }
 
+      // If paying with wallet, atomically deduct amount from user's balance
+      if (paymentMethod === 'wallet' && finalAmount > 0) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: req.user._id, walletBalance: { $gte: finalAmount } },
+          { $inc: { walletBalance: -finalAmount } },
+          { new: true }
+        );
+
+        if (!updatedUser) {
+          return sendError(res, 'Insufficient wallet balance for this bundle purchase. Please top up your wallet.', 400);
+        }
+
+        finalPaymentStatus = 'payment_verified';
+
+        // Emit live wallet update to the buyer
+        try {
+          const io = getIO();
+          io.to(`user_${req.user._id.toString()}`).emit('wallet_updated', {
+            walletBalance: updatedUser.walletBalance,
+            change: -finalAmount,
+            reason: 'bundle_purchase',
+            bundleId: bundle._id,
+          });
+        } catch (e) {}
+      }
+
+      const initialTimeline = [{ status: 'placed', date: new Date() }];
+      if (finalPaymentStatus === 'payment_verified' || finalPaymentStatus === 'not_required') {
+        initialTimeline.push({ status: 'payment_verified', date: new Date() });
+      }
+
       const order = await BundleOrder.create({
-      user: req.user._id,
-      bundle: bundleId,
-      seller: bundle.seller,
-      amount: finalAmount,
+        user: req.user._id,
+        bundle: bundleId,
+        seller: bundle.seller,
+        amount: finalAmount,
         originalAmount: bundle.bundlePrice,
         discountAmount,
         finalAmount,
         couponCode: appliedCouponId ? couponCode.toUpperCase() : undefined,
         couponId: appliedCouponId,
-      paymentMethod,
-      paymentId,
-      paymentStatus: finalPaymentStatus, // Assuming instant payment for this iteration
-      orderStatus: 'placed',
-      credentials,
-      timeline: [{ status: 'placed', date: new Date() }],
-    });
+        paymentMethod: paymentMethod || 'wallet',
+        paymentId: paymentId || '',
+        paymentStatus: finalPaymentStatus,
+        orderStatus: 'placed',
+        credentials,
+        timeline: initialTimeline,
+      });
 
-    // Send system message
-    await Message.create({
-      orderId: order._id,
-      onModel: 'BundleOrder',
-      senderId: bundle.seller,
-      type: 'system',
-      content: `Bundle Order placed successfully. Order ID: ${order._id}`,
-    });
+      // Send system message
+      await Message.create({
+        orderId: order._id,
+        onModel: 'BundleOrder',
+        senderId: bundle.seller,
+        type: 'system',
+        content: `Bundle Order placed successfully via StreamKart Wallet. Order ID: ${order._id}`,
+      });
 
-    const user = await User.findById(req.user._id);
-    if (user) {
-      await sendBundlePurchaseConfirmation(user.email, user.name, bundle.title);
-    }
+      const user = await User.findById(req.user._id);
+      if (user) {
+        await sendBundlePurchaseConfirmation(user.email, user.name, bundle.title);
+      }
 
-    return sendSuccess(res, order, 'Bundle order created.', 201);
+      return sendSuccess(res, order, 'Bundle order created.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
   }

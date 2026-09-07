@@ -80,10 +80,6 @@ export const getMyApplicationStatus = async (req: AuthRequest, res: Response) =>
 // GET /api/seller/wallet
 export const getWallet = async (req: AuthRequest, res: Response) => {
   try {
-    const cacheKey = `seller_wallet_${req.user._id}`;
-    const cachedData = Cache.get(cacheKey);
-    if (cachedData) return sendSuccess(res, cachedData, 'Wallet fetched.');
-
     const user = await User.findById(req.user._id).select('walletBalance');
     if (!user) return sendError(res, 'User not found.', 404);
 
@@ -95,7 +91,6 @@ export const getWallet = async (req: AuthRequest, res: Response) => {
       .sort({ createdAt: -1 });
 
     const result = { balance: user.walletBalance || 0, transactions };
-    Cache.set(cacheKey, result, 300);
 
     return sendSuccess(res, result, 'Wallet fetched.');
   } catch (error: any) {

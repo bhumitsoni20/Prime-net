@@ -23,7 +23,7 @@ const Maintenance = () => {
     }
     descMeta.setAttribute(
       "content",
-      "StreamKart is currently undergoing maintenance. We'll be back soon with something big."
+      "StreamKart is currently undergoing maintenance. We'll be back soon with something big.",
     );
 
     // Set or update meta robots tag to prevent indexing during maintenance
@@ -114,7 +114,8 @@ const Maintenance = () => {
           transition={{ duration: 0.45, delay: 0.25, ease: "easeOut" }}
           className="text-xs sm:text-sm text-[#64748B] leading-relaxed max-w-sm sm:max-w-md md:max-w-lg px-2"
         >
-          We're making a few improvements behind the scenes to bring you a better StreamKart experience.
+          We're making a few improvements behind the scenes to bring you a
+          better StreamKart experience.
         </motion.p>
       </div>
 

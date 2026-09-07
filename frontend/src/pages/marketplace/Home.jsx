@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane, HiCollection, HiArrowRight } from 'react-icons/hi';
+import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import HeroSection from '../../components/common/HeroSection';
 import CategoryFilter from '../../components/common/CategoryFilter';
 import ProductCard from '../../components/cards/ProductCard';
@@ -7,10 +10,8 @@ import Pagination from '../../components/ui/Pagination';
 import { useProducts } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
-import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane, HiCollection } from 'react-icons/hi';
-import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
+import { SpotlightCard, CountUp } from '../../components/reactbits';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -28,9 +29,7 @@ const Home = () => {
     },
   });
 
-  const userCountText = stats?.totalUsers !== undefined
-    ? `${stats.totalUsers.toLocaleString()}+` 
-    : '4+';
+  const rawUserCount = stats?.totalUsers !== undefined ? stats.totalUsers : 4;
 
   const handleSearch = (query) => {
     navigate(`/search?q=${encodeURIComponent(query)}`);
@@ -52,26 +51,31 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-[#F8FAFC]">
+    <div className="bg-[#FAFBFF]">
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
 
       {/* Explore Top Categories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-16">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-[26px] sm:text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em]">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#5B4BFF]/10 text-[#5B4BFF] mb-2">
+              <HiSparkles className="w-3.5 h-3.5" />
+              <span>Curated Ecosystem</span>
+            </div>
+            <h2 className="text-[26px] sm:text-[32px] font-extrabold text-[#0F172A] tracking-[-0.03em]">
               Explore Top Categories
             </h2>
             <p className="text-[#64748B] text-sm mt-1">
-              Select a category to browse specialized subscriptions
+              Select a category to browse specialized verified subscriptions
             </p>
           </div>
           <Link
             to="/products"
-            className="text-[13px] sm:text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1 shrink-0"
+            className="text-[13px] sm:text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1.5 shrink-0 group"
           >
-            View all categories <span className="text-[16px]">&rarr;</span>
+            <span>View all categories</span>
+            <HiArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
         <CategoryFilter selected="" onSelect={handleCategorySelect} variant="cards" />
@@ -81,7 +85,7 @@ const Home = () => {
       <section ref={productSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-[26px] sm:text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] flex items-center gap-2">
+            <h2 className="text-[26px] sm:text-[32px] font-extrabold text-[#0F172A] tracking-[-0.03em] flex items-center gap-2">
               All Subscriptions & Products <HiSparkles className="text-[#A855F7] w-6 h-6" />
             </h2>
             <p className="text-[#64748B] text-sm mt-1">
@@ -89,7 +93,7 @@ const Home = () => {
             </p>
           </div>
           {productsData?.pagination?.total > 0 && (
-            <div className="inline-flex items-center gap-1.5 bg-[#F3F1FF] text-[#5B4BFF] px-3.5 py-1.5 rounded-full text-xs font-bold self-start sm:self-auto">
+            <div className="inline-flex items-center gap-1.5 bg-white border border-[#5B4BFF]/20 text-[#5B4BFF] shadow-xs px-4 py-1.5 rounded-full text-xs font-extrabold self-start sm:self-auto">
               <HiCollection className="w-4 h-4" />
               <span>{productsData.pagination.total} Available Subscriptions</span>
             </div>
@@ -111,7 +115,7 @@ const Home = () => {
 
             {/* Pagination */}
             {productsData?.pagination?.pages > 1 && (
-              <div className="mt-14 flex flex-col items-center border-t border-[#E2E8F0] pt-8">
+              <div className="mt-14 flex flex-col items-center border-t border-slate-200/80 pt-8">
                 <Pagination
                   currentPage={productsData.pagination.page}
                   totalPages={productsData.pagination.pages}
@@ -121,94 +125,112 @@ const Home = () => {
             )}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.04)] mt-4">
-            <div className="h-16 w-16 bg-[#EEF2FF] rounded-[16px] flex items-center justify-center mx-auto mb-5">
+          <div className="text-center py-20 bg-white border border-slate-200 rounded-[28px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mt-4 p-8">
+            <div className="h-16 w-16 bg-[#EEF2FF] rounded-[20px] flex items-center justify-center mx-auto mb-5 text-[#5B4BFF]">
               <span className="text-3xl">📦</span>
             </div>
-            <h3 className="text-lg font-bold text-[#0F172A] mb-2">No products available yet</h3>
+            <h3 className="text-xl font-extrabold text-[#0F172A] mb-2">No products available yet</h3>
             <p className="text-[#64748B] text-[15px] mb-6 max-w-md mx-auto">
               Be the first one to start selling premium digital subscriptions on our platform.
             </p>
             <Link to="/register">
-              <Button size="lg">Become a Seller</Button>
+              <Button size="lg" className="shadow-[0_4px_14px_rgba(91,75,255,0.3)]">Become a Seller</Button>
             </Link>
           </div>
         )}
       </section>
 
-      {/* Value Propositions */}
+      {/* Value Propositions / Trust Signals Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="w-12 h-12 rounded-[14px] bg-[#F3F1FF] text-[#5B4BFF] flex items-center justify-center flex-shrink-0">
-              <HiLockClosed className="w-6 h-6" />
+          <SpotlightCard className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-13 h-13 rounded-[18px] bg-indigo-50 border border-indigo-100 text-[#5B4BFF] flex items-center justify-center flex-shrink-0 shadow-xs">
+                <HiLockClosed className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-[15px] font-extrabold text-[#0F172A] mb-1">100% Secure Payments</h4>
+                <p className="text-[12px] text-[#64748B] leading-snug">Bank-grade encryption and escrow protection.</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">100% Secure Payments</h4>
-              <p className="text-[12px] text-[#64748B] leading-snug">Your payments are protected with top-level security.</p>
+          </SpotlightCard>
+
+          <SpotlightCard className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-13 h-13 rounded-[18px] bg-purple-50 border border-purple-100 text-[#7C3AED] flex items-center justify-center flex-shrink-0 shadow-xs">
+                <HiUsers className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-[15px] font-extrabold text-[#0F172A] mb-1">
+                  <CountUp to={rawUserCount} duration={2} suffix="+" /> Trusted Users
+                </h4>
+                <p className="text-[12px] text-[#64748B] leading-snug">Empowering verified buyers & sellers worldwide.</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="w-12 h-12 rounded-[14px] bg-[#EEF2FF] text-[#6366F1] flex items-center justify-center flex-shrink-0">
-              <HiUsers className="w-6 h-6" />
+          </SpotlightCard>
+
+          <SpotlightCard className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-13 h-13 rounded-[18px] bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <HiLightningBolt className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-[15px] font-extrabold text-[#0F172A] mb-1">Instant Delivery</h4>
+                <p className="text-[12px] text-[#64748B] leading-snug">Automated credential access immediately after checkout.</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">Trusted by {userCountText} Users</h4>
-              <p className="text-[12px] text-[#64748B] leading-snug">Join thousands of happy customers worldwide.</p>
+          </SpotlightCard>
+
+          <SpotlightCard className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-13 h-13 rounded-[18px] bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 shadow-xs">
+                <HiSupport className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-[15px] font-extrabold text-[#0F172A] mb-1">24/7 Dedicated Support</h4>
+                <p className="text-[12px] text-[#64748B] leading-snug">Direct ticket resolution & seller dispute guarantee.</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="w-12 h-12 rounded-[14px] bg-[#F5F3FF] text-[#8B5CF6] flex items-center justify-center flex-shrink-0">
-              <HiLightningBolt className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">Instant Delivery</h4>
-              <p className="text-[12px] text-[#64748B] leading-snug">Get access to your digital products instantly.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 bg-white p-6 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="w-12 h-12 rounded-[14px] bg-[#F8FAFC] text-[#64748B] flex items-center justify-center flex-shrink-0">
-              <HiSupport className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-[14px] font-bold text-[#0F172A] mb-1">24/7 Support</h4>
-              <p className="text-[12px] text-[#64748B] leading-snug">We're here to help you anytime, anywhere.</p>
-            </div>
-          </div>
+          </SpotlightCard>
         </div>
       </section>
 
       {/* Newsletter CTA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="relative bg-white border border-[#E2E8F0] rounded-[32px] p-8 md:p-12 overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)]">
+        <div className="relative bg-white border border-slate-200/90 rounded-[32px] p-8 md:p-14 overflow-hidden shadow-[0_20px_50px_rgba(91,75,255,0.08)]">
           {/* Subtle Background Gradient */}
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#F3F1FF] to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-[#F3F1FF] via-[#EDE9FE]/40 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
             <div className="flex items-center gap-8 w-full md:w-auto">
               <div className="hidden sm:block relative w-32 h-32 flex-shrink-0">
                 <motion.div 
-                   animate={{ y: [-5, 5, -5] }}
-                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                   className="absolute inset-0 bg-[#5B4BFF] rounded-xl flex items-center justify-center text-white text-5xl shadow-[0_10px_30px_rgba(91,75,255,0.3)] rotate-[-10deg]"
+                   animate={{ y: [-6, 6, -6], rotate: [-8, -4, -8] }}
+                   transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                   className="absolute inset-0 bg-gradient-to-br from-[#5B4BFF] to-[#7C3AED] rounded-[24px] flex items-center justify-center text-white text-5xl shadow-[0_12px_32px_rgba(91,75,255,0.35)]"
                 >
-                  <svg className="w-16 h-16 opacity-50 absolute top-2 right-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                  </svg>
-                  <HiPaperAirplane className="w-12 h-12 text-white relative z-10 transform -rotate-45 -translate-y-2 translate-x-2" />
+                  <HiPaperAirplane className="w-12 h-12 text-white transform -rotate-45" />
                 </motion.div>
-                <div className="absolute -top-4 -right-4 w-10 h-10 bg-[#A855F7] rounded-full blur-[20px] opacity-40"></div>
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#A855F7] rounded-full blur-[24px] opacity-50" />
               </div>
               <div>
-                <h3 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-tight">Stay ahead of the curve</h3>
-                <p className="text-[#64748B] text-[15px] max-w-md">Subscribe to get the latest deals, offers and product updates.</p>
+                <div className="inline-flex items-center gap-1 text-xs font-extrabold text-[#5B4BFF] uppercase tracking-wider mb-2">
+                  <HiSparkles className="w-3.5 h-3.5" />
+                  <span>Stay Informed</span>
+                </div>
+                <h3 className="text-[28px] sm:text-[34px] font-extrabold text-[#0F172A] mb-2 tracking-tight">
+                  Stay ahead with exclusive deals
+                </h3>
+                <p className="text-[#64748B] text-[15px] sm:text-[16px] max-w-md">
+                  Subscribe to receive drop alerts, subscriber bundles, and exclusive promo codes.
+                </p>
               </div>
             </div>
 
             <div className="w-full md:w-auto flex-1 max-w-md">
               <form 
                 onSubmit={(e) => { e.preventDefault(); }} 
-                className="flex flex-col sm:flex-row bg-[#F8FAFC] p-1.5 rounded-[16px] border border-[#E2E8F0] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/10 focus-within:border-[#5B4BFF] transition-all gap-2 sm:gap-0"
+                className="flex flex-col sm:flex-row bg-[#F8FAFC] p-1.5 rounded-[20px] border border-slate-200/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/15 focus-within:border-[#5B4BFF] transition-all gap-2 sm:gap-0"
               >
                 <input 
                   type="email" 
@@ -216,8 +238,9 @@ const Home = () => {
                   className="w-full bg-transparent border-none px-4 sm:px-5 py-3 sm:py-0 text-[15px] text-[#0F172A] placeholder-[#94A3B8] focus:ring-0 outline-none"
                   required
                 />
-                <Button type="submit" size="lg" className="w-full sm:w-auto px-8 rounded-[12px] shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex items-center justify-center gap-2 flex-shrink-0">
-                  Subscribe <HiPaperAirplane className="w-4 h-4 rotate-90" />
+                <Button type="submit" size="lg" className="w-full sm:w-auto px-8 rounded-[16px] shadow-[0_4px_14px_rgba(91,75,255,0.3)] flex items-center justify-center gap-2 flex-shrink-0">
+                  <span>Subscribe</span>
+                  <HiPaperAirplane className="w-4 h-4 rotate-90" />
                 </Button>
               </form>
             </div>

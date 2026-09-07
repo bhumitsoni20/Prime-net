@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { HiMail, HiLockClosed } from 'react-icons/hi';
+import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiArrowRight } from 'react-icons/hi';
 import { FcGoogle } from 'react-icons/fc';
 import { signInWithEmail, signInWithGoogle } from '../../firebase/auth';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import toast from 'react-hot-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,6 +20,10 @@ const Login = () => {
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error('Please enter your email and password');
+      return;
+    }
     setLoading(true);
     try {
       const user = await signInWithEmail(email, password);
@@ -43,7 +47,7 @@ const Login = () => {
     try {
       const user = await signInWithGoogle();
       if (user) {
-        toast.success('Welcome!');
+        toast.success('Welcome back!');
         navigate(redirectUrl);
       }
     } catch (error) {
@@ -54,73 +58,116 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-[28px] font-extrabold text-[#0F172A] mb-2 tracking-[-0.02em]">Welcome back 👋</h1>
-      <p className="text-[#64748B] text-[15px] mb-8">Login to access your StreamKart account</p>
+    <div className="w-full">
+      {/* Header */}
+      <div className="mb-4">
+        <h1 className="text-[24px] sm:text-[26px] font-black text-[#0F172A] tracking-[-0.03em] mb-1">
+          Welcome back 👋
+        </h1>
+        <p className="text-slate-500 text-xs font-medium">
+          Sign in to access your digital passes, orders, and wallet.
+        </p>
+      </div>
 
-      <form onSubmit={handleEmailLogin} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          icon={HiMail}
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      {/* Google 1-Tap Login Button */}
+      <button
+        type="button"
+        onClick={handleGoogleLogin}
+        disabled={googleLoading}
+        className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-[14px] bg-white border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 shadow-[0_2px_6px_rgba(0,0,0,0.03)] transition-all font-bold text-slate-700 text-xs cursor-pointer disabled:opacity-60"
+      >
+        <FcGoogle className="w-4 h-4 flex-shrink-0" />
+        <span>{googleLoading ? 'Connecting...' : 'Continue with Google'}</span>
+      </button>
+
+      {/* Divider */}
+      <div className="relative my-3.5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-2.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+            or with email
+          </span>
+        </div>
+      </div>
+
+      {/* Email / Password Form */}
+      <form onSubmit={handleEmailLogin} className="space-y-3">
+        
+        {/* Email Input */}
         <div>
-          <Input
-            label="Password"
-            type="password"
-            icon={HiLockClosed}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <div className="flex justify-end mt-2">
+          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+            Email Address
+          </label>
+          <div className="relative group">
+            <HiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#5B4BFF] transition-colors" />
+            <input
+              type="email"
+              required
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs font-medium"
+            />
+          </div>
+        </div>
+
+        {/* Password Input */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+              Password
+            </label>
             <Link
               to="/forgot-password"
-              className="text-[13px] text-[#5B4BFF] hover:text-[#4338CA] font-semibold transition-colors"
+              className="text-[11px] text-[#5B4BFF] hover:underline font-bold"
             >
               Forgot password?
             </Link>
           </div>
+          <div className="relative group">
+            <HiLockClosed className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#5B4BFF] transition-colors" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              required
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs font-medium"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+            >
+              {showPassword ? <HiEyeOff className="w-4 h-4" /> : <HiEye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
-        <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
-          Log in <span className="ml-1.5 transition-transform group-hover:translate-x-1">→</span>
-        </Button>
+        {/* Submit Button */}
+        <div className="pt-1">
+          <Button 
+            type="submit" 
+            size="md" 
+            className="w-full py-2.5 text-xs font-extrabold rounded-[14px] bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED] hover:from-[#4F3FE8] hover:to-[#6D28D9] shadow-[0_4px_16px_rgba(91,75,255,0.3)] flex items-center justify-center gap-1.5 cursor-pointer" 
+            isLoading={loading}
+          >
+            <span>Sign In to StreamKart</span>
+            <HiArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </form>
 
-      <div className="relative my-7">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#E2E8F0]" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium uppercase tracking-wider">or</span>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <Button
-          variant="secondary"
-          onClick={handleGoogleLogin}
-          className="w-full"
-          size="lg"
-          loading={googleLoading}
-        >
-          <FcGoogle className="w-5 h-5" /> Continue with Google
-        </Button>
-      </div>
-
-      <p className="text-center text-[13px] text-[#64748B] mt-8 leading-relaxed">
-        By continuing, you agree to our{' '}
-        <Link to="/terms" className="text-[#5B4BFF] hover:underline font-medium">
-          Terms of Service
+      {/* Terms Notice */}
+      <p className="text-center text-[11px] text-slate-400 mt-3 leading-relaxed">
+        By continuing, you agree to StreamKart's{' '}
+        <Link to="/terms" className="text-[#5B4BFF] hover:underline font-bold">
+          Terms
         </Link>{' '}
         and{' '}
-        <Link to="/privacy" className="text-[#5B4BFF] hover:underline font-medium">
+        <Link to="/privacy" className="text-[#5B4BFF] hover:underline font-bold">
           Privacy Policy
         </Link>
         .

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import DotField from "../../components/ui/DotField";
 
 /**
  * StreamKart Production Maintenance Mode Page
@@ -54,18 +53,12 @@ const Maintenance = () => {
 
   return (
     <main className="relative h-screen w-full flex flex-col items-center justify-between bg-[#FFFFFF] text-[#0F172A] overflow-hidden font-['Inter',sans-serif] px-4 sm:px-6 lg:px-8 py-4 sm:py-6 selection:bg-[#EDE9FE] selection:text-[#5B4BFF]">
-      {/* React Bits Interactive Dot Field Canvas Background with darker defined dots */}
-      <DotField
-        dotRadius={1.4}
-        dotSpacing={18}
-        cursorRadius={280}
-        bulgeStrength={28}
-        glowRadius={100}
-        sparkle={false}
-        waveAmplitude={0}
-        gradientFrom="rgba(109, 40, 217, 0.45)"
-        gradientTo="rgba(91, 75, 255, 0.40)"
-      />
+      {/* Modern Tech Grid & Ambient Glow Background */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(91,75,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(91,75,255,0.04)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_75%_60%_at_50%_40%,#000_50%,transparent_100%)]" />
+        <div className="absolute -top-32 left-1/4 w-[500px] h-[400px] rounded-full bg-gradient-to-tr from-[#5B4BFF]/10 to-[#7C3AED]/10 blur-[140px]" />
+        <div className="absolute -bottom-32 right-1/4 w-[500px] h-[400px] rounded-full bg-gradient-to-tl from-[#38BDF8]/10 to-[#A855F7]/10 blur-[140px]" />
+      </div>
 
       {/* Spacer */}
       <div className="w-full h-1" aria-hidden="true" />

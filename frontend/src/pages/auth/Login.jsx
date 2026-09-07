@@ -61,10 +61,10 @@ const Login = () => {
     <div className="w-full">
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-[24px] sm:text-[26px] font-black text-[#0F172A] tracking-[-0.03em] mb-1">
+        <h1 className="text-[22px] sm:text-[24px] font-black text-[#0F172A] tracking-[-0.03em] mb-1">
           Welcome back 👋
         </h1>
-        <p className="text-slate-500 text-xs font-medium">
+        <p className="text-slate-500 text-xs sm:text-[13px] font-medium">
           Sign in to access your digital passes, orders, and wallet.
         </p>
       </div>
@@ -74,14 +74,14 @@ const Login = () => {
         type="button"
         onClick={handleGoogleLogin}
         disabled={googleLoading}
-        className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-[14px] bg-white border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/80 shadow-[0_2px_6px_rgba(0,0,0,0.03)] transition-all font-bold text-slate-700 text-xs cursor-pointer disabled:opacity-60"
+        className="w-full flex items-center justify-center gap-2.5 py-2.5 sm:py-2.5 px-4 rounded-[14px] bg-white border border-slate-200/90 hover:border-slate-300 hover:bg-slate-50/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] transition-all font-bold text-slate-700 text-xs sm:text-[13px] cursor-pointer disabled:opacity-60 group"
       >
-        <FcGoogle className="w-4 h-4 flex-shrink-0" />
+        <FcGoogle className="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105" />
         <span>{googleLoading ? 'Connecting...' : 'Continue with Google'}</span>
       </button>
 
       {/* Divider */}
-      <div className="relative my-3.5">
+      <div className="relative my-3.5 sm:my-4">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-200" />
         </div>
@@ -93,7 +93,7 @@ const Login = () => {
       </div>
 
       {/* Email / Password Form */}
-      <form onSubmit={handleEmailLogin} className="space-y-3">
+      <form onSubmit={handleEmailLogin} className="space-y-3 sm:space-y-3.5">
         
         {/* Email Input */}
         <div>
@@ -108,7 +108,7 @@ const Login = () => {
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs font-medium"
+              className="w-full pl-10 pr-4 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs sm:text-[13px] font-medium"
             />
           </div>
         </div>
@@ -134,7 +134,7 @@ const Login = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs font-medium"
+              className="w-full pl-10 pr-10 py-2.5 rounded-[12px] bg-[#F8FAFC] border border-slate-200 focus:bg-white focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all outline-none text-slate-900 text-xs sm:text-[13px] font-medium"
             />
             <button
               type="button"
@@ -151,7 +151,7 @@ const Login = () => {
           <Button 
             type="submit" 
             size="md" 
-            className="w-full py-2.5 text-xs font-extrabold rounded-[14px] bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED] hover:from-[#4F3FE8] hover:to-[#6D28D9] shadow-[0_4px_16px_rgba(91,75,255,0.3)] flex items-center justify-center gap-1.5 cursor-pointer" 
+            className="w-full py-2.5 sm:py-3 text-xs sm:text-[13px] font-extrabold rounded-[14px] bg-gradient-to-r from-[#5B4BFF] to-[#7C3AED] hover:from-[#4F3FE8] hover:to-[#6D28D9] text-white shadow-[0_4px_16px_rgba(91,75,255,0.3)] flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]" 
             isLoading={loading}
           >
             <span>Sign In to StreamKart</span>

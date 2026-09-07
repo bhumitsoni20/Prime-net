@@ -84,6 +84,7 @@ const SellerProducts = safeLazy(() => import('../pages/seller/SellerProducts'));
 const SellerOrders = safeLazy(() => import('../pages/seller/SellerOrders'));
 const SellerProductRequests = safeLazy(() => import('../pages/seller/SellerProductRequests'));
 const SellerBundles = safeLazy(() => import('../pages/seller/SellerBundles'));
+const SellerWallet = safeLazy(() => import('../pages/seller/SellerWallet'));
 
 // Admin Pages (Lazy Loaded)
 const AdminDashboard = safeLazy(() => import('../pages/admin/AdminDashboard'));
@@ -97,6 +98,7 @@ const ProductCatalog = safeLazy(() => import('../pages/admin/ProductCatalog'));
 const ManagePayments = safeLazy(() => import('../pages/admin/ManagePayments'));
 const PaymentSettings = safeLazy(() => import('../pages/admin/PaymentSettings'));
 const AdminCoupons = safeLazy(() => import('../pages/admin/AdminCoupons'));
+const ManagePayouts = safeLazy(() => import('../pages/admin/ManagePayouts'));
 
 // Higher-order component to wrap lazy components in Suspense
 const withSuspense = (Component) => (
@@ -181,6 +183,7 @@ const standardRouter = createBrowserRouter([
       { path: 'products/:id/edit', element: withSuspense(EditProduct) },
       { path: 'bundles', element: withSuspense(SellerBundles) },
       { path: 'bundles/:id/edit', element: withSuspense(EditBundle) },
+      { path: 'wallet', element: withSuspense(SellerWallet) },
       { path: 'orders', element: withSuspense(SellerOrders) },
       { path: 'product-requests', element: withSuspense(SellerProductRequests) },
     ],
@@ -204,6 +207,7 @@ const standardRouter = createBrowserRouter([
       { path: 'product-requests', element: withSuspense(AdminProductRequests) },
       { path: 'payments', element: withSuspense(ManagePayments) },
       { path: 'payment-settings', element: withSuspense(PaymentSettings) },
+      { path: 'payouts', element: withSuspense(ManagePayouts) },
       { path: 'coupons', element: withSuspense(AdminCoupons) },
     ],
   },
@@ -231,6 +235,7 @@ const maintenanceRouter = createBrowserRouter([
       { path: 'product-requests', element: withSuspense(AdminProductRequests) },
       { path: 'payments', element: withSuspense(ManagePayments) },
       { path: 'payment-settings', element: withSuspense(PaymentSettings) },
+      { path: 'payouts', element: withSuspense(ManagePayouts) },
       { path: 'coupons', element: withSuspense(AdminCoupons) },
     ],
   },
@@ -241,9 +246,9 @@ const maintenanceRouter = createBrowserRouter([
   },
 ]);
 
-// Maintenance mode is ACTIVE by default (unless explicitly disabled via MAINTENANCE_MODE=false or VITE_MAINTENANCE_MODE=false)
+// Controlled via MAINTENANCE_MODE or VITE_MAINTENANCE_MODE in .env
 const envVal = import.meta.env.MAINTENANCE_MODE ?? import.meta.env.VITE_MAINTENANCE_MODE;
-const isMaintenanceActive = envVal !== 'false';
+const isMaintenanceActive = envVal === 'true';
 const activeRouter = isMaintenanceActive ? maintenanceRouter : standardRouter;
 
 const AppRouter = () => (

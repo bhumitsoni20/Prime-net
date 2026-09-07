@@ -50,7 +50,7 @@ const Checkout = () => {
   const settings = settingsRes || {};
   const cartSubtotal = bundleId && bundle ? bundle.bundlePrice : subtotal;
   const currentSubtotal = appliedCoupon ? appliedCoupon.finalAmount : cartSubtotal;
-  const platformFee = currentSubtotal * 0.02;
+  const platformFee = currentSubtotal * 0.04;
   const displayTotal = currentSubtotal + platformFee;
   const isFreeOrder = displayTotal <= 0;
 
@@ -171,7 +171,7 @@ const Checkout = () => {
       if (!reuploadOrder) {
         clearCart();
       }
-      navigate('/payment-pending', { state: { orderIds, bundleOrderIds } });
+      navigate('/payment-pending', { state: { orderIds, bundleOrderIds }, replace: true });
       
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit payment proof');

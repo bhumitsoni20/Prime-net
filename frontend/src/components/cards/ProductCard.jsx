@@ -14,7 +14,13 @@ const ProductCard = ({ product }) => {
       <Link to={`/products/${product._id}`} className="block">
         <div className="relative h-44 bg-[#F8FAFC] rounded-[16px] flex items-center justify-center overflow-hidden mb-5">
           {product.logo ? (
-            <img src={product.logo} alt={product.title} loading="lazy" decoding="async" className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500 ease-out drop-shadow-sm rounded-[16px]" />
+            <img
+              src={product.logo}
+              alt={product.title}
+              loading="lazy"
+              decoding="async"
+              className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-500 ease-out drop-shadow-sm rounded-[16px]"
+            />
           ) : (
             <div className="h-20 w-20 rounded-[16px] bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center text-3xl font-extrabold text-[#5B4BFF]">
               {product.title?.[0]}
@@ -27,14 +33,21 @@ const ProductCard = ({ product }) => {
       {(product.seller?.totalSales || 0) >= 10 && (
         <div className="absolute top-7 right-7">
           <div className="bg-[#F0FDF4] text-[#16A34A] px-2 py-1 rounded-[6px] text-[10px] font-bold tracking-wide flex items-center gap-1 border border-[#BBF7D0]">
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
             Verified
           </div>
         </div>
       )}
       <button
-        onClick={(e) => { e.preventDefault(); toggleItem(product); }}
-        className={`absolute top-7 left-7 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 ${liked ? 'text-red-500' : 'text-[#94A3B8] hover:text-red-400'}`}
+        onClick={(e) => {
+          e.preventDefault();
+          toggleItem(product);
+        }}
+        className={`absolute top-7 left-7 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+          liked ? 'text-red-500' : 'text-[#94A3B8] hover:text-red-400'
+        }`}
       >
         {liked ? <HiHeart className="w-5 h-5" /> : <HiOutlineHeart className="w-5 h-5" />}
       </button>
@@ -48,9 +61,21 @@ const ProductCard = ({ product }) => {
 
         {(product.planName || product.deviceLoginType) && (
           <div className="flex flex-wrap gap-1.5 mb-3 mt-2">
-            {product.planName && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.planName}</Badge>}
-            {product.deviceLoginCount && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.deviceLoginCount} Device{product.deviceLoginCount > 1 ? 's' : ''}</Badge>}
-            {product.deviceLoginType && <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">{product.deviceLoginType}</Badge>}
+            {product.planName && (
+              <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">
+                {product.planName}
+              </Badge>
+            )}
+            {product.deviceLoginCount && (
+              <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">
+                {product.deviceLoginCount} Device{product.deviceLoginCount > 1 ? 's' : ''}
+              </Badge>
+            )}
+            {product.deviceLoginType && (
+              <Badge variant="gray" className="text-[10px] py-0.5 px-2 bg-[#F1F5F9] border-[#E2E8F0]">
+                {product.deviceLoginType}
+              </Badge>
+            )}
           </div>
         )}
 
@@ -67,9 +92,12 @@ const ProductCard = ({ product }) => {
               /{product.duration ? product.duration.replace(/^1 /i, '') : 'mo'}
             </span>
           </div>
-          
-          <button 
-            onClick={(e) => { e.preventDefault(); addToCart(product); }}
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              addToCart(product);
+            }}
             className="w-10 h-10 rounded-[12px] bg-[#5B4BFF] hover:bg-[#4F3FE8] text-white flex items-center justify-center shadow-[0_4px_14px_rgba(91,75,255,0.3)] transition-all hover:scale-105 active:scale-95"
           >
             <HiShoppingCart className="w-5 h-5" />

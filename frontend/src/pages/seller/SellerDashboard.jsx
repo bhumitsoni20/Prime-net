@@ -81,15 +81,15 @@ const SellerDashboard = () => {
           <div className="relative">
             <h3 className="font-bold text-[18px] mb-6 tracking-tight">Available for Payout</h3>
             <div className="bg-white/5 border border-white/10 rounded-[16px] p-5 mb-6 backdrop-blur-md">
-              <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mb-1.5">Balance</p>
+              <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mb-1.5">Wallet Balance (95% Net)</p>
               <p className="text-[32px] font-extrabold tracking-tight">₹{loading ? '...' : totalSales.toLocaleString()}</p>
             </div>
             <div className="flex items-center gap-2 mb-8">
               <div className="w-2 h-2 bg-[#10B981] rounded-full"></div>
-              <p className="text-[#94A3B8] text-[13px] font-medium">Auto-payout Enabled (Weekly)</p>
+              <p className="text-[#94A3B8] text-[13px] font-medium">Guaranteed 24-Hour Payouts</p>
             </div>
-            <Button className="w-full mb-3 bg-[#5B4BFF] hover:bg-[#4F3FE8] border-none shadow-[0_4px_14px_rgba(91,75,255,0.4)]">Withdraw Funds</Button>
-            <Button variant="secondary" className="w-full border-none bg-white/10 text-white hover:bg-white/20">Payout Settings</Button>
+            <Link to="/seller/wallet"><Button className="w-full mb-3 bg-[#5B4BFF] hover:bg-[#4F3FE8] border-none shadow-[0_4px_14px_rgba(91,75,255,0.4)]">Withdraw Funds</Button></Link>
+            <Link to="/seller/wallet"><Button variant="secondary" className="w-full border-none bg-white/10 text-white hover:bg-white/20">Wallet & Payout Settings</Button></Link>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@ const SellerDashboard = () => {
                   </div>
                   <div className="flex-1 min-w-0 pt-0.5">
                     <p className={`text-[14px] leading-tight mb-1 truncate group-hover:text-[#5B4BFF] transition-colors ${!notif.read ? 'text-[#0F172A] font-bold' : 'text-[#334155] font-semibold'}`}>{notif.title}</p>
-                    <p className="text-[#64748B] text-[13px] line-clamp-2 leading-relaxed">{notif.message}</p>
+                    <p className="text-[#64748B] text-[13px] line-clamp-2 leading-relaxed">{(notif.message || '').replace(/\?(\d)/g, '₹$1')}</p>
                   </div>
                 </div>
               ))

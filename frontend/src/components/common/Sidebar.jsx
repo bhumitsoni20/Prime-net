@@ -1,5 +1,22 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { HiHome, HiShoppingBag, HiClipboardList, HiUser, HiBell, HiCube, HiPlus, HiUsers, HiChartBar, HiCog, HiOutlineTicket, HiSupport, HiChat, HiSparkles, HiTemplate } from 'react-icons/hi';
+import { 
+  HiHome, 
+  HiShoppingBag, 
+  HiClipboardList, 
+  HiUser, 
+  HiBell, 
+  HiCube, 
+  HiPlus, 
+  HiUsers, 
+  HiChartBar, 
+  HiCog, 
+  HiOutlineTicket, 
+  HiSupport, 
+  HiChat, 
+  HiSparkles, 
+  HiTemplate,
+  HiCurrencyRupee
+} from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import useUiStore from '../../store/uiStore';
 import Button from '../ui/Button';
@@ -21,6 +38,7 @@ const Sidebar = () => {
 
   const sellerLinks = [
     { to: '/seller', icon: HiChartBar, label: 'Dashboard', end: true },
+    { to: '/seller/wallet', icon: HiCurrencyRupee, label: 'Wallet & Payouts' },
     { to: '/seller/products', icon: HiCube, label: 'Inventory', end: true },
     { to: '/seller/bundles', icon: HiShoppingBag, label: 'Bundles', end: true },
     { to: '/seller/products/new', icon: HiPlus, label: 'Add Product' },
@@ -38,6 +56,7 @@ const Sidebar = () => {
     { to: '/admin/orders', icon: HiCog, label: 'Orders' },
     { to: '/admin/product-requests', icon: HiSparkles, label: 'Product Requests' },
     { to: '/admin/payments', icon: HiClipboardList, label: 'Payment Verifications' },
+    { to: '/admin/payouts', icon: HiCurrencyRupee, label: 'Seller Payouts' },
     { to: '/admin/coupons', icon: HiOutlineTicket, label: 'Coupons' },
     { to: '/admin/payment-settings', icon: HiCog, label: 'Payment Settings' },
   ];
@@ -81,8 +100,6 @@ const Sidebar = () => {
       )}
 
       <aside className={`fixed top-16 left-0 bottom-0 w-[240px] bg-white/95 backdrop-blur-sm border-r border-[#F1F5F9] z-30 overflow-y-auto transition-transform duration-300 lg:translate-x-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
-
         <div className="px-3 py-4 flex-1 space-y-6">
           {isMainContext && renderSection('Main', userLinks)}
           {isSellerContext && (user?.role === 'seller' || user?.role === 'admin') && renderSection('Seller', sellerLinks)}

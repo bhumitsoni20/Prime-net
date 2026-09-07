@@ -339,14 +339,14 @@ export const reconcileEarnings = async (req: AuthRequest, res: Response) => {
       if (!existingTx) {
         const transactionId = 'TXN_REC_' + crypto.randomBytes(6).toString('hex').toUpperCase();
         const grossAmount = order.amount || 0;
-        const netEarning = grossAmount;
+        const platformCommission = Number(((grossAmount || 0) * 0.05).toFixed(2)); const netEarning = Number((grossAmount - platformCommission).toFixed(2));
 
         await Transaction.create({
           transactionId,
           order: order._id,
           seller: order.seller,
           grossAmount,
-          platformCommission: 0,
+          platformCommission,
           netEarning,
           type: 'credit',
           status: 'completed'

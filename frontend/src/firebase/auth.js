@@ -12,6 +12,7 @@ import {
 import { auth } from './config';
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Email Authentication
 export const signUpWithEmail = async (email, password, displayName) => {
@@ -32,8 +33,19 @@ export const signInWithEmail = async (email, password) => {
 // Google Authentication
 export const signInWithGoogle = async () => {
   if (!auth) throw new Error('Firebase not configured');
-  const result = await signInWithPopup(auth, googleProvider);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    if (
+      error.code === 'auth/popup-closed-by-user' ||
+      error.code === 'auth/cancelled-popup-request' ||
+      error.code === 'auth/user-cancelled'
+    ) {
+      return null;
+    }
+    throw error;
+  }
 };
 
 // Phone OTP Authentication

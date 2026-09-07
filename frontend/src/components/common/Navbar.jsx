@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -24,6 +25,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hoveredTab, setHoveredTab] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChats, setUnreadChats] = useState(0);
   const dropdownRef = useRef(null);
@@ -58,7 +60,7 @@ const Navbar = () => {
     };
   }, [profileOpen]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       const fetchCounts = async () => {
         try {
@@ -108,7 +110,6 @@ const Navbar = () => {
 
   const navLinks = [
     { label: "Home", to: "/" },
-    { label: "Marketplace", to: "/products" },
     { label: "Request Product", to: "/request-product" },
     { label: "Features", to: "/about" },
   ];
@@ -118,13 +119,13 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? "bg-white/70 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.04)] border-b border-[#E2E8F0]" : "bg-white/95 backdrop-blur-sm border-b border-transparent"}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo & Mobile Sidebar Toggle */}
-          <div className="flex items-center">
-            {isAuthenticated && isDashboardRoute && (
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center gap-4">
+            {isDashboardRoute && (
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 -ml-2 mr-1 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all"
+                className="lg:hidden p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all -ml-2"
+                aria-label="Open sidebar"
               >
                 <HiMenuAlt2 className="w-5 h-5" />
               </button>
@@ -133,72 +134,84 @@ const Navbar = () => {
               to="/"
               className="flex items-center hover:opacity-90 transition-opacity mr-10 sm:mr-24 md:mr-32"
             >
-              <img src="/streamkart-logo-nav.png" alt="StreamKart" className="h-12 sm:h-16 md:h-16 origin-left w-auto object-contain drop-shadow-sm ml-1 scale-[1.8] sm:scale-[2.0]" />
+              <img
+                src="/streamkart-logo-nav.png"
+                alt="StreamKart"
+                className="h-12 sm:h-16 md:h-16 origin-left w-auto object-contain drop-shadow-sm ml-1 scale-[1.8] sm:scale-[2.0]"
+              />
             </Link>
           </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.label}
-                to={link.to}
-                className={({ isActive }) =>
-                  `relative px-4 py-2 text-[13px] font-medium rounded-[10px] transition-all duration-200 ${
-                    isActive
-                      ? "text-[#5B4BFF] bg-[#5B4BFF]/5"
-                      : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+          <div 
+            onMouseLeave={() => setHoveredTab(null)}
+            className="hidden lg:flex items-center p-1 rounded-full bg-white/60 backdrop-blur-2xl backdrop-saturate-150 border border-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.04),inset_0_1px_2px_rgba(255,255,255,0.9),inset_0_-1px_1px_rgba(0,0,0,0.03)] transition-all duration-300"
+          >
+            {navLinks.map((link) => {
+              const isActive = link.to === "/" ? pathname === "/" : pathname.startsWith(link.to);
+              return (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  onMouseEnter={() => setHoveredTab(link.label)}
+                  className="relative px-5 py-2 text-[13px] font-semibold transition-all duration-200 select-none flex items-center justify-center"
+                >
+                  {/* Glassy hover highlight */}
+                  {hoveredTab === link.label && !isActive && (
+                    <motion.div
+                      layoutId="navbar-hover-glass"
+                      className="absolute inset-0 rounded-full bg-white/40 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)]"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    />
+                  )}
+
+                  {/* Active iPhone Glass Pill with Specular Highlight & Spring Motion */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="navbar-active-glass-pill"
+                      className="absolute inset-0 rounded-full bg-white/95 backdrop-blur-xl shadow-[0_4px_16px_rgba(91,75,255,0.12),0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_1.5px_rgba(255,255,255,1),inset_0_-1px_1px_rgba(0,0,0,0.02)] border border-white/95"
+                      transition={{
+                        type: "spring",
+                        stiffness: 450,
+                        damping: 32,
+                        mass: 0.7,
+                      }}
+                    />
+                  )}
+
+                  <span
+                    className={`relative z-10 tracking-tight transition-colors duration-200 ${
+                      isActive
+                        ? "text-[#5B4BFF] font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)]"
+                        : "text-[#64748B] hover:text-[#0F172A]"
+                    }`}
+                  >
+                    {link.label}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* Right Side */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to="/search"
+              className="p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200"
+            >
+              <HiSearch className="w-[18px] h-[18px]" />
+            </Link>
+
             {isAuthenticated ? (
               <>
-                {user?.role === "user" && (
-                  <Link
-                    to="/dashboard/apply-seller"
-                    className="hidden sm:flex items-center text-[13px] font-semibold text-[#5B4BFF] hover:text-[#4F3FE8] bg-[#5B4BFF]/[0.06] hover:bg-[#5B4BFF]/[0.1] px-4 py-2 rounded-full transition-all duration-200 mr-1"
-                  >
-                    Become a Seller
-                  </Link>
-                )}
-                <button
-                  onClick={() => navigate("/search")}
-                  className="p-1 sm:p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 flex items-center justify-center"
-                >
-                  <HiSearch className="w-[18px] h-[18px]" />
-                </button>
-                <Link
-                  to="/wishlist"
-                  className="relative p-1 sm:p-2 text-[#94A3B8] hover:text-pink-500 hover:bg-pink-50 rounded-[10px] transition-all duration-200 flex items-center justify-center"
-                >
-                  <svg
-                    className="w-[18px] h-[18px]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                </Link>
                 <Link
                   to="/notifications"
-                  className="relative p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200 flex items-center justify-center"
+                  className="relative p-2 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-[10px] transition-all duration-200"
                 >
                   <HiBell className="w-[18px] h-[18px]" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-[16px] min-w-[16px] px-1 rounded-full bg-[#EF4444] text-[9px] font-bold text-white flex items-center justify-center ring-2 ring-white shadow-sm">
+                    <span className="absolute -top-0 -right-0 h-[18px] min-w-[18px] px-1 rounded-full bg-[#5B4BFF] text-[10px] font-bold text-white flex items-center justify-center ring-2 ring-white">
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}

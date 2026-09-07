@@ -182,7 +182,7 @@ export const createBundle = async (req: AuthRequest, res: Response) => {
       status: 'active', // Automatically approve for now
     });
 
-    Cache.clearAll();
+    Cache.invalidatePrefix('bundles_'); Cache.invalidate('public_stats');
     return sendSuccess(res, bundle, 'Bundle created.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -200,7 +200,7 @@ export const updateBundle = async (req: AuthRequest, res: Response) => {
     }
 
     const updatedBundle = await Bundle.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    Cache.clearAll();
+    Cache.invalidatePrefix('bundles_'); Cache.invalidate('public_stats');
     return sendSuccess(res, updatedBundle);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -218,7 +218,7 @@ export const deleteBundle = async (req: AuthRequest, res: Response) => {
     }
 
     await bundle.deleteOne();
-    Cache.clearAll();
+    Cache.invalidatePrefix('bundles_'); Cache.invalidate('public_stats');
     return sendSuccess(res, { message: 'Bundle deleted successfully' });
   } catch (error: any) {
     return sendError(res, error.message);

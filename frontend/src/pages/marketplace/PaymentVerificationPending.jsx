@@ -1,56 +1,86 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Button from '../../components/ui/Button';
 import { HiCheckCircle, HiOutlineClock } from 'react-icons/hi';
 import { getOrder } from '../../services/order.service';
+import { apiGet } from '../../services/api';
 
 const PaymentVerificationPending = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
 
-  const orderIds = location.state?.orderIds || [];
+  const stateOrderIds = location.state?.orderIds || [];
 
-  // Poll for order status
-  useQuery({
-    queryKey: ['paymentVerificationStatus', orderIds],
+  // Poll for order status if specific order IDs are provided in location.state
+  const { data: specificOrders } = useQuery({
+    queryKey: ['paymentVerificationStatus', stateOrderIds],
     queryFn: async () => {
-      if (orderIds.length === 0) return null;
-      
-      const promises = orderIds.map(id => getOrder(id));
+      if (stateOrderIds.length === 0) return null;
+      const promises = stateOrderIds.map((id) => getOrder(id));
       const results = await Promise.all(promises);
-      
-      // Check if all are verified
-      const allVerified = results.every(res => {
-        const order = res?.data;
-        return order?.paymentStatus === 'payment_verified';
-      });
-      
-      // We no longer redirect here. We let the GlobalPaymentRedirectHandler 
-      // handle the socket event and show a 3-second countdown to the chat room.
-      
-      return results;
+      return results.map((r) => r?.data).filter(Boolean);
     },
-    refetchInterval: 5000, // poll every 5 seconds
-    enabled: orderIds.length > 0,
+    refetchInterval: 3000,
+    enabled: stateOrderIds.length > 0,
   });
 
-  const cacheKey = `paymentVerificationStart_${orderIds.join(',')}`;
+  // If no stateOrderIds (e.g. visited directly or browser back button), check if user has active pending orders
+  const { data: userOrders } = useQuery({
+    queryKey: ['checkActivePendingOrders'],
+    queryFn: async () => {
+      const res = await apiGet('/orders?limit=10');
+      return Array.isArray(res) ? res : (res?.data || []);
+    },
+    enabled: stateOrderIds.length === 0,
+  });
 
   useEffect(() => {
-    if (orderIds.length > 0) {
+    // 1. If specific order IDs were passed: check if ALL are already verified/completed
+    if (stateOrderIds.length > 0 && specificOrders && specificOrders.length > 0) {
+      const allVerifiedOrCompleted = specificOrders.every(
+        (order) =>
+          order.paymentStatus === 'payment_verified' ||
+          order.paymentStatus === 'paid' ||
+          order.orderStatus === 'completed'
+      );
+
+      if (allVerifiedOrCompleted) {
+        const verifiedOrder = specificOrders[0];
+        navigate(`/dashboard/chats/${verifiedOrder._id}`, { replace: true });
+      }
+    }
+
+    // 2. If NO order IDs in state (e.g. customer pressed Back after everything was completed)
+    if (stateOrderIds.length === 0 && userOrders) {
+      const hasAnyPending = userOrders.some(
+        (order) =>
+          order.paymentStatus === 'in_review' ||
+          order.paymentStatus === 'pending_verification'
+      );
+
+      if (!hasAnyPending) {
+        // Customer has no pending verification orders -> redirect away so they don't see this page again
+        navigate('/dashboard/orders', { replace: true });
+      }
+    }
+  }, [stateOrderIds, specificOrders, userOrders, navigate]);
+
+  // Track order IDs in localStorage for global push/socket handler
+  useEffect(() => {
+    if (stateOrderIds.length > 0) {
       try {
         const existing = JSON.parse(localStorage.getItem('streamkart_pending_orders') || '[]');
-        const updated = [...new Set([...existing, ...orderIds.map(id => id.toString())])];
+        const updated = [...new Set([...existing, ...stateOrderIds.map((id) => id.toString())])];
         localStorage.setItem('streamkart_pending_orders', JSON.stringify(updated));
       } catch (e) {}
     }
-  }, [orderIds]);
+  }, [stateOrderIds]);
+
+  const cacheKey = `paymentVerificationStart_${stateOrderIds.join(',') || 'pending'}`;
 
   useEffect(() => {
-    // If we have a saved start time, use it to calculate remaining time
-    // This allows the timer to survive page reloads!
     const savedTime = localStorage.getItem(cacheKey);
     if (savedTime) {
       const elapsed = Math.floor((Date.now() - parseInt(savedTime)) / 1000);

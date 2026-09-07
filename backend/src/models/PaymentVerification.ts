@@ -20,7 +20,6 @@ const paymentVerificationSchema = new Schema<IPaymentVerification>(
     orderId: {
       type: Schema.Types.ObjectId,
       required: true,
-      // Ref can be dynamic, so we omit strict ref validation here
     },
     orderType: {
       type: String,
@@ -66,6 +65,11 @@ const paymentVerificationSchema = new Schema<IPaymentVerification>(
     timestamps: true,
   }
 );
+
+paymentVerificationSchema.index({ status: 1, createdAt: -1 });
+paymentVerificationSchema.index({ orderId: 1 });
+paymentVerificationSchema.index({ buyer: 1, createdAt: -1 });
+paymentVerificationSchema.index({ seller: 1, createdAt: -1 });
 
 const PaymentVerification = mongoose.model<IPaymentVerification>('PaymentVerification', paymentVerificationSchema);
 

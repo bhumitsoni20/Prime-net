@@ -17,6 +17,8 @@ export interface IUser extends Document {
   probationExpiry?: Date;
   createdAt: Date;
   walletBalance: number;
+  upiId?: string;
+  upiQrCode?: string;
   updatedAt: Date;
 }
 
@@ -85,6 +87,15 @@ const userSchema = new Schema<IUser>(
     walletBalance: {
       type: Number,
       default: 0,
+    },
+    upiId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    upiQrCode: {
+      type: String,
+      default: '',
     },
   },
   {

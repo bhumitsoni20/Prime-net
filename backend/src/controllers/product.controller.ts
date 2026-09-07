@@ -130,7 +130,7 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       status: 'active', // Automatically approve products
     });
 
-    Cache.clearAll();
+    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
     return sendSuccess(res, product, 'Product created and is now live.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -164,7 +164,7 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
       runValidators: true,
     });
 
-    Cache.clearAll();
+    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
     return sendSuccess(res, updated, 'Product updated.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -182,7 +182,7 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 
     await Product.findByIdAndDelete(req.params.id);
-    Cache.clearAll();
+    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
     return sendSuccess(res, null, 'Product deleted.');
   } catch (error: any) {
     return sendError(res, error.message);

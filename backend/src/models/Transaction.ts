@@ -61,8 +61,9 @@ const transactionSchema = new Schema<ITransaction>(
   }
 );
 
+transactionSchema.index({ seller: 1, status: 1, createdAt: -1 });
+transactionSchema.index({ seller: 1, type: 1, status: 1 });
 transactionSchema.index({ seller: 1, createdAt: -1 });
-// Important: unique index to prevent double crediting for same order
-transactionSchema.index({ order: 1, type: 1 }, { unique: true }); 
+transactionSchema.index({ order: 1, type: 1 }, { unique: true });
 
 export const Transaction = mongoose.model<ITransaction>('Transaction', transactionSchema);

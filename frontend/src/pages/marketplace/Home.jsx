@@ -1,34 +1,31 @@
-import { useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import HeroSection from '../../components/common/HeroSection';
 import CategoryFilter from '../../components/common/CategoryFilter';
 import ProductCard from '../../components/cards/ProductCard';
+import Pagination from '../../components/ui/Pagination';
 import { useProducts } from '../../hooks/useProducts';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
-import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane } from 'react-icons/hi';
+import { HiSparkles, HiLockClosed, HiUsers, HiLightningBolt, HiSupport, HiPaperAirplane, HiCollection } from 'react-icons/hi';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicStats } from '../../services/public.service';
 
 const Home = () => {
   const navigate = useNavigate();
-  const carouselRef = useRef(null);
+  const [page, setPage] = useState(1);
+  const productSectionRef = useRef(null);
 
-  const scroll = (direction) => {
-    if (carouselRef.current) {
-      const scrollAmount = 320;
-      carouselRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-    }
-  };
+  // Fetch paginated products directly for the home page showcase
+  const { data: productsData, isLoading } = useProducts(`page=${page}&limit=12&sort=rating`);
 
-  const { data, isLoading } = useProducts('limit=12&sort=rating');
   const { data: stats } = useQuery({
     queryKey: ['publicStats'],
     queryFn: async () => {
       const response = await getPublicStats();
       return response.data;
-    }
+    },
   });
 
   const userCountText = stats?.totalUsers !== undefined
@@ -40,64 +37,101 @@ const Home = () => {
   };
 
   const handleCategorySelect = (cat) => {
-    navigate(`/products?category=${cat}`);
+    if (cat) {
+      navigate(`/products?category=${cat}`);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    if (productSectionRef.current) {
+      const yOffset = -90;
+      const y = productSectionRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   };
 
   return (
     <div className="bg-[#F8FAFC]">
+      {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 pb-20">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em]">Explore Top Categories</h2>
-          <Link to="/products" className="text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1">
-            View all categories <span className="text-[18px]">→</span>
+      {/* Explore Top Categories */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-16">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-[26px] sm:text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em]">
+              Explore Top Categories
+            </h2>
+            <p className="text-[#64748B] text-sm mt-1">
+              Select a category to browse specialized subscriptions
+            </p>
+          </div>
+          <Link
+            to="/products"
+            className="text-[13px] sm:text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1 shrink-0"
+          >
+            View all categories <span className="text-[16px]">&rarr;</span>
           </Link>
         </div>
         <CategoryFilter selected="" onSelect={handleCategorySelect} variant="cards" />
       </section>
 
-      {/* Trending */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] flex items-center gap-2">
-            Trending Subscriptions <HiSparkles className="text-[#A855F7] w-6 h-6" />
-          </h2>
-          <Link to="/products" className="text-[14px] font-bold text-[#5B4BFF] hover:text-[#4F3FE8] transition-colors flex items-center gap-1">
-            View all <span className="text-[18px]">→</span>
-          </Link>
+      {/* All Products Showcase with Pagination */}
+      <section ref={productSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-[26px] sm:text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] flex items-center gap-2">
+              All Subscriptions & Products <HiSparkles className="text-[#A855F7] w-6 h-6" />
+            </h2>
+            <p className="text-[#64748B] text-sm mt-1">
+              Discover, compare and subscribe to all available premium digital subscriptions
+            </p>
+          </div>
+          {productsData?.pagination?.total > 0 && (
+            <div className="inline-flex items-center gap-1.5 bg-[#F3F1FF] text-[#5B4BFF] px-3.5 py-1.5 rounded-full text-xs font-bold self-start sm:self-auto">
+              <HiCollection className="w-4 h-4" />
+              <span>{productsData.pagination.total} Available Subscriptions</span>
+            </div>
+          )}
         </div>
 
+        {/* Product Grid */}
         {isLoading ? (
-          <div className="flex justify-center py-16"><Spinner size="lg" /></div>
-        ) : data?.data?.length > 0 ? (
-          <div className="relative">
-            {/* Optional Carousel Arrows (Visual only for now as requested by UI design) */}
-            <button onClick={() => scroll('left')} className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
-               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <button onClick={() => scroll('right')} className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center z-10 text-[#64748B] hover:text-[#0F172A] hidden lg:flex">
-               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
-
-            <div ref={carouselRef} className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide py-4" style={{ scrollBehavior: 'smooth' }}>
-              {data.data.map((product) => (
-                <div key={product._id} className="min-w-[280px] sm:min-w-[300px] lg:min-w-[280px] snap-start flex-shrink-0">
-                  <ProductCard product={product} />
-                </div>
+          <div className="flex justify-center items-center py-24 min-h-[300px]">
+            <Spinner size="lg" />
+          </div>
+        ) : productsData?.data?.length > 0 ? (
+          <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {productsData.data.map((product) => (
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
-          </div>
-        ) : null}
 
-        {!isLoading && (!data?.data || data.data.length === 0) && (
-          <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.04)] mt-6">
+            {/* Pagination */}
+            {productsData?.pagination?.pages > 1 && (
+              <div className="mt-14 flex flex-col items-center border-t border-[#E2E8F0] pt-8">
+                <Pagination
+                  currentPage={productsData.pagination.page}
+                  totalPages={productsData.pagination.pages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white border border-[#E2E8F0] rounded-[24px] shadow-[0_1px_3px_rgba(0,0,0,0.04)] mt-4">
             <div className="h-16 w-16 bg-[#EEF2FF] rounded-[16px] flex items-center justify-center mx-auto mb-5">
-              <span className="text-3xl">🛒</span>
+              <span className="text-3xl">📦</span>
             </div>
-            <h3 className="text-lg font-bold text-[#0F172A] mb-2">Nothing here yet</h3>
-            <p className="text-[#64748B] text-[15px] mb-6 max-w-md mx-auto">Be the first one to start selling premium digital subscriptions on our platform.</p>
-            <Link to="/register"><Button size="lg">Become a Seller</Button></Link>
+            <h3 className="text-lg font-bold text-[#0F172A] mb-2">No products available yet</h3>
+            <p className="text-[#64748B] text-[15px] mb-6 max-w-md mx-auto">
+              Be the first one to start selling premium digital subscriptions on our platform.
+            </p>
+            <Link to="/register">
+              <Button size="lg">Become a Seller</Button>
+            </Link>
           </div>
         )}
       </section>
@@ -153,13 +187,14 @@ const Home = () => {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
             <div className="flex items-center gap-8 w-full md:w-auto">
               <div className="hidden sm:block relative w-32 h-32 flex-shrink-0">
-                {/* Envelope Illustration matching the design */}
                 <motion.div 
                    animate={{ y: [-5, 5, -5] }}
                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                    className="absolute inset-0 bg-[#5B4BFF] rounded-xl flex items-center justify-center text-white text-5xl shadow-[0_10px_30px_rgba(91,75,255,0.3)] rotate-[-10deg]"
                 >
-                  <svg className="w-16 h-16 opacity-50 absolute top-2 right-2" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                  <svg className="w-16 h-16 opacity-50 absolute top-2 right-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                  </svg>
                   <HiPaperAirplane className="w-12 h-12 text-white relative z-10 transform -rotate-45 -translate-y-2 translate-x-2" />
                 </motion.div>
                 <div className="absolute -top-4 -right-4 w-10 h-10 bg-[#A855F7] rounded-full blur-[20px] opacity-40"></div>
@@ -171,7 +206,10 @@ const Home = () => {
             </div>
 
             <div className="w-full md:w-auto flex-1 max-w-md">
-              <form className="flex flex-col sm:flex-row bg-[#F8FAFC] p-1.5 rounded-[16px] border border-[#E2E8F0] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/10 focus-within:border-[#5B4BFF] transition-all gap-2 sm:gap-0">
+              <form 
+                onSubmit={(e) => { e.preventDefault(); }} 
+                className="flex flex-col sm:flex-row bg-[#F8FAFC] p-1.5 rounded-[16px] border border-[#E2E8F0] shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus-within:ring-[3px] focus-within:ring-[#5B4BFF]/10 focus-within:border-[#5B4BFF] transition-all gap-2 sm:gap-0"
+              >
                 <input 
                   type="email" 
                   placeholder="Enter your email address" 
@@ -186,7 +224,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
     </div>
   );
 };

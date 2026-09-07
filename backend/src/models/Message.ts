@@ -60,4 +60,8 @@ const messageSchema = new Schema<IMessage>(
   { timestamps: true }
 );
 
+messageSchema.index({ orderId: 1, createdAt: -1 });
+messageSchema.index({ orderId: 1, senderId: 1, status: 1 });
+messageSchema.index({ senderId: 1, status: 1 });
+
 export const Message = mongoose.model<IMessage>('Message', messageSchema);

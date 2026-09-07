@@ -21,6 +21,14 @@ export class Cache {
     delete this.store[key];
   }
 
+  static invalidatePrefix(prefix: string) {
+    for (const key of Object.keys(this.store)) {
+      if (key.startsWith(prefix)) {
+        delete this.store[key];
+      }
+    }
+  }
+
   static clearAll() {
     this.store = {};
   }

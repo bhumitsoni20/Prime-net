@@ -178,7 +178,7 @@ export const deliverBundleCredential = async (req: AuthRequest, res: Response) =
         if (!existingTx) {
           const transactionId = 'TXN_' + crypto.randomBytes(8).toString('hex').toUpperCase();
           const grossAmount = order.amount || 0;
-          const platformCommission = 0; // Configurable commission
+          const platformCommission = Number(((grossAmount || 0) * 0.05).toFixed(2)); // Configurable commission
           const netEarning = grossAmount - platformCommission;
 
           await Transaction.create({

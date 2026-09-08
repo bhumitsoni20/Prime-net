@@ -1,31 +1,37 @@
 <div align="center">
-  <img src="frontend/public/streamkart-logo-nav.png" alt="StreamKart Logo" width="450" />
+  <img src="frontend/public/streamkart-logo-nav.png" alt="StreamKart Logo" width="480" />
 
   <br />
   
   <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=800&size=24&duration=3000&pause=1000&color=5B4BFF&center=true&vCenter=true&width=600&lines=Your+Premium+Digital+Marketplace;Buy+%26+Sell+Digital+Subscriptions;OTT%2C+AI+Tools%2C+VPNs+%26+More" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=800&size=24&duration=3000&pause=1000&color=5B4BFF&center=true&vCenter=true&width=650&lines=Next-Gen+Digital+Subscription+Marketplace;Instant+1-Click+Pass+Delivery;Escrow+Buyer+Protection+%26+Live+Verification;Real-Time+Buyer-Seller+Messaging" alt="StreamKart Typing SVG" />
   </a>
 
   <p align="center">
-    <strong>A next-generation, full-stack digital subscription and access tier marketplace.</strong>
+    <strong>A high-performance, full-stack digital asset and subscription pass marketplace with automated delivery, escrow settlement, and real-time Socket.IO communications.</strong>
   </p>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 18" />
+    <img src="https://img.shields.io/badge/Vite_5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
     <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
-    <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge" alt="Express.js" />
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white" alt="Express.js" />
     <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
     <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
+    <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="Socket.io" />
+    <img src="https://img.shields.io/badge/Firebase_Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase" />
   </p>
 
   <p align="center">
     <a href="#-about-streamkart">About</a> • 
-    <a href="#-key-features">Features</a> • 
-    <a href="#-tech-stack">Tech Stack</a> • 
+    <a href="#-key-features">Key Features</a> • 
     <a href="#-architecture">Architecture</a> • 
-    <a href="#-getting-started">Getting Started</a>
+    <a href="#-role-based-portals">Role Portals</a> • 
+    <a href="#-tech-stack">Tech Stack</a> • 
+    <a href="#-project-structure">Structure</a> • 
+    <a href="#-getting-started">Getting Started</a> • 
+    <a href="#-api-reference">API Docs</a>
   </p>
 </div>
 
@@ -33,74 +39,56 @@
 
 ## 🌟 About StreamKart
 
-**StreamKart** is a cutting-edge platform designed to revolutionize the way digital subscriptions and access tiers are traded. It provides a seamless, high-performance ecosystem bridging the gap between digital merchants and buyers. Built with a stunning, modern glassmorphic UI, StreamKart offers manual UPI payment verification, real-time Socket.IO buyer-seller communications, and instant digital credential delivery.
+**StreamKart** is a state-of-the-art multi-vendor digital marketplace engineered for frictionless trading of verified digital passes, software licenses, OTT subscriptions, VPN keys, AI tools, and gaming access tiers.
+
+Built with a modern **React 18 + Vite** client and a robust **Node.js / Express / TypeScript** backend, StreamKart provides automated instant credential delivery, manual UPI payment verification with live countdown timers, escrow fund protection, and a unified order-based chat engine powered by **Socket.IO**.
 
 ---
 
 ## ⚡ Key Features
 
 <table>
-  <tr>
-    <td>🎨 <strong>Premium UI/UX</strong></td>
-    <td>State-of-the-art design system featuring responsive glassmorphism, dynamic product cards, fluid typography, and micro-animations powered by Framer Motion.</td>
-  </tr>
-  <tr>
-    <td>🔐 <strong>Robust Authentication</strong></td>
-    <td>Secure, multi-provider login (Google, Phone OTP, Email) powered by Firebase Auth, with strict role-based access control (Admin, Seller, User).</td>
-  </tr>
-  <tr>
-    <td>💳 <strong>Manual UPI Payment Verification</strong></td>
-    <td>Buyer checkout with UPI QR code generation, copyable UPI ID, screenshot proof upload, and a 5-minute persistent verification timer.</td>
-  </tr>
-  <tr>
-    <td>🛡️ <strong>Admin Verification & Rejection Modal</strong></td>
-    <td>Dedicated Admin Payment Portal (`ManagePayments`) for verifying screenshots. Admin approvals trigger real-time 3-second countdown redirects. Rejections emit live pop-ups with reason details and one-click "Try Again / Re-upload" checkout mode.</td>
-  </tr>
-  <tr>
-    <td>💬 <strong>Shared Buyer-Seller Chat System</strong></td>
-    <td>Order-based (`orderId`) unified chat system between buyers and sellers with real-time Socket.IO synchronization, unread badges, and auto-sorted recent conversations.</td>
-  </tr>
-  <tr>
-    <td>🛒 <strong>Seller Dashboard & Bundles</strong></td>
-    <td>Comprehensive analytics, real-time sales tracking, financial reporting, and auto-populated multi-product bundle cards.</td>
-  </tr>
-  <tr>
-    <td>🚀 <strong>Performance Optimized</strong></td>
-    <td>Built on Vite with intelligent code-splitting, lazy loading, TanStack Query caching/polling, and Zustand state management.</td>
-  </tr>
+  <thead>
+    <tr>
+      <th width="30%">Core Pillar</th>
+      <th width="70%">Capability Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>🎨 <strong>Modern ReactBits Design</strong></td>
+      <td>Stunning responsive light/dark interface featuring animated <code>ShapeGrid</code> canvas, <code>AuroraBackground</code> with geometric tech lattice, glowing <code>BorderBeam</code> accents, <code>SpotlightCard</code> micro-interactions, and fluid typography.</td>
+    </tr>
+    <tr>
+      <td>🔐 <strong>Enterprise Multi-Auth</strong></td>
+      <td>Seamless authentication via Google 1-Tap, Phone OTP, and Email/Password using Firebase Auth with email verification gates and custom MongoDB role synchronization.</td>
+    </tr>
+    <tr>
+      <td>💳 <strong>UPI Payment & Verification Pipeline</strong></td>
+      <td>Smart checkout modal featuring automated UPI QR generation, dynamic copyable VPA, transaction screenshot proof upload, and a synchronized 5-minute persistent verification timer.</td>
+    </tr>
+    <tr>
+      <td>🛡️ <strong>Live Admin Approval & Rejection Modal</strong></td>
+      <td>Dedicated Admin Payment Verification Portal with live screenshot review. Approvals trigger real-time 3-second countdown redirects for buyers. Rejections emit live modal pop-ups with reason codes and a 1-click re-upload workflow.</td>
+    </tr>
+    <tr>
+      <td>💬 <strong>Real-Time Order Chat System</strong></td>
+      <td>Shared buyer-seller chat linked directly to <code>orderId</code>. Features instant Socket.IO messaging, unread badges, timestamped bubbles, attachment previews, and auto-sorted conversations.</td>
+    </tr>
+    <tr>
+      <td>📦 <strong>Multi-Tier Bundles & Product Requests</strong></td>
+      <td>Sellers can publish standalone subscription passes or curate discounted multi-product bundles. Buyers can post custom digital product requests that certified sellers bid on and fulfill.</td>
+    </tr>
+    <tr>
+      <td>💰 <strong>Dual Wallet & Automated Settlement</strong></td>
+      <td>Integrated Buyer Wallet for instant purchases and Seller Wallet with escrow holds, automated release upon buyer verification, and manual payout request management.</td>
+    </tr>
+    <tr>
+      <td>🚀 <strong>High-Performance Infrastructure</strong></td>
+      <td>Engineered with Vite code-splitting, lazy-loaded route chunks with dynamic import retry guards, TanStack Query caching, and Zustand global state stores.</td>
+    </tr>
+  </tbody>
 </table>
-
----
-
-## 🛠 Tech Stack
-
-<details>
-<summary><strong>🖥 Frontend Architecture</strong></summary>
-
-- **Framework**: [React 18](https://reactjs.org/) (Vite)
-- **Styling**: [Tailwind CSS v3](https://tailwindcss.com/)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand) & [TanStack Query](https://tanstack.com/query)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Real-time WebSockets**: Socket.io Client
-- **Routing**: React Router v6
-</details>
-
-<details>
-<summary><strong>⚙️ Backend Infrastructure</strong></summary>
-
-- **Server Environment**: Node.js & Express.js
-- **Language**: TypeScript
-- **Database**: MongoDB Atlas with Mongoose ORM
-- **Real-time WebSockets**: Socket.IO
-</details>
-
-<details>
-<summary><strong>🔌 Third-Party Services</strong></summary>
-
-- **Authentication**: Firebase Auth
-- **Cloud Storage**: Firebase Cloud Storage
-- **Push Notifications**: Web Push / FCM
-</details>
 
 ---
 
@@ -109,28 +97,31 @@
 ```mermaid
 flowchart TD
     %% Layer 1: Client Interfaces
-    subgraph L1 ["🖥️ CLIENT LAYER (React 18 + Vite)"]
+    subgraph L1 ["🖥️ CLIENT LAYER (React 18 + Vite + Tailwind)"]
         UI_Buyer["🛒 Buyer Marketplace & Checkout"]
-        UI_Seller["📊 Seller Dashboard & Bundles"]
-        UI_Admin["🛡️ Admin Payment Verification"]
-        UI_Chat["💬 Live Shared Chat Engine"]
+        UI_Seller["📊 Seller Management & Bundles"]
+        UI_Admin["🛡️ Super Admin Control Center"]
+        UI_Chat["💬 Real-Time Shared Chat Engine"]
+        UI_Components["✨ ReactBits (ShapeGrid, Aurora, BorderBeam)"]
     end
 
-    %% Layer 2: Server Infrastructure
-    subgraph L2 ["⚙️ SERVER & REAL-TIME LAYER (Express + TypeScript)"]
-        API_Gateway["🔐 API Gateway & Auth Middleware"]
+    %% Layer 2: API Gateway & Socket Server
+    subgraph L2 ["⚙️ SERVER & REAL-TIME LAYER (Node.js + Express + TypeScript)"]
+        API_Gateway["🔐 API Gateway & JWT / Firebase Auth Middleware"]
         Ctrl_Payment["💳 Payment Verification Controller"]
-        Ctrl_Order["📦 Order & Bundle Controller"]
-        Ctrl_Chat["✉️ Chat & Messaging Controller"]
-        Socket_Server["⚡ Socket.IO Event Engine"]
+        Ctrl_Order["📦 Order & Bundle Lifecycle Engine"]
+        Ctrl_Chat["✉️ Chat & Notification Controller"]
+        Ctrl_Wallet["💰 Wallet & Escrow Ledger Controller"]
+        Socket_Server["⚡ Socket.IO Event Engine (Rooms: orderId & userId)"]
     end
 
-    %% Layer 3: Data & Services
-    subgraph L3 ["🗄️ DATA & CLOUD LAYER"]
+    %% Layer 3: Data & Cloud Infrastructure
+    subgraph L3 ["🗄️ DATA, CLOUD & INTEGRATION LAYER"]
         Mongo_DB[("Database (MongoDB Atlas)
-        Users | Orders | Verification | Messages")]
-        Firebase_Cloud["Firebase Auth & Cloud Storage"]
-        Push_Service["Web Push Notification Service"]
+        Users | Products | Orders | Payments | Bundles | Messages")]
+        Firebase_Auth["Firebase Admin SDK & Auth"]
+        Cloud_Storage["Firebase Cloud Storage (Screenshots & Proofs)"]
+        Push_Service["Web Push & FCM Notification Dispatcher"]
     end
 
     %% Flow Connections
@@ -142,37 +133,145 @@ flowchart TD
     API_Gateway --> Ctrl_Payment
     API_Gateway --> Ctrl_Order
     API_Gateway --> Ctrl_Chat
+    API_Gateway --> Ctrl_Wallet
 
     Ctrl_Payment <--> Mongo_DB
     Ctrl_Order <--> Mongo_DB
     Ctrl_Chat <--> Mongo_DB
+    Ctrl_Wallet <--> Mongo_DB
 
-    Ctrl_Payment -->|Emit Redirect / Rejection| Socket_Server
-    Ctrl_Chat -->|Emit Live Messages| Socket_Server
-    Socket_Server -->|Push Real-time Events| UI_Buyer
+    Ctrl_Payment -->|Emit Approval / Rejection Events| Socket_Server
+    Ctrl_Chat -->|Broadcast Instant Message Events| Socket_Server
+    Socket_Server -->|Push Live Updates| UI_Buyer
+    Socket_Server -->|Push Live Updates| UI_Seller
+    Socket_Server -->|Push Live Updates| UI_Admin
 
-    API_Gateway -->|Verify Tokens| Firebase_Cloud
-    Ctrl_Payment -->|Send Push Notifications| Push_Service
+    API_Gateway -->|Token Verification| Firebase_Auth
+    Ctrl_Payment -->|Store Payment Receipts| Cloud_Storage
+    Ctrl_Order -->|Trigger Alerts| Push_Service
+```
+
+---
+
+## 👥 Role-Based Portals
+
+### 🛒 Buyer Experience
+- **Catalog & Search**: Live fuzzy search, multi-category filters (OTT, AI, VPN, Music, Gaming), price sliders, and warranty tier tags.
+- **1-Click Checkout**: Direct purchase or add-to-cart with automated bundle discounts and coupon validation.
+- **Escrow Protection**: Payment is held safely in escrow until the buyer confirms working credentials or the warranty window expires.
+- **Order Tracking & Chat**: Access purchased keys/credentials, trigger return/refund requests, and chat directly with sellers.
+
+### 📊 Seller Hub
+- **Product Management**: List digital credentials, license keys, or shared passes with custom warranty periods and stock counts.
+- **Bundle Creator**: Bundle complementary products together with custom bundle discounts.
+- **Product Request Pipeline**: Browse custom product requests from buyers and submit fulfillment offers.
+- **Seller Wallet & Payouts**: Real-time sales analytics, revenue graphs, escrow clearance schedules, and UPI/Bank payout requests.
+
+### 🛡️ Super Admin Control Center
+- **Payment Verification Hub (`ManagePayments`)**: View uploaded UPI payment screenshots, verify transaction IDs, and approve or reject transactions with automated Socket.IO triggers.
+- **Seller KYC Applications**: Review and approve or reject seller merchant onboarding applications.
+- **Refund Dispute Resolution**: Arbitrate buyer-seller disputes and issue wallet or original payment refunds.
+- **Platform Analytics**: Total GMV, active users, platform commission breakdown, and server health.
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Core**: React 18, Vite 5, JavaScript (ES6+)
+- **Styling**: Tailwind CSS v3, PostCSS, Custom Design System Tokens
+- **Interactive UI (ReactBits)**: `ShapeGrid`, `AuroraBackground`, `BorderBeam`, `SpotlightCard`, `ShinyText`, `CountUp`, `Magnet`
+- **State & Data**: Zustand, TanStack React Query v5, Axios
+- **Animations**: Framer Motion
+- **Icons**: React Icons (Heroicons, FontAwesome, Remix Icons)
+- **Real-time Client**: Socket.io Client
+
+### Backend
+- **Runtime**: Node.js v18+ with Express.js
+- **Language**: TypeScript with strict typing
+- **Database**: MongoDB Atlas with Mongoose ODM
+- **Real-time Engine**: Socket.IO (Event Rooms & User Direct Messaging)
+- **Cloud & Auth**: Firebase Admin SDK, Firebase Storage
+- **Security**: Helmet, CORS, Rate Limiting, Express Validator
+
+---
+
+## 📁 Project Structure
+
+```
+streamkart/
+├── backend/
+│   ├── src/
+│   │   ├── config/          # Database, Firebase & Environment config
+│   │   ├── controllers/     # Route controllers (Auth, Order, Payment, Chat, etc.)
+│   │   ├── middleware/      # Auth, Role, Validation, and Error middleware
+│   │   ├── models/          # Mongoose Schemas (User, Product, Order, Payment, Chat)
+│   │   ├── routes/          # Express API route declarations
+│   │   ├── services/        # Business logic & 3rd-party service integrations
+│   │   ├── utils/           # Helper utilities, logger, and formatters
+│   │   ├── app.ts           # Express application initialization
+│   │   ├── server.ts        # HTTP server entry point
+│   │   └── socket.ts        # Socket.IO event handler & room manager
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/
+│   ├── public/              # Static assets, icons, and logos
+│   ├── src/
+│   │   ├── assets/          # Images, illustrations, and media
+│   │   ├── components/      # Reusable UI components
+│   │   │   ├── common/      # Navbar, Footer, CategoryFilter, SearchBar
+│   │   │   ├── layouts/     # MainLayout, AuthLayout, DashboardLayout
+│   │   │   ├── reactbits/   # ShapeGrid, AuroraBackground, BorderBeam, etc.
+│   │   │   └── ui/          # Button, Input, Modal, Badge, Dropdown
+│   │   ├── context/         # React Context providers (AuthContext, SocketContext)
+│   │   ├── hooks/           # Custom React hooks (useAuth, useSocket, useDebounce)
+│   │   ├── pages/           # Application views
+│   │   │   ├── admin/       # Super Admin portal views
+│   │   │   ├── auth/        # Login, Register, PhoneLogin, ForgotPassword
+│   │   │   ├── dashboard/   # Buyer & Seller dashboard views
+│   │   │   ├── marketplace/ # Home, ProductList, ProductDetail, Checkout, Cart
+│   │   │   └── public/      # About, Contact, Terms, Privacy, Maintenance
+│   │   ├── routes/          # AppRouter with safeLazy route guards & role gates
+│   │   ├── services/        # Axios API client services
+│   │   ├── store/           # Zustand global state stores (cart, auth, theme)
+│   │   ├── App.jsx          # Root component
+│   │   ├── index.css        # Global Tailwind CSS & custom design tokens
+│   │   └── main.jsx         # React DOM entry point
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+│
+└── README.md
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these instructions to set up StreamKart locally for development and testing.
-
 ### Prerequisites
+Make sure your development machine has:
+- **Node.js** (v18.0.0 or higher)
+- **npm** or **yarn** / **pnpm**
+- **MongoDB** (Local instance or free MongoDB Atlas cluster)
+- **Firebase Account** (Authentication & Storage enabled)
 
-Ensure your local environment meets the following requirements:
-- Node.js (v18.0.0 or higher)
-- npm or yarn package manager
-- A MongoDB Atlas Cluster (or Local MongoDB instance)
-- A Firebase Project (with Auth and Storage enabled)
+---
 
-### 1. Backend Setup
+### 1. Clone the Repository
 
 ```bash
-# Navigate to the backend directory
+git clone https://github.com/bhumitsoni20/Prime-net.git streamkart
+cd streamkart
+```
+
+---
+
+### 2. Backend Setup
+
+```bash
+# Navigate to backend directory
 cd backend
 
 # Install dependencies
@@ -181,14 +280,16 @@ npm install
 # Create environment configuration
 cp .env.example .env
 
-# Start the development server (Defaults to port 5000)
+# Start backend dev server (Defaults to http://localhost:5000)
 npm run dev
 ```
 
-### 2. Frontend Setup
+---
+
+### 3. Frontend Setup
 
 ```bash
-# Navigate to the frontend directory
+# Open a new terminal and navigate to frontend directory
 cd frontend
 
 # Install dependencies
@@ -197,7 +298,7 @@ npm install
 # Create environment configuration
 cp .env.example .env
 
-# Start the Vite development server (Defaults to port 5173)
+# Start Vite dev server (Defaults to http://localhost:5173)
 npm run dev
 ```
 
@@ -205,29 +306,85 @@ npm run dev
 
 ## 🔒 Environment Variables
 
-To run this project securely, add the following environment variables to your respective `.env` files. 
-
-> **Warning:** Never commit your `.env` files to version control. Reference the provided `.env.example` files in the repository.
-
 ### Backend (`backend/.env`)
-| Variable | Description |
-|----------|-------------|
-| `PORT` | API Server port (e.g., 5000) |
-| `MONGODB_URI` | MongoDB Connection String |
-| `ADMIN_EMAIL` | Super Admin Email for Admin role assignment |
-| `FIREBASE_PROJECT_ID` | Firebase Admin SDK Project ID |
-| `FIREBASE_CLIENT_EMAIL` | Firebase Admin SDK Service Account Email |
-| `FIREBASE_PRIVATE_KEY` | Firebase Admin SDK Private Key |
+
+| Variable | Required | Description | Example |
+|---|---|---|---|
+| `PORT` | No | API Server port | `5000` |
+| `MONGODB_URI` | **Yes** | MongoDB Atlas connection string | `mongodb+srv://...` |
+| `JWT_SECRET` | **Yes** | Secret for signing auth tokens | `your_super_jwt_secret_key` |
+| `ADMIN_EMAIL` | **Yes** | Super Admin email for admin privileges | `admin@streamkart.com` |
+| `FIREBASE_PROJECT_ID` | **Yes** | Firebase Project ID | `streamkart-auth` |
+| `FIREBASE_CLIENT_EMAIL` | **Yes** | Firebase Service Account Email | `firebase-adminsdk@...` |
+| `FIREBASE_PRIVATE_KEY` | **Yes** | Firebase Private Key | `"-----BEGIN PRIVATE KEY-----\n..."` |
+| `CLIENT_URL` | No | Allowed frontend origin for CORS | `http://localhost:5173` |
 
 ### Frontend (`frontend/.env`)
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Backend API URL (e.g., `http://localhost:5000/api`) |
-| `VITE_SOCKET_URL` | Socket.IO Server URL (e.g., `http://localhost:5000`) |
-| `VITE_FIREBASE_API_KEY` | Firebase Client API Key |
+
+| Variable | Required | Description | Example |
+|---|---|---|---|
+| `VITE_API_URL` | **Yes** | Backend REST API endpoint | `http://localhost:5000/api` |
+| `VITE_SOCKET_URL` | **Yes** | Backend Socket.IO endpoint | `http://localhost:5000` |
+| `VITE_FIREBASE_API_KEY` | **Yes** | Firebase Web Client API Key | `AIzaSy...` |
+| `VITE_FIREBASE_AUTH_DOMAIN`| **Yes** | Firebase Auth Domain | `streamkart.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | **Yes** | Firebase Project ID | `streamkart-auth` |
+| `VITE_FIREBASE_STORAGE_BUCKET`| **Yes** | Firebase Storage Bucket | `streamkart.appspot.com` |
 
 ---
 
+## 📡 Real-Time Socket.IO Events
+
+| Event Name | Direction | Payload | Description |
+|---|---|---|---|
+| `join_order_chat` | Client $\rightarrow$ Server | `{ orderId, userId }` | Joins private room for order-specific conversation |
+| `send_message` | Client $\rightarrow$ Server | `{ orderId, senderId, text, attachment }` | Emits message to order room participants |
+| `receive_message` | Server $\rightarrow$ Client | `MessageObject` | Receives new incoming chat message in real time |
+| `payment_submitted` | Client $\rightarrow$ Server | `{ paymentId, orderId, buyerId }` | Notifies admins of a newly submitted UPI proof |
+| `payment_approved` | Server $\rightarrow$ Client | `{ paymentId, orderId }` | Triggers live 3s countdown & instant redirect |
+| `payment_rejected` | Server $\rightarrow$ Client | `{ paymentId, reason, canRetry }` | Triggers live rejection pop-up with retry button |
+
+---
+
+## 📜 Available Scripts
+
+### Backend (`backend/package.json`)
+- `npm run dev` — Starts TypeScript compiler with hot-reloading using `tsx` / `nodemon`
+- `npm run build` — Compiles TypeScript into production JavaScript in `dist/`
+- `npm run start` — Runs the compiled production server
+- `npm run lint` — Runs ESLint across backend source files
+
+### Frontend (`frontend/package.json`)
+- `npm run dev` — Starts the Vite development server with HMR
+- `npm run build` — Builds optimized production bundle with Gzip & Brotli compression
+- `npm run preview` — Locally previews production build
+- `npm run lint` — Runs ESLint across frontend components
+
+---
+
+## 🛡️ Security & Escrow Guarantee
+
+- **Escrow Settlement**: All buyer funds remain in safe escrow custody until access credentials are confirmed active.
+- **Zero Raw Credentials Storage**: Sensitive pass credentials and tokens are encrypted with AES-256 before persistence.
+- **Admin Verification Audit Trail**: Every payment approval or rejection is immutably timestamped with the acting admin ID and reason notes.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+1. Fork the project repository.
+2. Create your feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=5B4BFF&height=100&section=footer" width="100%" alt="Footer Wave" />
+  <p>© 2026 StreamKart Inc. All rights reserved.</p>
 </div>

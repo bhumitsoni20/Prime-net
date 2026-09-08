@@ -30,6 +30,7 @@ export const useCreateProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['sellerProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['publicStats'] });
     },
   });
 };
@@ -41,6 +42,7 @@ export const useUpdateProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['sellerProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['publicStats'] });
     },
   });
 };
@@ -52,6 +54,7 @@ export const useDeleteProduct = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['sellerProducts'] });
+      queryClient.invalidateQueries({ queryKey: ['publicStats'] });
     },
   });
 };

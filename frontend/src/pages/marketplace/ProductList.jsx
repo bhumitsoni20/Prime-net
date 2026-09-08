@@ -61,7 +61,7 @@ const ProductList = () => {
   const [selectedDurations, setSelectedDurations] = useState(duration ? duration.split(',') : []);
   const [priceRange, setPriceRange] = useState([0, parseInt(searchParams.get('maxPrice')) || 2000]);
   const [ratingFilter, setRatingFilter] = useState(parseInt(searchParams.get('minRating')) || 0);
-  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'createdAt_desc');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   // Fetch Category Counts
@@ -177,6 +177,7 @@ const ProductList = () => {
     setPriceRange([0, 2000]);
     setRatingFilter(0);
     setSearch('');
+    setSortBy('createdAt_desc');
     setPage(1);
     setSearchParams({}, { replace: true });
   };
@@ -249,10 +250,10 @@ const ProductList = () => {
                 onChange={handleSortChange}
                 className="bg-[#F8FAFC] border border-slate-200 rounded-[16px] px-4 py-3 text-slate-800 text-sm font-bold focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[#5B4BFF]/15 focus:border-[#5B4BFF] transition-all cursor-pointer"
               >
+                <option value="createdAt_desc">✨ Newest First</option>
                 <option value="rating">★ Highest Rated</option>
                 <option value="price_asc">Price: Low to High</option>
                 <option value="price_desc">Price: High to Low</option>
-                <option value="createdAt_desc">✨ Newest First</option>
               </select>
 
               {/* Mobile Filter Button */}

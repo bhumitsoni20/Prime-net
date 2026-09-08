@@ -18,8 +18,8 @@ const Home = () => {
   const [page, setPage] = useState(1);
   const productSectionRef = useRef(null);
 
-  // Fetch paginated products directly for the home page showcase
-  const { data: productsData, isLoading } = useProducts(`page=${page}&limit=12&sort=rating`);
+  // Fetch paginated products directly for the home page showcase (newest first)
+  const { data: productsData, isLoading } = useProducts(`page=${page}&limit=12&sort=createdAt_desc`);
 
   const { data: stats } = useQuery({
     queryKey: ['publicStats'],

@@ -40,8 +40,16 @@ export const getProducts = async (req: Request, res: Response) => {
     const sort: any = {};
     if (req.query.sort === 'price_asc') sort.price = 1;
     else if (req.query.sort === 'price_desc') sort.price = -1;
-    else if (req.query.sort === 'rating') sort.ratings = -1;
-    else sort.createdAt = -1;
+    else if (req.query.sort === 'rating') {
+      sort.ratings = -1;
+      sort.createdAt = -1;
+    } else if (req.query.sort === 'oldest') {
+      sort.createdAt = 1;
+    } else {
+      // Default: Newest first (newest createdAt, then newest _id)
+      sort.createdAt = -1;
+      sort._id = -1;
+    }
 
     const cacheKey = `products_${JSON.stringify(req.query)}`;
     let cachedData = Cache.get(cacheKey);
@@ -130,7 +138,9 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
       status: 'active', // Automatically approve products
     });
 
-    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
+    Cache.invalidatePrefix('products_');
+    Cache.invalidatePrefix('admin_products_');
+    Cache.invalidate('public_stats');
     return sendSuccess(res, product, 'Product created and is now live.', 201);
   } catch (error: any) {
     return sendError(res, error.message);
@@ -164,7 +174,9 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
       runValidators: true,
     });
 
-    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
+    Cache.invalidatePrefix('products_');
+    Cache.invalidatePrefix('admin_products_');
+    Cache.invalidate('public_stats');
     return sendSuccess(res, updated, 'Product updated.');
   } catch (error: any) {
     return sendError(res, error.message);
@@ -182,7 +194,9 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
     }
 
     await Product.findByIdAndDelete(req.params.id);
-    Cache.invalidatePrefix('products_'); Cache.invalidate('public_stats');
+    Cache.invalidatePrefix('products_');
+    Cache.invalidatePrefix('admin_products_');
+    Cache.invalidate('public_stats');
     return sendSuccess(res, null, 'Product deleted.');
   } catch (error: any) {
     return sendError(res, error.message);

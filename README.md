@@ -277,9 +277,6 @@ cd backend
 # Install dependencies
 npm install
 
-# Create environment configuration
-cp .env.example .env
-
 # Start backend dev server (Defaults to http://localhost:5000)
 npm run dev
 ```
@@ -295,40 +292,9 @@ cd frontend
 # Install dependencies
 npm install
 
-# Create environment configuration
-cp .env.example .env
-
 # Start Vite dev server (Defaults to http://localhost:5173)
 npm run dev
 ```
-
----
-
-## 🔒 Environment Variables
-
-### Backend (`backend/.env`)
-
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `PORT` | No | API Server port | `5000` |
-| `MONGODB_URI` | **Yes** | MongoDB Atlas connection string | `mongodb+srv://...` |
-| `JWT_SECRET` | **Yes** | Secret for signing auth tokens | `your_super_jwt_secret_key` |
-| `ADMIN_EMAIL` | **Yes** | Super Admin email for admin privileges | `admin@streamkart.com` |
-| `FIREBASE_PROJECT_ID` | **Yes** | Firebase Project ID | `streamkart-auth` |
-| `FIREBASE_CLIENT_EMAIL` | **Yes** | Firebase Service Account Email | `firebase-adminsdk@...` |
-| `FIREBASE_PRIVATE_KEY` | **Yes** | Firebase Private Key | `"-----BEGIN PRIVATE KEY-----\n..."` |
-| `CLIENT_URL` | No | Allowed frontend origin for CORS | `http://localhost:5173` |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `VITE_API_URL` | **Yes** | Backend REST API endpoint | `http://localhost:5000/api` |
-| `VITE_SOCKET_URL` | **Yes** | Backend Socket.IO endpoint | `http://localhost:5000` |
-| `VITE_FIREBASE_API_KEY` | **Yes** | Firebase Web Client API Key | `AIzaSy...` |
-| `VITE_FIREBASE_AUTH_DOMAIN`| **Yes** | Firebase Auth Domain | `streamkart.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | **Yes** | Firebase Project ID | `streamkart-auth` |
-| `VITE_FIREBASE_STORAGE_BUCKET`| **Yes** | Firebase Storage Bucket | `streamkart.appspot.com` |
 
 ---
 
@@ -379,10 +345,6 @@ Contributions are welcome! Please follow these steps:
 5. Open a Pull Request.
 
 ---
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 <div align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=5B4BFF&height=100&section=footer" width="100%" alt="Footer Wave" />

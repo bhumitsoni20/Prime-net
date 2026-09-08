@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { HiShoppingBag, HiUsers, HiStar, HiExclamation, HiPlus, HiPencil, HiDotsVertical } from 'react-icons/hi';
+import { 
+  HiShoppingBag, 
+  HiUsers, 
+  HiCube, 
+  HiClock, 
+  HiPlus, 
+  HiCurrencyRupee, 
+  HiArrowSmUp, 
+  HiCheckCircle, 
+  HiOutlineSparkles,
+  HiOutlineShieldCheck
+} from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import { getSellerProducts } from '../../services/product.service';
 import { getSellerOrders } from '../../services/order.service';
@@ -54,127 +65,243 @@ const SellerDashboard = () => {
   const uniqueCustomers = new Set(orders.map(o => o.user?._id).filter(Boolean)).size;
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-[-0.02em] mb-1">Seller Dashboard</h1>
-          <p className="text-[#64748B] text-[15px]">Welcome back, <span className="font-semibold text-[#0F172A]">{user?.name}</span>. Here's your shop performance.</p>
+    <div className="space-y-8">
+      {/* Header Welcome Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-[24px] border border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center gap-4">
+          <Avatar 
+            src={user?.avatar} 
+            name={user?.name} 
+            size="lg" 
+            className="ring-4 ring-[#EEF2FF] shadow-sm border border-[#E2E8F0]" 
+          />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-[24px] sm:text-[26px] font-extrabold text-[#0F172A] tracking-[-0.02em]">
+                {user?.name || 'Seller Central'}
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+                <HiCheckCircle className="w-3.5 h-3.5 text-[#10B981]" /> Verified Merchant
+              </span>
+            </div>
+            <p className="text-[#64748B] text-[14px]">
+              Here is your digital storefront performance and live customer order pipeline.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Avatar src={user?.avatar} name={user?.name} size="md" className="ring-2 ring-white shadow-sm" />
+
+        <div className="flex items-center gap-2.5">
+          <Link to="/seller/products/new">
+            <Button size="md" className="shadow-[0_4px_14px_rgba(91,75,255,0.25)] flex items-center gap-1.5 font-bold">
+              <HiPlus className="w-4 h-4" /> Add Product
+            </Button>
+          </Link>
+          <Link to="/seller/bundles/create">
+            <Button size="md" variant="secondary" className="border-[#E2E8F0] flex items-center gap-1.5 font-bold">
+              <HiOutlineSparkles className="w-4 h-4 text-[#5B4BFF]" /> Create Bundle
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard icon={HiShoppingBag} label="Total Sales" value={loading ? '...' : `₹${totalSales.toLocaleString()}`} color="blue" />
-        <StatsCard icon={HiUsers} label="Active Customers" value={loading ? '...' : uniqueCustomers} color="green" />
-        <StatsCard icon={HiStar} label="Total Products" value={loading ? '...' : products.length} color="amber" />
-        <StatsCard icon={HiExclamation} label="Pending Orders" value={loading ? '...' : pendingOrders} color="red" alert={pendingOrders > 0} />
+      {/* KPI Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard 
+          icon={HiCurrencyRupee} 
+          label="Total Gross Sales" 
+          value={loading ? '...' : `₹${totalSales.toLocaleString('en-IN')}`} 
+          color="blue" 
+        />
+        <StatsCard 
+          icon={HiUsers} 
+          label="Active Buyers" 
+          value={loading ? '...' : uniqueCustomers} 
+          color="green" 
+        />
+        <StatsCard 
+          icon={HiCube} 
+          label="Listed Products" 
+          value={loading ? '...' : products.length} 
+          color="purple" 
+        />
+        <StatsCard 
+          icon={HiClock} 
+          label="Pending Orders" 
+          value={loading ? '...' : pendingOrders} 
+          color="amber" 
+          alert={pendingOrders > 0} 
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      {/* Analytics & Payout Bento */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Analytics Chart */}
         <div className="lg:col-span-2">
           <RevenueChart totalRevenue={totalSales} data={generateLast6MonthsData(orders)} />
         </div>
 
-        {/* Payout Card */}
-        <div className="bg-[#0F172A] rounded-[24px] p-7 text-white relative overflow-hidden shadow-[0_8px_30px_-4px_rgba(15,23,42,0.4)]">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-[#5B4BFF] rounded-full blur-[48px] opacity-30"></div>
-          
-          <div className="relative">
-            <h3 className="font-bold text-[18px] mb-6 tracking-tight">Available for Payout</h3>
-            <div className="bg-white/5 border border-white/10 rounded-[16px] p-5 mb-6 backdrop-blur-md">
-              <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-[0.08em] mb-1.5">Wallet Balance (95% Net)</p>
-              <p className="text-[32px] font-extrabold tracking-tight">
-                ₹{loading ? '...' : (walletBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
+        {/* Luminous Payout Card (Strict Light Mode) */}
+        <div className="bg-gradient-to-br from-white via-[#F8FAFC] to-[#EEF2FF] rounded-[24px] p-7 border border-[#C7D2FE]/60 shadow-[0_4px_20px_rgba(91,75,255,0.06)] relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 -mr-12 -mt-12 w-40 h-40 bg-gradient-to-br from-[#5B4BFF]/20 to-[#7C3AED]/20 rounded-full blur-[32px] pointer-events-none"></div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-extrabold text-[#5B4BFF] uppercase tracking-[0.08em] bg-[#EEF2FF] px-2.5 py-1 rounded-full border border-[#E0E7FF]">
+                Instant Merchant Payout
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                <span className="text-[11px] font-bold text-[#10B981]">24h SLA Active</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-2 h-2 bg-[#10B981] rounded-full"></div>
-              <p className="text-[#94A3B8] text-[13px] font-medium">Guaranteed 24-Hour Payouts</p>
+
+            <h3 className="text-[16px] font-bold text-[#64748B] mb-1">Available for Withdrawal</h3>
+            
+            <div className="text-[34px] font-black text-[#0F172A] tracking-tight mb-2">
+              ₹{loading ? '...' : (walletBalance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <Link to="/seller/wallet"><Button className="w-full mb-3 bg-[#5B4BFF] hover:bg-[#4F3FE8] border-none shadow-[0_4px_14px_rgba(91,75,255,0.4)]">Withdraw Funds</Button></Link>
-            <Link to="/seller/wallet"><Button variant="secondary" className="w-full border-none bg-white/10 text-white hover:bg-white/20">Wallet & Payout Settings</Button></Link>
+
+            <p className="text-[12px] text-[#64748B] leading-relaxed mb-6">
+              95% net sales earnings deposited into your registered UPI ID / QR code within 24 hours.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 pt-4 border-t border-[#E2E8F0]">
+            <Link to="/seller/wallet" className="block">
+              <Button className="w-full bg-[#5B4BFF] hover:bg-[#4F3FE8] text-white font-bold shadow-[0_4px_14px_rgba(91,75,255,0.25)] flex items-center justify-center gap-2">
+                <HiArrowSmUp className="w-4 h-4" /> Withdraw Funds Now
+              </Button>
+            </Link>
+            <Link to="/seller/wallet" className="block">
+              <Button variant="secondary" className="w-full border-[#E2E8F0] font-bold text-[13px]">
+                Wallet & Payout Settings
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Notifications */}
-        <div className="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-[24px] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between mb-6 border-b border-[#F1F5F9] pb-4">
-            <h3 className="font-bold text-[17px] text-[#0F172A]">Notifications</h3>
-            <Link to="/notifications"><Button variant="secondary" size="sm" className="font-semibold text-[13px]">View All</Button></Link>
-          </div>
-          <div className="space-y-4">
-            {loading ? (
-              <p className="text-[#94A3B8] text-[14px] text-center py-6 font-medium animate-pulse">Loading...</p>
-            ) : notifications.length === 0 ? (
-              <div className="text-center py-8 bg-[#F8FAFC] rounded-[16px]">
-                <p className="text-[#64748B] text-[14px] font-medium">No recent notifications</p>
-              </div>
-            ) : (
-              notifications.map((notif) => (
-                <div key={notif._id} className="flex items-start gap-4 p-3 rounded-[16px] hover:bg-[#F8FAFC] transition-colors cursor-pointer group">
-                  <div className={`h-11 w-11 rounded-[14px] flex items-center justify-center text-xl flex-shrink-0 shadow-sm ${!notif.read ? 'bg-[#EEF2FF] border border-[#E0E7FF] text-[#5B4BFF]' : 'bg-[#F8FAFC] border border-[#F1F5F9] text-[#64748B]'}`}>
-                    {notif.type === 'order' ? '📦' : notif.type === 'review' ? '⭐' : '📣'}
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <p className={`text-[14px] leading-tight mb-1 truncate group-hover:text-[#5B4BFF] transition-colors ${!notif.read ? 'text-[#0F172A] font-bold' : 'text-[#334155] font-semibold'}`}>{notif.title}</p>
-                    <p className="text-[#64748B] text-[13px] line-clamp-2 leading-relaxed">{(notif.message || '').replace(/\?(\d)/g, '₹$1')}</p>
-                  </div>
+      {/* Notifications and Recent Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Recent Notifications */}
+        <div className="lg:col-span-2 bg-white border border-[#E2E8F0] rounded-[24px] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-5 border-b border-[#F1F5F9] pb-4">
+              <h3 className="font-extrabold text-[17px] text-[#0F172A]">Store Alerts</h3>
+              <Link to="/notifications">
+                <span className="text-[12px] font-bold text-[#5B4BFF] hover:underline">View All</span>
+              </Link>
+            </div>
+            
+            <div className="space-y-3">
+              {loading ? (
+                <p className="text-[#94A3B8] text-[13px] text-center py-6 font-medium animate-pulse">Loading alerts...</p>
+              ) : notifications.length === 0 ? (
+                <div className="text-center py-10 bg-[#F8FAFC] rounded-[16px]">
+                  <p className="text-[#64748B] text-[13px] font-semibold">No pending notifications</p>
                 </div>
-              ))
-            )}
+              ) : (
+                notifications.slice(0, 4).map((notif) => (
+                  <div key={notif._id} className="flex items-start gap-3 p-3 rounded-[16px] hover:bg-[#F8FAFC] transition-colors cursor-pointer group border border-transparent hover:border-[#E2E8F0]">
+                    <div className={`h-10 w-10 rounded-[12px] flex items-center justify-center text-lg flex-shrink-0 shadow-xs ${!notif.read ? 'bg-[#EEF2FF] border border-[#E0E7FF] text-[#5B4BFF]' : 'bg-[#F8FAFC] border border-[#F1F5F9] text-[#64748B]'}`}>
+                      {notif.type === 'order' ? '📦' : notif.type === 'review' ? '⭐' : '📣'}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <p className={`text-[13.5px] leading-tight mb-1 truncate group-hover:text-[#5B4BFF] transition-colors ${!notif.read ? 'text-[#0F172A] font-bold' : 'text-[#334155] font-semibold'}`}>
+                        {notif.title}
+                      </p>
+                      <p className="text-[#64748B] text-[12px] line-clamp-2 leading-relaxed">
+                        {(notif.message || '').replace(/\?(\d)/g, '₹$1')}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Product Management Table */}
-        <div className="lg:col-span-3 bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center justify-between p-6 border-b border-[#F1F5F9] bg-[#F8FAFC]">
-            <h3 className="font-bold text-[17px] text-[#0F172A]">Recent Products</h3>
-            <div className="flex gap-2">
-              <Link to="/seller/bundles/create">
-                <Button size="sm" variant="secondary" className="font-semibold shadow-sm text-[#5B4BFF] border-[#5B4BFF]/20 bg-[#5B4BFF]/5 hover:bg-[#5B4BFF]/10">
-                  <HiPlus className="w-[18px] h-[18px] mr-1.5" /> Create Bundle
-                </Button>
-              </Link>
-              <Link to="/seller/products/new">
-                <Button size="sm" className="font-semibold shadow-sm">
-                  <HiPlus className="w-[18px] h-[18px] mr-1.5" /> Add Product
+        {/* Recent Products Table */}
+        <div className="lg:col-span-3 bg-white border border-[#E2E8F0] rounded-[24px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between p-6 border-b border-[#F1F5F9] bg-[#F8FAFC]">
+              <div>
+                <h3 className="font-extrabold text-[17px] text-[#0F172A]">Recent Inventory</h3>
+                <p className="text-[12px] text-[#64748B]">Your most recently updated product listings</p>
+              </div>
+              <Link to="/seller/products">
+                <Button size="sm" variant="secondary" className="font-bold text-[12px] border-[#E2E8F0]">
+                  View All ({products.length})
                 </Button>
               </Link>
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead><tr className="border-b border-[#F1F5F9] text-left text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] bg-white">
-                <th className="p-5 pl-6">Product Name</th>
-                <th className="p-5">Status</th>
-                <th className="p-5 pr-6 text-right">Price</th>
-              </tr></thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={3} className="p-12 text-center text-[#94A3B8] font-medium animate-pulse">Loading products...</td></tr>
-                ) : products.length === 0 ? (
-                  <tr><td colSpan={3} className="p-12 text-center text-[#64748B] font-medium bg-[#F8FAFC]">No products yet. Add your first product!</td></tr>
-                ) : (
-                  products.map((p) => (
-                    <tr key={p._id} className="border-b border-[#F1F5F9] hover:bg-[#F8FAFC] transition-colors group cursor-pointer">
-                      <td className="p-5 pl-6">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-[14px] bg-[#EEF2FF] border border-[#E0E7FF] flex items-center justify-center text-[#5B4BFF] text-xl font-extrabold shadow-sm">{p.title[0]}</div>
-                          <span className="text-[#0F172A] font-bold text-[14px] group-hover:text-[#5B4BFF] transition-colors">{p.title}</span>
-                        </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#F1F5F9] text-left text-[11px] font-bold text-[#94A3B8] uppercase tracking-[0.08em] bg-white">
+                    <th className="p-4 pl-6">Product</th>
+                    <th className="p-4">Category</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4 pr-6 text-right">Price</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F1F5F9]">
+                  {loading ? (
+                    <tr><td colSpan={4} className="p-12 text-center text-[#94A3B8] font-medium animate-pulse">Loading inventory...</td></tr>
+                  ) : products.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-12 text-center text-[#64748B] font-medium bg-[#F8FAFC]">
+                        No products added yet. Click "+ Add Product" to publish your first item!
                       </td>
-                      <td className="p-5"><Badge variant={p.status === 'active' ? 'success' : p.status === 'pending' ? 'warning' : 'gray'}>{p.status.toUpperCase()}</Badge></td>
-                      <td className="p-5 pr-6 text-right"><span className="text-[#0F172A] font-extrabold text-[15px]">₹{p.price.toLocaleString()}</span></td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    products.slice(0, 5).map((p) => (
+                      <tr key={p._id} className="hover:bg-[#F8FAFC] transition-colors group">
+                        <td className="p-4 pl-6">
+                          <div className="flex items-center gap-3">
+                            {p.logo ? (
+                              <div className="w-10 h-10 rounded-[10px] border border-[#E2E8F0] bg-white shadow-xs overflow-hidden flex-shrink-0 p-1 flex items-center justify-center">
+                                <img src={p.logo} alt={p.title} className="max-w-full max-h-full object-contain" />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-[10px] bg-[#EEF2FF] border border-[#E0E7FF] text-[#5B4BFF] flex items-center justify-center text-sm font-extrabold shadow-xs flex-shrink-0">
+                                {p.title?.[0] || 'P'}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <span className="text-[#0F172A] font-bold text-[14px] group-hover:text-[#5B4BFF] transition-colors block truncate max-w-[180px]">
+                                {p.title}
+                              </span>
+                              {p.duration && (
+                                <span className="text-[11px] font-semibold text-[#64748B]">
+                                  {p.duration}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-[12px] font-semibold text-[#64748B] capitalize">
+                            {p.category || 'General'}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant={p.status === 'active' ? 'success' : p.status === 'pending' ? 'warning' : 'gray'}>
+                            {p.status?.toUpperCase()}
+                          </Badge>
+                        </td>
+                        <td className="p-4 pr-6 text-right">
+                          <span className="text-[#0F172A] font-extrabold text-[15px]">
+                            ₹{Number(p.price || 0).toLocaleString('en-IN')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
